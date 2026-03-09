@@ -29,3 +29,22 @@ export interface ProgressRecord {
     // Key: "s{season}e{episode}" e.g., "s1e5"
     episodes?: Record<string, EpisodeProgress>;
 }
+
+declare global {
+    interface Window {
+        electron: {
+            saveProgress: (fileName: string, data: any) => Promise<{ success: boolean; error?: string }>;
+            loadProgress: (fileName: string) => Promise<any>;
+            deleteProgress: (fileName: string) => Promise<{ success: boolean; error?: string }>;
+            getAllProgress: () => Promise<any[]>;
+            clearAllProgress: () => Promise<{ success: boolean; error?: string }>;
+
+            // Auto Updater
+            onUpdateAvailable: (callback: (info: any) => void) => void;
+            onUpdateError: (callback: (error: string) => void) => void;
+            onDownloadProgress: (callback: (progress: any) => void) => void;
+            onUpdateDownloaded: (callback: (info: any) => void) => void;
+            quitAndInstall: () => Promise<void>;
+        };
+    }
+}

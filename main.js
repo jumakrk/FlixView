@@ -4,6 +4,7 @@ const fs = require('fs');
 const { ElectronBlocker } = require('@cliqz/adblocker-electron');
 const fetch = require('cross-fetch');
 const serve = require('electron-serve').default;
+const { autoUpdater } = require('electron-updater');
 
 const loadURL = serve({ directory: 'out' });
 
@@ -87,6 +88,56 @@ ipcMain.handle('clear-all-progress', async (event) => {
     } catch (error) {
         return { success: false, error: error.message };
     }
+});
+
+// --- Auto Updater Integration ---
+
+// Configure autoUpdater
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Logging for updates
+autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version);
+    if (win) {
+        win.webContents.send('update-available', info);
+    }
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    console.log('Update not available.');
+});
+
+autoUpdater.on('error', (err) => {
+    console.error('Error in auto-updater:', err);
+    if (win) {
+        win.webContents.send('update-error', err.message);
+    }
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = "Download speed: " + progressObj.bytesPerSecond;
+    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+    console.log(log_message);
+    if (win) {
+        win.webContents.send('download-progress', progressObj);
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded');
+    if (win) {
+        win.webContents.send('update-downloaded', info);
+    }
+});
+
+ipcMain.handle('quit-and-install', () => {
+    autoUpdater.quitAndInstall();
 });
 
 
@@ -258,7 +309,19 @@ app.on('web-contents-created', (event, contents) => {
     });
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+    
+    // Check for updates on startup
+    if (app.isPackaged) {
+        autoUpdater.checkForUpdatesAndNotify();
+        
+        // Also check every 4 hours
+        setInterval(() => {
+            autoUpdater.checkForUpdatesAndNotify();
+        }, 4 * 60 * 60 * 1000);
+    }
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

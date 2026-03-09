@@ -64,6 +64,7 @@
     "clsx": "^2.1.1",
     "cross-fetch": "^4.1.0",
     "electron-serve": "^3.0.1",
+    "electron-updater": "^6.8.3",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.562.0",
     "next": "^16.1.1",

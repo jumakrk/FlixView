@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import ScrollToTop from "@/components/ScrollToTop";
+import UpdateNotification from "@/components/UpdateNotification";
 
 
 import { PlayerProvider } from "@/context/PlayerContext";
@@ -38,6 +39,7 @@ export default function RootLayout({
               <DataProvider>
                 <div className="flex min-h-screen">
                   <ScrollToTop />
+                  <UpdateNotification />
                   <Sidebar />
                   <div className="flex-1 flex flex-col min-w-0 md:pl-[260px] pl-[80px] transition-[padding] duration-300">
                     <TopBar />
