@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Play, Download, ExternalLink, MessageSquare, Send, Monitor, Apple, Terminal } from 'lucide-react';
+import { Play, Download, MessageSquare, Send, Monitor, Apple, Terminal } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function LandingPage() {
@@ -13,22 +13,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-white selection:bg-primary/30 selection:text-white">
-      {/* Navbar placeholder for landing */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between glass-panel border-none bg-black/20 backdrop-blur-xl">
-        <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.5)]">
-                <Play size={20} fill="currentColor" className="ml-1" />
-            </div>
-            <span className="text-xl font-black tracking-tighter uppercase italic">FlixView</span>
-        </div>
-        <Link 
-            href="/browse"
-            className="px-6 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all font-semibold text-sm flex items-center gap-2"
-        >
-            Launch App <ExternalLink size={14} />
-        </Link>
-      </nav>
-
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 overflow-hidden min-h-screen flex flex-col items-center justify-center text-center">
         {/* Decorative Blobs */}
@@ -52,17 +36,10 @@ export default function LandingPage() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-16">
                 <Link 
                     href={downloadLinks.windows}
-                    className="w-full md:w-auto px-8 py-5 rounded-2xl bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_10px_40px_rgba(124,58,237,0.4)]"
+                    className="w-full md:w-auto px-12 py-6 rounded-2xl bg-primary text-white font-bold text-xl flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_10px_50px_rgba(124,58,237,0.5)]"
                 >
-                    <Download size={22} />
+                    <Download size={24} />
                     Download for Windows
-                </Link>
-                <Link 
-                    href="/browse"
-                    className="w-full md:w-auto px-8 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
-                >
-                    <Play size={20} fill="currentColor" />
-                    Browse Online
                 </Link>
             </div>
 
