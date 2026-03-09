@@ -1,0 +1,234 @@
+/* Navbar Styles */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    /* Higher priority */
+    transition: all 0.4s ease-in-out;
+    padding: 0;
+    /* Changed to handle titleBar */
+    background: transparent;
+    backdrop-filter: none;
+}
+
+.titleBar {
+    height: 32px;
+    width: 100%;
+    background: #0a0a0a;
+    -webkit-app-region: drag;
+    flex-shrink: 0;
+}
+
+.scrolled {
+    background: rgba(5, 5, 5, 0.85);
+    /* Dark tint on scroll */
+    backdrop-filter: blur(20px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    padding: 2px 0;
+    /* Slight tightening on scroll */
+}
+
+.container {
+    width: 100%;
+    padding: 10px 4%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #a3a3a3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+}
+
+.logo-text {
+    display: inline;
+}
+
+/* Nav Links - Desktop/Tablet Centered */
+.nav-links-desktop {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+    white-space: nowrap;
+    -webkit-app-region: no-drag;
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.nav-link:hover {
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--primary-glow);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.right-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 10;
+    -webkit-app-region: no-drag;
+}
+
+.icon-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px var(--primary-glow);
+    border-color: var(--primary-glow);
+}
+
+.avatar {
+    border-radius: 50%;
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: border-color 0.3s;
+}
+
+.avatar:hover {
+    border-color: var(--secondary-glow);
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    color: #fff;
+    padding: 8px 16px;
+    outline: none;
+    width: 200px;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    border-color: var(--secondary-glow);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    width: 240px;
+}
+
+/* Mobile Bottom Nav Bar */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-top: 1px solid var(--glass-border);
+    z-index: 1000;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    box-shadow: 0 -8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.mobile-nav-link {
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.3s;
+}
+
+.mobile-nav-link:hover {
+    color: #fff;
+}
+
+/* --- Tablet Responsiveness (Icons only in top bar) --- */
+@media (max-width: 1024px) {
+    .nav-label {
+        display: none;
+    }
+
+    .nav-links-desktop {
+        gap: 15px;
+    }
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+    .logo-text {
+        display: none;
+        /* Hide FLIXVIEW text */
+    }
+
+    .nav-links-desktop {
+        display: none;
+        /* Hide center links from top bar */
+    }
+
+    .mobile-bottom-nav {
+        display: flex;
+        /* Show bottom bar */
+    }
+
+    .right-section {
+        gap: 10px;
+    }
+
+    .search-input {
+        width: 120px;
+    }
+
+    .search-input:focus {
+        width: 150px;
+    }
+}

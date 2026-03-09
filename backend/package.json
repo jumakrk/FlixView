@@ -1,0 +1,19 @@
+{
+    "name": "flixview-api",
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    },
+    "dependencies": {
+        "@hono/zod-validator": "^0.7.6",
+        "@types/bcryptjs": "^3.0.0",
+        "bcryptjs": "^3.0.3",
+        "hono": "^4.0.0",
+        "zod": "^3.25.76"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20240208.0",
+        "wrangler": "^4.58.0"
+    }
+}

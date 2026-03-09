@@ -1,0 +1,381 @@
+/* Full Screen Immersive Hero */
+.hero {
+    position: relative;
+    height: 100vh;
+    /* Fallback */
+    height: 100dvh;
+    /* Dynamic Viewport Height */
+    width: 100%;
+    overflow: hidden;
+    /* Ensure clean sans-serif inheritance */
+}
+
+@media (max-width: 1024px) {
+    .controls-desktop {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        height: 100dvh;
+    }
+
+    .title {
+        font-size: 1.6rem;
+        text-align: center;
+        width: 100%;
+        justify-content: center;
+        min-height: auto;
+    }
+
+    .hero-logo-container {
+        margin: 0 auto 1.5rem auto;
+        /* Center container */
+        max-width: 100%;
+        /* Ensure it fits screen width if needed */
+    }
+
+    .hero-logo {
+        object-position: center bottom;
+        /* Center image */
+    }
+
+    .meta-tags {
+        justify-content: center;
+        font-size: 11px;
+        gap: 6px;
+    }
+
+    .description {
+        font-size: 0.85rem;
+        text-align: center;
+        max-width: 100%;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        /* Even shorter for mobile */
+        margin-bottom: 15px;
+    }
+
+    .content {
+        padding: 0 5%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        width: 100%;
+        max-width: 400px;
+        /* Prevent overly wide buttons on larger phones */
+    }
+
+    .btn-play {
+        grid-column: span 2;
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        justify-content: center;
+    }
+
+    .btn-wishlist,
+    .btn-secondary {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-play svg,
+    .btn-wishlist svg,
+    .btn-secondary svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+}
+
+/* Small Laptop / Tablet refinements */
+@media (min-width: 769px) and (max-width: 1280px) {
+    .title {
+        font-size: 2.5rem;
+        /* Slightly smaller for tablets */
+    }
+
+    .description {
+        font-size: 0.95rem;
+        max-width: 450px;
+    }
+}
+
+.hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center top;
+    /* Focus on faces usually at top */
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Vignette & Gradients - Adjusted for the "Dark Left/Bottom" look */
+.overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to right, var(--background) 0%, rgba(10, 8, 20, 0.8) 20%, rgba(10, 8, 20, 0.4) 40%, transparent 100%),
+        linear-gradient(to top, 
+            var(--background) 0%, 
+            var(--background) 5%,
+            rgba(10, 8, 20, 0.95) 15%,
+            rgba(10, 8, 20, 0.8) 30%,
+            rgba(10, 8, 20, 0) 60%
+        );
+}
+
+/* Content Container */
+.content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Center vertically */
+    padding-left: 5%;
+    padding-right: 50%;
+    /* Leave space for the character on the right */
+    z-index: 10;
+}
+
+@media (max-width: 1024px) {
+    .content {
+        padding-right: 5%;
+        justify-content: center;
+        padding-bottom: 0;
+    }
+}
+
+.text-wrapper {
+    max-width: 700px;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.title {
+    /* If text */
+    font-size: clamp(3rem, 5vw, 6rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 0.9;
+    margin-bottom: 1.5rem;
+    /* More space below title/logo */
+    color: #fff;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+    letter-spacing: -1px;
+
+    /* Ensure image logo fits well */
+    display: flex;
+    align-items: flex-end;
+    min-height: 15vh;
+    /* Reserve height for logo */
+}
+
+.hero-logo-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 150px;
+    margin-bottom: 1.5rem;
+}
+
+.hero-logo {
+    object-fit: contain;
+    /* Ensures the image scales down without cropping */
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Metadata Row */
+.meta-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #e5e5e5;
+    font-weight: 500;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.2s forwards;
+}
+
+.rating-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #fbbf24;
+    /* Amber star color */
+    font-weight: 700;
+}
+
+.separator {
+    color: #666;
+}
+
+.badge {
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #d1d5db;
+    margin-bottom: 25px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.3s forwards;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    gap: 16px;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.4s forwards;
+}
+
+.btn-play {
+    background: #fff;
+    color: #000;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-play:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+}
+
+.btn-wishlist,
+.btn-secondary {
+    background: rgba(109, 109, 110, 0.4);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-wishlist:hover,
+.btn-secondary:hover {
+    background: rgba(109, 109, 110, 0.6);
+    transform: scale(1.05);
+}
+
+/* Navigation Controls - Side Arrows */
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 20px;
+    z-index: 20;
+    transition: color 0.3s, transform 0.2s;
+}
+
+.nav-btn:hover {
+    color: #fff;
+    transform: translateY(-50%) scale(1.2);
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tablet & Mobile: Icon-only buttons or when space is tight */
+@media (max-width: 1350px) {
+
+    .btn-wishlist span,
+    .btn-secondary span {
+        display: none;
+    }
+
+    .btn-wishlist,
+    .btn-secondary {
+        padding: 12px;
+        gap: 0;
+        justify-content: center;
+    }
+}

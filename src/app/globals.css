@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+:root {
+  /* Purple Theme Colors */
+  --background: #0a0814;
+  --foreground: #ffffff;
+
+  --primary: #7c3aed;
+  --primary-glow: rgba(124, 58, 237, 0.5);
+  
+  --secondary: #2e1065;
+  --secondary-foreground: #a78bfa;
+
+  --accent: #d8b4fe;
+  
+  --card: rgba(255, 255, 255, 0.03);
+  
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 24px;
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+
+  --font-sans: var(--font-outfit), "Outfit", sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-card: var(--card);
+}
+
+@keyframes liquid {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(10vw, 15vh) rotate(5deg); }
+  66% { transform: translate(-5vw, 25vh) rotate(-5deg); }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Liquid Glass Background */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  width: 80vw;
+  height: 80vw;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: -1;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+body::before {
+  top: -20vh;
+  left: -20vw;
+  background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+  animation: float 25s infinite alternate ease-in-out;
+}
+
+body::after {
+  bottom: -20vh;
+  right: -20vw;
+  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+  animation: float 35s infinite alternate-reverse ease-in-out;
+}
+
+/* Hide scrollbars globally */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+
+/* Global Glass Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}

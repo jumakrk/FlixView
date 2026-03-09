@@ -1,0 +1,38 @@
+.topBar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 260px;
+    height: 32px;
+    /* Just the height of the drag region now */
+    z-index: 1100;
+    /* Above sidebar to ensure dragging works across width */
+    display: flex;
+    flex-direction: column;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dragRegion {
+    height: 32px;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    -webkit-app-region: drag;
+    backdrop-filter: blur(10px);
+}
+
+.content {
+    display: none;
+}
+
+/* --- Mobile / Tablet Adaptations --- */
+@media (max-width: 1024px) {
+    .topBar {
+        left: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .topBar {
+        display: none;
+    }
+}

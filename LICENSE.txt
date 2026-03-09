@@ -1,0 +1,18 @@
+FLIXVIEW END USER LICENSE AGREEMENT
+
+1. ACCEPTANCE
+By installing or using FlixView, you agree to these terms. If you do not agree, do not install or use the app.
+
+2. USE OF CONTENT
+FlixView is a media dashboard that allows users to access content via third-party providers. FlixView does not host, upload, or own any of the media content accessed through its interface. Users are responsible for complying with the local laws and regulations regarding the use of such content.
+
+3. DISCLAIMER OF WARRANTY
+The software is provided "AS IS" without any warranties of any kind. 
+
+4. LIMITATION OF LIABILITY
+The developers shall not be liable for any damages arising out of the use or inability to use this software.
+
+5. PRIVACY
+FlixView may store local data (watchlist, favorites, watch progress) on your device. No personal data is transmitted unless you explicitly use a cloud-sync feature.
+
+Thank you for choosing FlixView!

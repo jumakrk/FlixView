@@ -1,0 +1,11 @@
+name = "flixview-api"
+compatibility_date = "2024-02-08"
+main = "src/index.ts"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "flixview-db"
+database_id = "7e0794e1-f852-4f97-a7b8-21a0b875c38b"
+
+[observability]
+enabled = true

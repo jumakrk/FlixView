@@ -1,0 +1,31 @@
+.backBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.backBtn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary);
+    transform: translateX(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.backBtn svg {
+    transition: transform 0.2s ease;
+}
+
+.backBtn:hover svg {
+    transform: translateX(-2px);
+}

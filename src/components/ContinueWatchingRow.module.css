@@ -1,0 +1,71 @@
+.section {
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    z-index: 10;
+}
+
+.header {
+    padding: 0 4%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.title::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 24px;
+    background: var(--primary);
+    box-shadow: 0 0 15px var(--primary-glow);
+    border-radius: 4px;
+}
+
+.rail {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 4% 25px 4%;
+    /* Bottom padding allows for hover scale/glow without clipping */
+    scroll-behavior: smooth;
+    min-height: 340px;
+    /* Stable height for 200x300 posters + padding */
+}
+
+/* Add empty space at end to allow last item to be fully seen */
+.rail::after {
+    content: '';
+    min-width: 4%;
+    height: 1px;
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 20px;
+    }
+
+    .rail {
+        gap: 12px;
+        padding-bottom: 30px;
+    }
+}

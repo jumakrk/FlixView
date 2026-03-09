@@ -1,0 +1,121 @@
+.card {
+    position: relative;
+    width: 200px;
+    flex-shrink: 0;
+
+    @media (max-width: 640px) {
+        width: 140px;
+    }
+
+    aspect-ratio: 2/3;
+    /* Portrait poster ratio */
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    z-index 0s;
+    z-index: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    /* Mask content initially */
+}
+
+.link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Hover State */
+.card:hover {
+    transform: scale(1.02) translateY(-5px);
+    z-index: 100;
+    box-shadow:
+        0 15px 30px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 0 20px rgba(139, 92, 246, 0.3);
+    /* Violet glow */
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.card:hover .image {
+    transform: scale(1.05);
+}
+
+/* Gradient Overlay - Always visible at bottom, grows on hover */
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+            transparent 0%,
+            transparent 60%,
+            rgba(0, 0, 0, 0.8) 100%);
+    opacity: 0.8;
+    transition: all 0.4s ease;
+}
+
+.card:hover .overlay {
+    opacity: 1;
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.3) 40%,
+            rgba(0, 0, 0, 0.7) 70%,
+            rgba(0, 0, 0, 0.95) 100%);
+}
+
+/* Content sliding up */
+.content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    z-index: 20;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card:hover .content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 10px;
+}
+
+.rating {
+    color: #4ade80;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+
+
+@media (max-width: 600px) {
+    .card {
+        width: 140px;
+    }
+}

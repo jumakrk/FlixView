@@ -1,0 +1,231 @@
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    padding: 20px 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--glass-shadow);
+}
+
+.logoSection {
+    padding: 20px 30px;
+    margin-bottom: 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.logoIcon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    padding-left: 2px;
+    /* Visual center for play icon */
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+}
+
+.logoText {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+}
+
+.nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 15px;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.navLink:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(5px);
+}
+
+.searchSection {
+    margin-bottom: 20px;
+}
+
+.searchForm {
+    width: 100%;
+}
+
+.searchInput {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    padding: 10px 15px;
+    outline: none;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.searchInput:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #7c3aed;
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+}
+
+.actionBtn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.bottomSection {
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 20px;
+}
+
+.userProfile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.userProfile:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.navLink.active {
+    color: #fff;
+    background: rgba(124, 58, 237, 0.15);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.label {
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+/* --- Mobile Responsiveness --- */
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 80px;
+        /* Collapsed width */
+        padding: 20px 0;
+    }
+
+    .logoSection {
+        padding: 20px 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .logoText {
+        display: none;
+        /* Hide logo text */
+    }
+
+    .nav,
+    .bottomSection {
+        padding: 0 10px;
+        /* Adjust padding for collapsed state */
+    }
+
+    .navLink,
+    .actionBtn,
+    .userProfile {
+        justify-content: center;
+        /* Center icons */
+        gap: 0;
+        padding: 12px 0;
+    }
+
+    .label {
+        display: none;
+        /* Hide labels */
+    }
+
+    .navLink:hover {
+        transform: none;
+        /* Remove transform on hover for collapsed state */
+    }
+
+    .navLink.active {
+        background: linear-gradient(90deg, rgba(124, 58, 237, 0.2) 0%, transparent 100%);
+        border-left: 3px solid #7c3aed;
+    }
+}
