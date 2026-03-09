@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: 'export',
+  output: process.env.VERCEL ? undefined : 'export',
   trailingSlash: true,
   
   // Ensure webpack is used instead of Turbopack
