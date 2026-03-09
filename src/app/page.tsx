@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Download, 
@@ -12,10 +11,9 @@ import {
   Zap, 
   Layout, 
   Globe, 
-  ChevronRight,
   Play
 } from 'lucide-react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { fetchTrending, Movie } from '@/lib/tmdb';
 
 export default function LandingPage() {
@@ -51,32 +49,16 @@ export default function LandingPage() {
       {/* Premium Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-[100] px-6 py-5 flex items-center justify-between glass-panel border-none bg-black/10 backdrop-blur-2xl">
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_25px_rgba(124,58,237,0.4)] transition-transform group-hover:scale-110">
-                <Image 
-                    src="/icon.png" 
-                    alt="Logo" 
-                    fill 
-                    className="p-2 object-contain"
-                />
+            <div className="w-9 h-9 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-full flex items-center justify-center text-white shadow-[0_4px_15px_rgba(124,58,237,0.4)] pl-[2px] transition-transform group-hover:scale-110">
+                <Play size={18} fill="currentColor" />
             </div>
-            <span className="text-2xl font-black tracking-tighter uppercase italic bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
-                FlixView
-            </span>
+            <span className="text-xl font-extrabold tracking-tight text-white uppercase">FLIXVIEW</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-10">
-            <button onClick={() => scrollToSection('features')} className="text-sm font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors">Features</button>
-            <button onClick={() => scrollToSection('download')} className="text-sm font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors">Download</button>
-            <div className="h-4 w-[1px] bg-white/10" />
-            <a href="https://github.com/jumakrk/FlixView" target="_blank" rel="noopener noreferrer" className="text-sm font-bold hover:text-primary transition-colors">GitHub</a>
+        <div className="flex items-center gap-8 md:gap-10">
+            <button onClick={() => scrollToSection('features')} className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors">Features</button>
+            <button onClick={() => scrollToSection('download')} className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors">Download</button>
         </div>
-
-        <button 
-            onClick={() => scrollToSection('download')}
-            className="px-6 py-2.5 rounded-full bg-primary text-white font-bold text-sm shadow-[0_10px_20px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95 transition-all"
-        >
-            Get Started
-        </button>
       </nav>
 
       {/* Hero Section with Animated Background */}
@@ -107,6 +89,7 @@ export default function LandingPage() {
                                 fill
                                 className="object-cover"
                                 sizes="20vw"
+                                unoptimized
                             />
                         )}
                     </div>
@@ -241,7 +224,7 @@ export default function LandingPage() {
                         className="p-8 rounded-3xl glass-panel border-white/5 flex flex-col items-center gap-6 hover:bg-white/10 hover:border-primary/30 hover:scale-105 active:scale-95 transition-all group"
                     >
                         <div className="w-20 h-20 relative">
-                            <Image src={os.icon} alt={os.name} fill className="object-contain grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100" />
+                            <Image src={os.icon} alt={os.name} fill className="object-contain grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100 unoptimized" unoptimized />
                         </div>
                         <div>
                             <div className="text-xl font-black uppercase italic">{os.name}</div>
@@ -253,34 +236,18 @@ export default function LandingPage() {
                     </a>
                 ))}
             </div>
-
-            <div className="mt-24 flex items-center justify-center gap-8 opacity-40 hover:opacity-100 transition-opacity">
-                <a href="#" className="flex items-center gap-2 font-bold group">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-[#229ED9]/20 group-hover:text-[#229ED9] transition-all">
-                        <Image src="/icons/telegram.png" alt="Telegram" width={24} height={24} />
-                    </div>
-                    Join Telegram
-                </a>
-                <div className="w-[1px] h-6 bg-white/10" />
-                <a href="#" className="flex items-center gap-2 font-bold group">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-[#5865F2]/20 group-hover:text-[#5865F2] transition-all">
-                        <Image src="/icons/discord.png" alt="Discord" width={24} height={24} />
-                    </div>
-                    Discord Community
-                </a>
-            </div>
         </div>
       </section>
 
-      {/* Footer (Unchanged structure, polished styles) */}
+      {/* Footer */}
       <footer className="py-20 px-6 border-t border-white/5 bg-black/40 backdrop-blur-3xl">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-baseline justify-between gap-12">
             <div className="max-w-sm">
-                <div className="flex items-center gap-2 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.3)]">
-                        <Image src="/icon.png" alt="Logo" width={24} height={24} />
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-9 h-9 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-full flex items-center justify-center text-white shadow-[0_4px_15px_rgba(124,58,237,0.4)] pl-[2px]">
+                        <Play size={18} fill="currentColor" />
                     </div>
-                    <span className="text-xl font-black tracking-tighter uppercase italic">FlixView</span>
+                    <span className="text-xl font-extrabold tracking-tight text-white uppercase">FLIXVIEW</span>
                 </div>
                 <p className="text-white/40 text-sm leading-relaxed font-medium">
                     Built for the cinephiles, the binge-watchers, and everyone in between. FlixView is your companion for the ultimate entertainment experience.
@@ -290,10 +257,10 @@ export default function LandingPage() {
             <div className="flex flex-col items-end gap-6">
                 <div className="flex gap-4">
                     <a href="#" className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-primary/20 hover:text-primary border border-white/5 transition-all">
-                        <Image src="/icons/telegram.png" alt="Telegram" width={20} height={20} />
+                        <Image src="/icons/telegram.png" alt="Telegram" width={20} height={20} unoptimized />
                     </a>
                     <a href="#" className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-primary/20 hover:text-primary border border-white/5 transition-all">
-                        <Image src="/icons/discord.png" alt="Discord" width={20} height={20} />
+                        <Image src="/icons/discord.png" alt="Discord" width={20} height={20} unoptimized />
                     </a>
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10">
