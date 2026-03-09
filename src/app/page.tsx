@@ -54,7 +54,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 py-4 md:py-5 flex items-center justify-between glass-panel border-none bg-black/10 backdrop-blur-2xl">
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <div className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-full flex items-center justify-center text-white shadow-[0_4px_15px_rgba(124,58,237,0.4)] pl-[2px] transition-transform group-hover:scale-110">
-                <Play size={16} md:size={18} fill="currentColor" />
+                <Play className="w-4 h-4 md:w-[18px] md:h-[18px]" fill="currentColor" />
             </div>
             <span className="text-lg md:text-xl font-extrabold tracking-tight text-white uppercase">FLIXVIEW</span>
         </div>
@@ -275,7 +275,7 @@ export default function LandingPage() {
             <div className="max-w-sm text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-3 mb-6">
                     <div className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-full flex items-center justify-center text-white shadow-[0_4px_15px_rgba(124,58,237,0.4)] pl-[2px]">
-                        <Play size={16} md:size={18} fill="currentColor" />
+                        <Play className="w-4 h-4 md:w-[18px] md:h-[18px]" fill="currentColor" />
                     </div>
                     <span className="text-lg md:text-xl font-extrabold tracking-tight text-white uppercase">FLIXVIEW</span>
                 </div>
