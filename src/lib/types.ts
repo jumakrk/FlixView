@@ -45,6 +45,7 @@ declare global {
             onDownloadProgress: (callback: (progress: any) => void) => void;
             onUpdateDownloaded: (callback: (info: any) => void) => void;
             quitAndInstall: () => Promise<void>;
+            getAppVersion: () => Promise<string>;
         };
     }
 }

@@ -19,13 +19,38 @@ const NAV_LINKS = [
 
 import AuthModal from './AuthModal';
 import { useAuth } from '@/context/AuthContext';
-import { LogIn, LogOut, User } from 'lucide-react';
+import { LogIn, LogOut, User, RefreshCw, ArrowUpCircle } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function Sidebar() {
     const pathname = usePathname();
     const [isDonateOpen, setIsDonateOpen] = useState(false);
+    const [version, setVersion] = useState<string>('');
+    const [updateStatus, setUpdateStatus] = useState<'none' | 'available' | 'downloading' | 'downloaded'>('none');
+    const [downloadPercent, setDownloadPercent] = useState(0);
 
     const { user, logout, isAuthModalOpen, openAuthModal, closeAuthModal } = useAuth();
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.electron) {
+            // Get version
+            window.electron.getAppVersion().then(v => setVersion(v));
+
+            // Listen for updates
+            window.electron.onUpdateAvailable(() => setUpdateStatus('available'));
+            window.electron.onDownloadProgress((p) => {
+                setUpdateStatus('downloading');
+                setDownloadPercent(Math.round(p.percent));
+            });
+            window.electron.onUpdateDownloaded(() => setUpdateStatus('downloaded'));
+        }
+    }, []);
+
+    const handleUpdateAction = () => {
+        if (updateStatus === 'downloaded' && window.electron) {
+            window.electron.quitAndInstall();
+        }
+    };
 
     return (
         <>
@@ -109,6 +134,43 @@ export default function Sidebar() {
                             <span className={styles.label}>Log In</span>
                         </button>
                     )}
+
+                    {/* Version & Update Display */}
+                    <div className={styles.versionSection}>
+                        <div className={styles.versionInfo}>
+                            <span className={styles.versionLabel}>Version {version || '0.0.0'}</span>
+                            {updateStatus === 'downloading' && (
+                                <span className={styles.downloadProgress}>{downloadPercent}%</span>
+                            )}
+                        </div>
+
+                        {updateStatus !== 'none' && (
+                            <button 
+                                onClick={handleUpdateAction}
+                                className={`${styles.updateBtn} ${styles[updateStatus]}`}
+                                disabled={updateStatus === 'downloading' || updateStatus === 'available'}
+                            >
+                                {updateStatus === 'available' && (
+                                    <>
+                                        <RefreshCw size={14} className="animate-spin" />
+                                        <span>Update Available</span>
+                                    </>
+                                )}
+                                {updateStatus === 'downloading' && (
+                                    <>
+                                        <RefreshCw size={14} className="animate-spin" />
+                                        <span>Downloading...</span>
+                                    </>
+                                )}
+                                {updateStatus === 'downloaded' && (
+                                    <>
+                                        <ArrowUpCircle size={14} />
+                                        <span>Restart to Update</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </aside>
             <DonationModal isOpen={isDonateOpen} onClose={() => setIsDonateOpen(false)} />

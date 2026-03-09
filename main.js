@@ -140,6 +140,10 @@ ipcMain.handle('quit-and-install', () => {
     autoUpdater.quitAndInstall();
 });
 
+ipcMain.handle('get-app-version', () => {
+    return app.getVersion();
+});
+
 
 async function createWindow() {
     win = new BrowserWindow({

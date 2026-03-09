@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('electron', {
     onUpdateError: (callback) => ipcRenderer.on('update-error', (_event, error) => callback(error)),
     onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (_event, progress) => callback(progress)),
     onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (_event, info) => callback(info)),
-    quitAndInstall: () => ipcRenderer.invoke('quit-and-install')
+    quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+    getAppVersion: () => ipcRenderer.invoke('get-app-version')
 });
