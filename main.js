@@ -178,12 +178,12 @@ async function createWindow() {
     // console.log('Advanced Ad Blocker enabled');
 
     if (!app.isPackaged) {
-        win.loadURL('http://localhost:3000').catch(() => {
-            win.loadURL('http://localhost:3001').catch(e => console.error('Failed to load dev server:', e));
+        win.loadURL('http://localhost:3000/browse').catch(() => {
+            win.loadURL('http://localhost:3001/browse').catch(e => console.error('Failed to load dev server:', e));
         });
     } else {
         // Point to the static export output directory using electron-serve
-        loadURL(win);
+        win.loadURL('app://-/browse/index.html');
     }
 
     win.once('ready-to-show', () => {

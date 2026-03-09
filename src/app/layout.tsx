@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   description: "Your Ultimate Movie & TV Show Destination",
 };
 
+import AppShell from "@/components/AppShell";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,18 +39,9 @@ export default function RootLayout({
           <ConnectivityProvider>
             <AuthProvider>
               <DataProvider>
-                <div className="flex min-h-screen">
-                  <ScrollToTop />
-                  <UpdateNotification />
-                  <Sidebar />
-                  <div className="flex-1 flex flex-col min-w-0 md:pl-[260px] pl-[80px] transition-[padding] duration-300">
-                    <TopBar />
-                    <main className="flex-grow pt-[32px]">
-                      {children}
-                    </main>
-
-                  </div>
-                </div>
+                <AppShell>
+                  {children}
+                </AppShell>
               </DataProvider>
             </AuthProvider>
           </ConnectivityProvider>

@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍿 FlixView
 
-## Getting Started
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-0.1.6-blueviolet.svg)](https://github.com/jumakrk/FlixView/releases)
+[![Build Status](https://github.com/jumakrk/FlixView/actions/workflows/build.yml/badge.svg)](https://github.com/jumakrk/FlixView/actions)
 
-First, run the development server:
+**FlixView** is a premium, cross-platform streaming companion designed for a seamless movie and TV show experience. Built with Next.js and Electron, it combines a stunning glassmorphic UI with robust performance and ad-blocking capabilities.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Direct Downloads (v0.1.6)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Get the latest version of FlixView directly for your platform:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Platform | Download Link |
+| :--- | :--- |
+| **Windows** | [📥 Download .exe](https://github.com/jumakrk/FlixView/releases/download/v0.1.6/FlixView-Setup-0.1.6.exe) |
+| **macOS (Silicon)** | [📥 Download .dmg](https://github.com/jumakrk/FlixView/releases/download/v0.1.6/FlixView-0.1.6-arm64.dmg) |
+| **Linux** | [📥 Download .AppImage](https://github.com/jumakrk/FlixView/releases/download/v0.1.6/FlixView-0.1.6.AppImage) |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ✨ Key Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Beautiful UI/UX**: Modern glassmorphic design system using Outfit typography and vibrant purple accents.
+- **Cross-Platform**: Native apps for Windows, macOS, and Linux.
+- **In-App Updates**: Stay up to date automatically with built-in version detection and one-click installation.
+- **Advanced Protection**: Integrated network-level filtering to block ads and malicious redirects.
+- **Personalized Experience**: "Continue Watching" sync, Watchlists, and smart search.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Tech Stack
 
-## Deploy on Vercel
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Desktop Shell**: Electron
+- **Styling**: Tailwind CSS, CSS Modules, Framer Motion
+- **Data**: TMDB API Integration
+- **Distribution**: electron-builder, GitHub Actions CI/CD
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🏗️ Development Setup
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/jumakrk/FlixView.git
+   cd FlixView
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Run in development mode**:
+   ```bash
+   # Terminal 1: Next.js dev server
+   npm run dev
+
+   # Terminal 2: Electron runner
+   npm run electron:dev
+   ```
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+**FlixView** - *Unlimited Entertainment. Zero Constraints.* 🍿🎬✨
