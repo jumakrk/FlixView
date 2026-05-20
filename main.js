@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain } = require('electron');
+const { app, BrowserWindow, session, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { ElectronBlocker } = require('@cliqz/adblocker-electron');
@@ -10,44 +10,59 @@ const loadURL = serve({ directory: 'out' });
 
 let win;
 
-// Ensure progress directory exists
-const userDataPath = app.getPath('userData');
-const progressDir = path.join(userDataPath, 'progress');
-if (!fs.existsSync(progressDir)) {
-    fs.mkdirSync(progressDir, { recursive: true });
+// Ensure user data directories exist
+const userDataPath = path.join(app.getPath('documents'), 'FlixView User Data');
+const progressDir = path.join(userDataPath, 'watch progress');
+const watchlistDir = path.join(userDataPath, 'watchlist');
+const favoritesDir = path.join(userDataPath, 'favourites');
+
+[progressDir, watchlistDir, favoritesDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
+
+// Helper to get directory by type
+function getDirForType(type) {
+    if (type === 'watchlist') return watchlistDir;
+    if (type === 'favorites') return favoritesDir;
+    if (type === 'progress') return progressDir;
+    return progressDir;
 }
 
 // --- IPC Handlers for File System Persistence ---
 
-ipcMain.handle('save-progress', async (event, fileName, data) => {
+ipcMain.handle('save-data', async (event, type, fileName, data) => {
     try {
-        const filePath = path.join(progressDir, `${fileName}.json`);
-        // Write file atomically (or just write)
+        const dir = getDirForType(type);
+        const filePath = path.join(dir, `${fileName}.json`);
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
         return { success: true };
     } catch (error) {
-        console.error('IPC: Failed to save progress:', error);
+        console.error(`IPC: Failed to save ${type}:`, error);
         return { success: false, error: error.message };
     }
 });
 
-ipcMain.handle('load-progress', async (event, fileName) => {
+ipcMain.handle('load-data', async (event, type, fileName) => {
     try {
-        const filePath = path.join(progressDir, `${fileName}.json`);
+        const dir = getDirForType(type);
+        const filePath = path.join(dir, `${fileName}.json`);
         if (fs.existsSync(filePath)) {
             const data = fs.readFileSync(filePath, 'utf-8');
             return JSON.parse(data);
         }
         return null;
     } catch (error) {
-        console.error('IPC: Failed to load progress:', error);
+        console.error(`IPC: Failed to load ${type}:`, error);
         return null;
     }
 });
 
-ipcMain.handle('delete-progress', async (event, fileName) => {
+ipcMain.handle('delete-data', async (event, type, fileName) => {
     try {
-        const filePath = path.join(progressDir, `${fileName}.json`);
+        const dir = getDirForType(type);
+        const filePath = path.join(dir, `${fileName}.json`);
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
@@ -57,13 +72,14 @@ ipcMain.handle('delete-progress', async (event, fileName) => {
     }
 });
 
-ipcMain.handle('get-all-progress', async (event) => {
+ipcMain.handle('get-all-data', async (event, type) => {
     try {
-        if (!fs.existsSync(progressDir)) return [];
-        const files = fs.readdirSync(progressDir).filter(file => file.endsWith('.json'));
+        const dir = getDirForType(type);
+        if (!fs.existsSync(dir)) return [];
+        const files = fs.readdirSync(dir).filter(file => file.endsWith('.json'));
         const allData = files.map(file => {
             try {
-                const content = fs.readFileSync(path.join(progressDir, file), 'utf-8');
+                const content = fs.readFileSync(path.join(dir, file), 'utf-8');
                 return JSON.parse(content);
             } catch (e) {
                 return null;
@@ -71,21 +87,144 @@ ipcMain.handle('get-all-progress', async (event) => {
         }).filter(item => item !== null);
         return allData;
     } catch (error) {
-        console.error('IPC: Failed to get all progress:', error);
+        console.error(`IPC: Failed to get all ${type}:`, error);
         return [];
     }
 });
 
-ipcMain.handle('clear-all-progress', async (event) => {
+ipcMain.handle('clear-all-data', async (event, type) => {
     try {
-        if (fs.existsSync(progressDir)) {
-            const files = fs.readdirSync(progressDir);
-            for (const file of files) {
-                fs.unlinkSync(path.join(progressDir, file));
+        const typesToClear = type === 'all' ? ['watchlist', 'favorites', 'progress'] : [type];
+        
+        for (const t of typesToClear) {
+            const dir = getDirForType(t);
+            if (fs.existsSync(dir)) {
+                const files = fs.readdirSync(dir);
+                for (const file of files) {
+                    fs.unlinkSync(path.join(dir, file));
+                }
             }
         }
         return { success: true };
     } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// --- Export / Import Handlers ---
+ipcMain.handle('export-data', async (event) => {
+    try {
+        if (!win) return { success: false, error: 'No active window' };
+        
+        const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+            title: 'Select Destination Folder for Export',
+            properties: ['openDirectory', 'createDirectory']
+        });
+
+        if (canceled || filePaths.length === 0) return { success: false, canceled: true };
+
+        const targetDir = filePaths[0];
+        const exportDest = path.join(targetDir, 'FlixView User Data Export');
+        
+        // Copy recursive function
+        function copyRecursiveSync(src, dest) {
+            const exists = fs.existsSync(src);
+            const stats = exists && fs.statSync(src);
+            const isDirectory = exists && stats.isDirectory();
+            if (isDirectory) {
+                if (!fs.existsSync(dest)) fs.mkdirSync(dest);
+                fs.readdirSync(src).forEach(childItemName => {
+                    copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
+                });
+            } else {
+                fs.copyFileSync(src, dest);
+            }
+        }
+
+        if (!fs.existsSync(exportDest)) fs.mkdirSync(exportDest);
+        
+        [progressDir, watchlistDir, favoritesDir].forEach(dir => {
+            const dirName = path.basename(dir);
+            const destDir = path.join(exportDest, dirName);
+            if (!fs.existsSync(destDir)) fs.mkdirSync(destDir);
+            copyRecursiveSync(dir, destDir);
+        });
+
+        return { success: true, path: exportDest };
+    } catch (error) {
+        console.error('IPC: Failed to export data:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('import-data', async (event) => {
+    try {
+        if (!win) return { success: false, error: 'No active window' };
+
+        const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+            title: 'Select Exported Data Folder',
+            properties: ['openDirectory']
+        });
+
+        if (canceled || filePaths.length === 0) return { success: false, canceled: true };
+
+        const sourceDir = filePaths[0];
+        
+        // Check if the selected folder looks like a valid export
+        const hasValidFolders = ['watch progress', 'watchlist', 'favourites'].some(folder => 
+            fs.existsSync(path.join(sourceDir, folder))
+        );
+
+        if (!hasValidFolders) {
+             return { success: false, error: 'Invalid folder structure. Please select a valid FlixView exported data folder.' };
+        }
+
+        function copyRecursiveSync(src, dest) {
+            const exists = fs.existsSync(src);
+            const stats = exists && fs.statSync(src);
+            const isDirectory = exists && stats.isDirectory();
+            if (isDirectory) {
+                if (!fs.existsSync(dest)) fs.mkdirSync(dest);
+                fs.readdirSync(src).forEach(childItemName => {
+                    copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
+                });
+            } else {
+                fs.copyFileSync(src, dest);
+            }
+        }
+
+        // Copy everything back
+        ['watch progress', 'watchlist', 'favourites'].forEach(folder => {
+            const src = path.join(sourceDir, folder);
+            const dest = path.join(userDataPath, folder);
+            if (fs.existsSync(src)) {
+                if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+                copyRecursiveSync(src, dest);
+            }
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('IPC: Failed to import data:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// --- Surgical Reset Engine for Player Cache ---
+ipcMain.handle('purge-player-cache', async (event, tmdbId) => {
+    try {
+        // We clear local storage for the player domains so it forgets all progress, starting from 0.
+        // This is safe because our app is the source of truth and explicitly sets the startTime.
+        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru'];
+        for (const domain of domains) {
+            await session.defaultSession.clearStorageData({
+                origin: domain,
+                storages: ['localstorage', 'cookies', 'indexdb']
+            });
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('IPC: Purge Failed:', error);
         return { success: false, error: error.message };
     }
 });
@@ -164,26 +303,36 @@ async function createWindow() {
         }
     });
 
-    // Set up Ad Blocker with full uBlock Origin filter sets (Production Only to avoid HMR crashes)
-    /*
-    if (!isDev) {
+    // Set up Ad Blocker with full uBlock Origin filter sets
+    try {
         const blocker = await ElectronBlocker.fromLists(fetch, [
-            'https://easylist.to/easylist/easylist.txt',
-            'https://easylist.to/easylist/easyprivacy.txt'
+            'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt',
+            'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/privacy.txt',
+            'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/annoyances.txt'
         ]);
+        
         blocker.enableBlockingInSession(session.defaultSession);
+        
+        // Remove the localhost onBeforeRequest listener because it completely overwrites 
+        // the AdBlocker's listener, permanently disabling the AdBlocker for all sites!
+        
+        blocker.on('request-blocked', (request) => {
+            // Uncomment to debug blocked ads
+            // console.log('AdBlocker Blocked:', request.url);
+        });
+
         console.log('Advanced Ad Blocker enabled');
+    } catch (e) {
+        console.error('Failed to initialize Ad Blocker:', e);
     }
-    */
-    // console.log('Advanced Ad Blocker enabled');
 
     if (!app.isPackaged) {
-        win.loadURL('http://localhost:3000/browse').catch(() => {
-            win.loadURL('http://localhost:3001/browse').catch(e => console.error('Failed to load dev server:', e));
+        win.loadURL('http://localhost:3000/').catch(() => {
+            win.loadURL('http://localhost:3001/').catch(e => console.error('Failed to load dev server:', e));
         });
     } else {
         // Point to the static export output directory using electron-serve
-        win.loadURL('app://-/browse/index.html');
+        win.loadURL('app://-/index.html');
     }
 
     win.once('ready-to-show', () => {
@@ -229,9 +378,24 @@ app.on('ready', () => {
     // Providers often block app:// and require valid Referer/Origin
     session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
         const url = details.url;
-        if (url.includes('vidup.to') || url.includes('dokicloud.one')) {
+        if (url.includes('vidnest.fun')) {
+            details.requestHeaders['Referer'] = 'https://vidnest.fun/';
+            details.requestHeaders['Origin'] = 'https://vidnest.fun';
+        } else if (url.includes('vidrush.net')) {
+            details.requestHeaders['Referer'] = 'https://vidrush.net/';
+            details.requestHeaders['Origin'] = 'https://vidrush.net';
+        } else if (url.includes('vidup.to') || url.includes('dokicloud.one')) {
             details.requestHeaders['Referer'] = 'https://vidup.to/';
             details.requestHeaders['Origin'] = 'https://vidup.to';
+        } else if (url.includes('vidfast.net') || url.includes('vidfast.pro') || url.includes('vidrock.ru')) {
+            // Only spoof the referer for the actual iframe load (subFrame).
+            // Do not spoof internal API/XHR requests made by the player, otherwise it breaks CORS.
+            if (details.resourceType === 'subFrame') {
+                details.requestHeaders['Referer'] = 'http://localhost:3000/';
+                if (details.requestHeaders['Origin']) {
+                    delete details.requestHeaders['Origin'];
+                }
+            }
         }
         callback({ requestHeaders: details.requestHeaders });
     });
@@ -299,21 +463,28 @@ app.on('web-contents-created', (event, contents) => {
         const isLocal = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
         const isInternal = parsed.protocol === 'app:';
         const trusted = [
-            'vidnest.fun', 'player.videasy.net', 'vidsrc.me', 'vidsrc.to', 
+            'vidnest.fun', 'vidrush.net', 'player.vidrush.net', 'player.videasy.net', 'vidsrc.me', 'vidsrc.to', 
             'embed.su', 'vidsrc.xyz', 'vidsrc.pro', 'vidup.to', 
-            'rabbitstream.net', 'dokicloud.one', 'megacloud.tv', 'vidfast.pro',
+            'rabbitstream.net', 'dokicloud.one', 'megacloud.tv', 'vidfast.pro', 'vidfast.net',
+            'vidfast.in', 'vidfast.io', 'vidfast.me', 'vidfast.pm', 'vidfast.xyz', 'vidrock.ru',
             'cloudflare.com', 'google.com', 'videasy.net'
         ];
         const isTrusted = trusted.some(domain => parsed.hostname.endsWith(domain));
 
         if (!event.isMainFrame && !isLocal && !isInternal && !isTrusted) {
-            console.log('Global Sentry: Blocked Suspicious Frame Navigation:', url);
-            event.preventDefault();
+            console.log('Global Sentry: Untrusted Frame Navigated (Allowed for CDN compatibility):', url);
+            // We no longer preventDefault here because VidRock and other players use 
+            // dynamically changing CDNs (mcloud, vidplay, filemoon) which get blocked.
+            // Our script-injected window.open blocker and the uBlock AdBlocker will 
+            // handle the actual malicious popups/ads.
         }
     });
 });
 
 app.whenReady().then(() => {
+    // Strip Electron from User-Agent to bypass Cloudflare bot protection on CDNs
+    app.userAgentFallback = app.userAgentFallback.replace(/Electron\/[0-9\.]+ /g, '');
+    
     createWindow();
     
     // Check for updates on startup

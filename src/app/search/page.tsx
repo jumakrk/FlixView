@@ -77,7 +77,7 @@ export default function SearchPage() {
                         {results.length > 0 ? (
                             <div className={styles.grid}>
                                 {results.map((movie) => (
-                                    <MovieCard key={movie.id} movie={movie} className="w-full" />
+                                    <MovieCard key={movie.id} movie={movie} fullWidth />
                                 ))}
                             </div>
                         ) : (

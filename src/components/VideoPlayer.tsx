@@ -26,14 +26,13 @@ function VideoPlayer({
 
     // ... (logic)
     const baseUrl = 'https://vidup.to';
-    const purpleTheme = '7c3aed';
-    const timeParam = `&startAt=${startTime}`;
-    // User requested: PURPLE THEME, AUTOPLAY TRUE, SERVER Alpha, hideServer true, sub en, title true, poster true, chromecast false
-    const sharedParams = `&autoPlay=true&theme=${purpleTheme}&server=Alpha&hideServer=true&sub=en&title=true&poster=true&chromecast=false${timeParam}`;
-
+    // Parameters: title, poster, autoPlay, theme purple, server Deltta, hideServer, fullscreenButton, chromecast false, sub en
+    const commonQuery = 'title=true&poster=true&autoPlay=true&theme=7c3aed&server=Deltta&hideServer=true&fullscreenButton=true&chromecast=false&sub=en';
+    
+    // VidUp URL Patterns
     const src = type === 'movie'
-        ? `${baseUrl}/movie/${tmdbId}?${sharedParams.substring(1)}`
-        : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${sharedParams.substring(1)}&nextButton=true&autoNext=true`;
+        ? `${baseUrl}/movie/${tmdbId}?${commonQuery}&startAt=${startTime}`
+        : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${commonQuery}&startAt=${startTime}&nextButton=true&autoNext=true`;
 
     return (
         <div className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5", className)}>
@@ -45,6 +44,7 @@ function VideoPlayer({
                 referrerPolicy="origin"
                 title={`Video Player ${tmdbId}`}
                 style={{ border: 'none' }}
+                scrolling="no"
             />
         </div>
     );

@@ -1,11 +1,14 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electron', {
-    saveProgress: (fileName, data) => ipcRenderer.invoke('save-progress', fileName, data),
-    loadProgress: (fileName) => ipcRenderer.invoke('load-progress', fileName),
-    deleteProgress: (fileName) => ipcRenderer.invoke('delete-progress', fileName),
-    getAllProgress: () => ipcRenderer.invoke('get-all-progress'),
-    clearAllProgress: () => ipcRenderer.invoke('clear-all-progress'),
+    saveData: (type, fileName, data) => ipcRenderer.invoke('save-data', type, fileName, data),
+    loadData: (type, fileName) => ipcRenderer.invoke('load-data', type, fileName),
+    deleteData: (type, fileName) => ipcRenderer.invoke('delete-data', type, fileName),
+    getAllData: (type) => ipcRenderer.invoke('get-all-data', type),
+    clearAllData: (type) => ipcRenderer.invoke('clear-all-data', type),
+    
+    exportData: () => ipcRenderer.invoke('export-data'),
+    importData: () => ipcRenderer.invoke('import-data'),
     
     // Auto Updater
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (_event, info) => callback(info)),
@@ -13,5 +16,6 @@ contextBridge.exposeInMainWorld('electron', {
     onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (_event, progress) => callback(progress)),
     onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (_event, info) => callback(info)),
     quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
-    getAppVersion: () => ipcRenderer.invoke('get-app-version')
+    getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    purgePlayerCache: (tmdbId) => ipcRenderer.invoke('purge-player-cache', tmdbId)
 });

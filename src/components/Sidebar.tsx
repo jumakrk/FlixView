@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, TrendingUp, Film, Tv, Bookmark, Heart, Search, Play } from 'lucide-react';
-import { useState } from 'react';
+import { Home, TrendingUp, Film, Tv, Bookmark, Heart, Search, Play, Settings, RefreshCw, ArrowUpCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import styles from './Sidebar.module.css';
 import DonationModal from './DonationModal';
 import DonateIcon from './DonateIcon';
@@ -17,19 +17,12 @@ const NAV_LINKS = [
     { href: '/favorites', label: 'My Favorites', icon: Heart },
 ];
 
-import AuthModal from './AuthModal';
-import { useAuth } from '@/context/AuthContext';
-import { LogIn, LogOut, User, RefreshCw, ArrowUpCircle } from 'lucide-react';
-import { useEffect } from 'react';
-
 export default function Sidebar() {
     const pathname = usePathname();
     const [isDonateOpen, setIsDonateOpen] = useState(false);
     const [version, setVersion] = useState<string>('');
     const [updateStatus, setUpdateStatus] = useState<'none' | 'available' | 'downloading' | 'downloaded'>('none');
     const [downloadPercent, setDownloadPercent] = useState(0);
-
-    const { user, logout, isAuthModalOpen, openAuthModal, closeAuthModal } = useAuth();
 
     useEffect(() => {
         if (typeof window !== 'undefined' && window.electron) {
@@ -105,35 +98,20 @@ export default function Sidebar() {
                         <span className={styles.label}>Support the Project</span>
                     </button>
 
-                    {user ? (
-                        <div className="mt-2 w-full">
-                            <Link
-                                href="/profile"
-                                className={`${styles.actionBtn} group relative overflow-hidden !bg-white/5 hover:!bg-white/10 !border-white/5 ${pathname === '/profile' ? '!border-violet-500/50' : ''}`}
-                                title="My Profile"
-                            >
-                                <div className="h-6 w-6 rounded-full bg-violet-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 overflow-hidden">
-                                    {user.profilePicture ? (
-                                        <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
-                                    ) : (
-                                        user.username?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()
-                                    )}
-                                </div>
-                                <span className={`${styles.label} truncate`}>
-                                    {user.username || user.email.split('@')[0]}
-                                </span>
-                            </Link>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={openAuthModal}
-                            className={styles.actionBtn}
-                            title="Log In / Register"
+                    <div className="mt-2 w-full">
+                        <Link
+                            href="/settings"
+                            className={`${styles.actionBtn} group relative overflow-hidden !bg-white/5 hover:!bg-white/10 !border-white/5 ${pathname === '/settings' ? '!border-violet-500/50' : ''}`}
+                            title="Settings & Data"
                         >
-                            <LogIn size={22} />
-                            <span className={styles.label}>Log In</span>
-                        </button>
-                    )}
+                            <div className="h-6 w-6 rounded-full bg-violet-600/20 flex items-center justify-center shrink-0">
+                                <Settings size={14} className="text-violet-400" />
+                            </div>
+                            <span className={`${styles.label} truncate`}>
+                                Settings & Data
+                            </span>
+                        </Link>
+                    </div>
 
                     {/* Version & Update Display */}
                     <div className={styles.versionSection}>
@@ -174,7 +152,6 @@ export default function Sidebar() {
                 </div>
             </aside>
             <DonationModal isOpen={isDonateOpen} onClose={() => setIsDonateOpen(false)} />
-            <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
         </>
     );
 }

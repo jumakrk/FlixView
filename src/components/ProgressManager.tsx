@@ -86,18 +86,34 @@ export default function ProgressManager({
     // 2. Event Listener
     const handleMessage = useCallback((event: MessageEvent) => {
         const { origin, data } = event;
-        const vidupOrigins = [
-            'https://vidup.to', 'https://vidup.io', 'https://vidup.me', 'https://vidup.net'
+        const trustedOrigins = [
+            'https://vidnest.fun', 'https://vidrush.net', 'https://player.vidrush.net',
+            'https://vidup.to', 'https://vidup.io', 'https://vidup.me', 'https://vidfast.net', 'https://vidfast.pro',
+            'https://vidrock.ru'
         ];
 
-        if (!vidupOrigins.includes(origin) || !data) return;
+        if (!trustedOrigins.includes(origin) || !data) return;
 
-        if (data.type === 'PLAYER_EVENT') {
-            // Extract season/episode from player data if available (trusted source for auto-play)
-            const { event: playerEvent, currentTime, duration, season: playerSeason, episode: playerEpisode } = data.data;
+        // Detection: 
+        // - VidNest: { event, currentTime, ... }
+        // - VidUp: { type: 'PLAYER_EVENT', data: { event, ... } }
+        // - VidRush: { type: 'WATCH_PROGRESS', data: { eventType, ... } }
+        const isVidNest = data.event && data.currentTime !== undefined;
+        const isVidUp = data.type === 'PLAYER_EVENT' && data.data;
+        const isVidRush = data.type === 'WATCH_PROGRESS' && data.data;
+
+        if (isVidNest || isVidUp || isVidRush) {
+            const playerEvent = isVidNest ? data.event : (isVidRush ? data.data.eventType : data.data.event);
+            const currentTime = isVidNest ? data.currentTime : data.data.currentTime;
+            const duration = isVidNest ? data.duration : data.data.duration;
+            const playerSeason = isVidNest ? data.season : (isVidUp ? data.data.season : undefined);
+            const playerEpisode = isVidNest ? data.episode : (isVidUp ? data.data.episode : undefined);
+            const playerTmdbId = isVidNest ? String(data.tmdbId) : (isVidRush ? String(data.data.mediaId) : (isVidUp && data.data.tmdbId ? String(data.data.tmdbId) : id));
+
+            // Security check: ensure tmdbId matches current page id (if reported)
+            if (playerTmdbId && playerTmdbId !== id) return;
 
             // Use player reported S/E if available, otherwise fallback to props
-            // Ensuring we save the ACTUAL episode being played
             const currentSeason = playerSeason || season;
             const currentEpisode = playerEpisode || episode;
 
@@ -135,7 +151,6 @@ export default function ProgressManager({
 
             if (playerEvent === 'timeupdate') {
                 const now = Date.now();
-                // Allow save if it's the first time (lastUpdateTime is 0) OR if interval passed
                 if (lastUpdateTime.current === 0 || (now - lastUpdateTime.current > THROTTLE_INTERVAL)) {
                     if (save()) {
                         lastUpdateTime.current = now;
@@ -148,10 +163,11 @@ export default function ProgressManager({
             // Navigation Logic
             if (playerEvent === 'ended' || playerEvent === 'next') {
                 if (type === 'tv') {
-                    router.replace(`/watch?type=tv&id=${id}&season=${season}&episode=${episode + 1}`);
+                    router.replace(`/watch?type=tv&id=${id}&season=${currentSeason}&episode=${currentEpisode + 1}`);
                 }
-            } else if (playerEvent === 'episode') {
-                const { season: newSeason, episode: newEpisode } = data.data as any;
+            } else if (playerEvent === 'episode' || (isVidNest && playerEvent === 'change-episode')) {
+                const newSeason = isVidNest ? data.season : (data.data as any).season;
+                const newEpisode = isVidNest ? data.episode : (data.data as any).episode;
                 if (newSeason && newEpisode && (newSeason !== season || newEpisode !== episode)) {
                     router.replace(`/watch?type=tv&id=${id}&season=${newSeason}&episode=${newEpisode}`);
                 }

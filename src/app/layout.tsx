@@ -9,7 +9,6 @@ import UpdateNotification from "@/components/UpdateNotification";
 import { PlayerProvider } from "@/context/PlayerContext";
 
 import { ConnectivityProvider } from "@/context/ConnectivityContext";
-import { AuthProvider } from "@/context/AuthContext";
 import { DataProvider } from "@/context/DataContext";
 import "./globals.css";
 
@@ -37,13 +36,11 @@ export default function RootLayout({
       >
         <PlayerProvider>
           <ConnectivityProvider>
-            <AuthProvider>
               <DataProvider>
                 <AppShell>
                   {children}
                 </AppShell>
               </DataProvider>
-            </AuthProvider>
           </ConnectivityProvider>
         </PlayerProvider>
       </body>

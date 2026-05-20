@@ -12,27 +12,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
   
-  // Routes where the Sidebar/TopBar should NOT be shown
-  const isLandingPage = pathname === '/';
-
   useEffect(() => {
-    // Check if we are in Electron
-    const isElectron = typeof window !== 'undefined' && (window as any).electron;
-    
-    // If we are on the web (not Electron) and NOT on the landing page, 
-    // redirect to the landing page.
-    if (!isLandingPage && !isElectron) {
-      router.replace('/');
-    } else {
-      setIsReady(true);
-    }
-  }, [pathname, isLandingPage, router]);
-  
-  if (isLandingPage) {
-    return <>{children}</>;
-  }
+    setIsReady(true);
+  }, [pathname]);
 
-  // Prevent flicker during redirect on web
+  // Prevent flicker
   if (!isReady) return null;
 
   return (

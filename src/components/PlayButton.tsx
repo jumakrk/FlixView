@@ -62,16 +62,19 @@ export default function PlayButton({
 
     if (isUnreleased && releaseDate) {
         return (
-            <div className={cn("flex flex-col items-center md:items-start gap-1", className && !className.includes('playBtn') && className)}>
+            <div 
+                className={cn("flex flex-col items-center md:items-start gap-1", className)}
+                style={{ background: 'transparent', padding: 0, border: 'none', width: '100%' }}
+            >
                 <div 
                     className={cn(
-                        "flex flex-col items-center justify-center rounded-xl font-bold bg-white/5 backdrop-blur-xl border border-white/10 text-white/40 cursor-not-allowed transition-all",
+                        "flex flex-col items-center justify-center rounded-xl font-bold bg-black/60 backdrop-blur-xl border border-white/10 cursor-not-allowed transition-all w-full",
                         !iconOnly ? "px-8 py-4 min-w-[200px]" : "p-3"
                     )}
-                    style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
+                    style={{ color: 'rgba(255,255,255,0.9)' }}
                 >
                     {!iconOnly && (
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500/60 mb-1">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-1">
                             Coming Soon
                         </span>
                     )}

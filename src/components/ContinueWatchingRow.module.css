@@ -38,6 +38,7 @@
     align-items: flex-start;
     gap: 8px;
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 10px 4% 25px 4%;
     /* Bottom padding allows for hover scale/glow without clipping */
     scroll-behavior: smooth;

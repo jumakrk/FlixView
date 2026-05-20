@@ -119,3 +119,8 @@
         width: 140px;
     }
 }
+
+.fullWidth {
+    width: 100% !important;
+    max-width: none !important;
+}

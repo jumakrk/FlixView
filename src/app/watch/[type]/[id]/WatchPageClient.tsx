@@ -174,6 +174,97 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                             </div>
                         )}
 
+                        {/* Media Gallery */}
+                        {details.images && details.images.backdrops && details.images.backdrops.length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-bold">Gallery</h3>
+                                <div className="flex gap-4 overflow-x-auto pb-4 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                                    {details.images.backdrops.slice(0, 10).map((image: any, index: number) => (
+                                        <div key={index} className="min-w-[280px] w-[280px] md:min-w-[320px] md:w-[320px] aspect-video snap-start relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 shadow-lg group">
+                                            <Image
+                                                src={`${backdropBaseUrl}${image.file_path}`}
+                                                alt={`${details.title || details.name} Gallery Image ${index + 1}`}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                            />
+                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Production Companies */}
+                        {details.production_companies && details.production_companies.length > 0 && (
+                            <div className="space-y-4 bg-white/5 rounded-3xl p-6 border border-white/5 backdrop-blur-sm">
+                                <h3 className="text-xl font-bold">Production</h3>
+                                <div className="flex flex-wrap gap-6 items-center">
+                                    {details.production_companies.map((company: any) => (
+                                        <div key={company.id} className="flex flex-col items-center gap-2">
+                                            {company.logo_path ? (
+                                                <div className="relative w-[150px] h-[60px] opacity-70 hover:opacity-100 transition-opacity">
+                                                    <Image
+                                                        src={`${imageBaseUrl}${company.logo_path}`}
+                                                        alt={company.name}
+                                                        fill
+                                                        className="object-contain filter invert"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm font-semibold text-gray-400">{company.name}</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* User Reviews */}
+                        {details.reviews && details.reviews.results && details.reviews.results.length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-bold flex items-center gap-2">Top Reviews</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {details.reviews.results.slice(0, 4).map((review: any) => (
+                                        <div key={review.id} className="bg-white/5 rounded-2xl p-6 border border-white/5 backdrop-blur-sm flex flex-col h-full hover:bg-white/10 transition-colors">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold uppercase border border-purple-500/30">
+                                                        {review.author_details?.avatar_path ? (
+                                                            <Image
+                                                                src={review.author_details.avatar_path.startsWith('/') 
+                                                                    ? `https://image.tmdb.org/t/p/w185${review.author_details.avatar_path}` 
+                                                                    : review.author_details.avatar_path.slice(1)} // Sometimes TMDB returns full URLs but with a leading slash
+                                                                alt={review.author}
+                                                                width={40}
+                                                                height={40}
+                                                                className="rounded-full object-cover w-full h-full"
+                                                            />
+                                                        ) : (
+                                                            review.author[0]
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-sm text-white">{review.author}</h4>
+                                                        <span className="text-xs text-gray-500">{new Date(review.created_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                {review.author_details?.rating && (
+                                                    <div className="flex items-center gap-1 bg-yellow-500/10 px-2 py-1 rounded-lg border border-yellow-500/20">
+                                                        <Star size={12} className="text-yellow-500" fill="currentColor" />
+                                                        <span className="text-xs font-bold text-yellow-500">{review.author_details.rating}/10</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-sm text-gray-300 line-clamp-4 relative flex-1">
+                                                <p className="italic">{review.content}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Series Episodes Selector - Moved below Top Cast */}
                         {mediaType === 'tv' && details.seasons && (
                             <div className="bg-white/5 rounded-3xl p-6 border border-white/5 backdrop-blur-sm">

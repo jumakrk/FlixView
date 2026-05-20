@@ -9,9 +9,10 @@ import Countdown from './Countdown';
 interface MovieCardProps {
     movie: Movie;
     className?: string;
+    fullWidth?: boolean;
 }
 
-function MovieCard({ movie, className }: MovieCardProps) {
+function MovieCard({ movie, className, fullWidth = false }: MovieCardProps) {
     const imageBaseUrl = 'https://image.tmdb.org/t/p/w500'; // Hardcoded
 
     // Prefer poster for vertical card
@@ -24,7 +25,7 @@ function MovieCard({ movie, className }: MovieCardProps) {
     const isUpcoming = releaseDate ? new Date(releaseDate) > new Date() : false;
 
     return (
-        <div className={`${styles.card} ${className || ''}`}>
+        <div className={`${styles.card} ${fullWidth ? styles.fullWidth : ''} ${className || ''}`}>
             <Link href={`/details?type=${linkType}&id=${movie.id}`} className={styles.link}>
                 <div
                     className={styles.image}

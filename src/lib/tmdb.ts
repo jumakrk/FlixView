@@ -60,6 +60,33 @@ export interface MovieDetails extends Movie {
     status?: string;
     last_air_date?: string;
     homepage?: string;
+    videos?: {
+        results: {
+            id: string;
+            key: string;
+            name: string;
+            site: string;
+            type: string;
+        }[];
+    };
+    images?: {
+        backdrops: { file_path: string; aspect_ratio: number; file_size: number; height: number; width: number }[];
+        posters: { file_path: string; aspect_ratio: number; file_size: number; height: number; width: number }[];
+    };
+    reviews?: {
+        results: {
+            author: string;
+            author_details: {
+                name: string;
+                username: string;
+                avatar_path: string | null;
+                rating: number | null;
+            };
+            content: string;
+            created_at: string;
+            id: string;
+        }[];
+    };
 }
 
 
@@ -201,20 +228,23 @@ export const fetchGenreMovies = async (genreId: number): Promise<Movie[]> => {
 }
 
 export const fetchDetails = async (id: string, type: 'movie' | 'tv' = 'movie', isRetry: boolean = false): Promise<MovieDetails> => {
+    const cleanId = id.toString().trim();
     try {
+        const timestamp = Date.now();
         const res = await fetch(
-            `${BASE_URL}/${type}/${id}?api_key=${API_KEY}&language=en-US`,
-            { next: { revalidate: 86400 } }
+            `${BASE_URL}/${type}/${cleanId}?api_key=${API_KEY}&language=en-US&append_to_response=videos,images,reviews&include_image_language=en,null&_t=${timestamp}`,
+            { cache: 'no-store' }
         );
 
         if (!res.ok) {
-            console.warn(`fetchDetails failed for ${type} with ID ${id}, status: ${res.status}`);
+            const errorText = await res.text().catch(() => 'No response body');
+            console.warn(`fetchDetails failed for ${type} with ID ${cleanId}, status: ${res.status}, body: ${errorText}`);
             if (!isRetry) {
                 const nextType = type === 'movie' ? 'tv' : 'movie';
-                console.log(`Retrying fetchDetails as ${nextType} for ID ${id}`);
-                return fetchDetails(id, nextType, true);
+                console.log(`Retrying fetchDetails as ${nextType} for ID ${cleanId}`);
+                return fetchDetails(cleanId, nextType, true);
             }
-            throw new Error(`Failed to fetch details for ${type} with ID ${id} after retry.`);
+            throw new Error(`Failed to fetch details for ${type} with ID ${cleanId} after retry. Status: ${res.status}`);
         }
         const data = await res.json();
         return data;
@@ -421,4 +451,53 @@ const getGenreId = (genreName: string): number | null => {
         'Sci-Fi & Fantasy': 10765, 'Soap': 10766, 'Talk': 10767, 'War & Politics': 10768
     };
     return genres[genreName] || tvGenres[genreName] || null;
+};
+
+export const fetchBrandContent = async (
+    brandType: 'company' | 'network',
+    id: number,
+    mediaType: 'movie' | 'tv',
+    page: number = 1,
+    genreId?: number,
+    sortBy?: string
+): Promise<Movie[]> => {
+    try {
+        let url = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&language=en-US&page=${page}`;
+
+        if (mediaType === 'movie') {
+            if (brandType === 'company') {
+                url += `&with_companies=${id}`;
+            } else {
+                url += `&with_watch_providers=${id}&watch_region=US`;
+            }
+        } else {
+            if (brandType === 'company') {
+                url += `&with_companies=${id}`;
+            } else {
+                url += `&with_networks=${id}`;
+            }
+        }
+
+        if (genreId) {
+            url += `&with_genres=${genreId}`;
+        }
+
+        if (sortBy) {
+            url += `&sort_by=${sortBy}`;
+        } else {
+            url += `&sort_by=popularity.desc`;
+        }
+
+        const res = await fetch(url, { next: { revalidate: 3600 } });
+        if (!res.ok) throw new Error(`Brand discovery fetch failed: ${res.status}`);
+        const data = await res.json();
+        return data.results.map((item: any) => ({
+            ...item,
+            title: item.title || item.name,
+            media_type: mediaType
+        }));
+    } catch (error) {
+        console.error('fetchBrandContent error:', error);
+        return [];
+    }
 };

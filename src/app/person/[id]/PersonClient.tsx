@@ -111,7 +111,7 @@ export default function PersonClient({ id }: { id: string }) {
                         <h2 className={styles.sectionTitle}>Known For</h2>
                         <div className={styles.creditsGrid}>
                             {uniqueCredits.map((item: any) => (
-                                <MovieCard key={item.id} movie={item} className="w-full" />
+                                <MovieCard key={item.id} movie={item} fullWidth />
                             ))}
                         </div>
                     </div>

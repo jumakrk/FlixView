@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import { Plus, Heart, Check, Loader2 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
-import { useAuth } from '@/context/AuthContext';
 
 interface InteractionButtonsProps {
     contentId: number;
     mediaType: 'movie' | 'tv';
-    title?: string; // Made optional to avoid immediate break, but should be passed
+    title?: string;
     poster?: string | null;
     className?: string;
     showFavorite?: boolean;
@@ -16,7 +15,6 @@ interface InteractionButtonsProps {
 
 export default function InteractionButtons({ contentId, mediaType, title = 'Unknown', poster = null, className, showFavorite = true }: InteractionButtonsProps) {
     const { isInWatchlist, isFavorite, addToWatchlist, removeFromWatchlist, addToFavorites, removeFromFavorites } = useData();
-    const { user, openAuthModal } = useAuth();
 
     // Local state to track loading state for better UX
     const [toggling, setToggling] = useState<'watchlist' | 'favorite' | null>(null);
@@ -26,11 +24,6 @@ export default function InteractionButtons({ contentId, mediaType, title = 'Unkn
     const isFav = isFavorite(idStr, mediaType);
 
     const handleInteraction = async (action: 'watchlist' | 'favorite') => {
-        if (!user) {
-            openAuthModal();
-            return;
-        }
-
         setToggling(action);
 
         try {

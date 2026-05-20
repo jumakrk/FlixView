@@ -50,6 +50,7 @@
     display: flex;
     gap: 8px;
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 10px 4% 20px 4%;
     /* Bottom padding allows for hover scale/glow */
     scroll-behavior: smooth;
