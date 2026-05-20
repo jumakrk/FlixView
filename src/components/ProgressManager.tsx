@@ -94,6 +94,16 @@ export default function ProgressManager({
 
         if (!trustedOrigins.includes(origin) || !data) return;
 
+        // Special VidRock progress synchronization
+        if (origin === 'https://vidrock.ru' && data?.type === 'MEDIA_DATA') {
+            try {
+                localStorage.setItem('vidRockProgress', JSON.stringify(data.data));
+            } catch (e) {
+                console.error('Failed to sync VidRock progress:', e);
+            }
+            return;
+        }
+
         // Detection: 
         // - VidNest: { event, currentTime, ... }
         // - VidUp: { type: 'PLAYER_EVENT', data: { event, ... } }
