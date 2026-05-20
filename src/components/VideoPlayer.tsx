@@ -25,14 +25,14 @@ function VideoPlayer({
 }: VideoPlayerProps) {
 
     // ... (logic)
-    const baseUrl = 'https://vidrock.ru';
-    // Theme white, Autoplay true, Autonext true, download false, next button true, episode selector true, lang en
-    const commonQuery = 'autoplay=true&autonext=true&theme=ffffff&download=false&nextbutton=true&episodeselector=true&lang=en';
+    const baseUrl = 'https://vidfast.pro';
+    // Parameters: title, poster, autoPlay, startAt, theme purple (7c3aed), server Alpha, hideServer, fullscreenButton, chromecast false, sub en
+    const commonQuery = `title=true&poster=true&autoPlay=true&startAt=${startTime}&theme=7c3aed&server=Alpha&hideServer=true&fullscreenButton=true&chromecast=false&sub=en`;
     
-    // VidRock URL Patterns
+    // VidFast URL Patterns
     const src = type === 'movie'
         ? `${baseUrl}/movie/${tmdbId}?${commonQuery}`
-        : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${commonQuery}`;
+        : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${commonQuery}&nextButton=true&autoNext=true`;
 
     return (
         <div className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5", className)}>

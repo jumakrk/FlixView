@@ -387,7 +387,12 @@ app.on('ready', () => {
         } else if (url.includes('vidup.to') || url.includes('dokicloud.one')) {
             details.requestHeaders['Referer'] = 'https://vidup.to/';
             details.requestHeaders['Origin'] = 'https://vidup.to';
-        } else if (url.includes('vidfast.net') || url.includes('vidfast.pro') || url.includes('vidrock.ru')) {
+        } else if (
+            url.includes('vidfast.net') || url.includes('vidfast.pro') || 
+            url.includes('vidfast.in') || url.includes('vidfast.io') || 
+            url.includes('vidfast.me') || url.includes('vidfast.pm') || 
+            url.includes('vidfast.xyz') || url.includes('vidrock.ru')
+        ) {
             // Only spoof the referer for the actual iframe load (subFrame).
             // Do not spoof internal API/XHR requests made by the player, otherwise it breaks CORS.
             if (details.resourceType === 'subFrame') {

@@ -86,10 +86,15 @@ export default function ProgressManager({
     // 2. Event Listener
     const handleMessage = useCallback((event: MessageEvent) => {
         const { origin, data } = event;
+        const vidfastOrigins = [
+            'https://vidfast.pro', 'https://vidfast.in', 'https://vidfast.io', 
+            'https://vidfast.me', 'https://vidfast.net', 'https://vidfast.pm', 'https://vidfast.xyz'
+        ];
+
         const trustedOrigins = [
             'https://vidnest.fun', 'https://vidrush.net', 'https://player.vidrush.net',
-            'https://vidup.to', 'https://vidup.io', 'https://vidup.me', 'https://vidfast.net', 'https://vidfast.pro',
-            'https://vidrock.ru'
+            'https://vidup.to', 'https://vidup.io', 'https://vidup.me', 'https://vidrock.ru',
+            ...vidfastOrigins
         ];
 
         if (!trustedOrigins.includes(origin) || !data) return;
@@ -100,6 +105,16 @@ export default function ProgressManager({
                 localStorage.setItem('vidRockProgress', JSON.stringify(data.data));
             } catch (e) {
                 console.error('Failed to sync VidRock progress:', e);
+            }
+            return;
+        }
+
+        // Special VidFast progress synchronization
+        if (vidfastOrigins.includes(origin) && data?.type === 'MEDIA_DATA') {
+            try {
+                localStorage.setItem('vidFastProgress', JSON.stringify(data.data));
+            } catch (e) {
+                console.error('Failed to sync VidFast progress:', e);
             }
             return;
         }

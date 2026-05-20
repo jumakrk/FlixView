@@ -12,8 +12,6 @@ import BackButton from '@/components/BackButton';
 import MediaProgressBar from '@/components/MediaProgressBar';
 import Image from 'next/image';
 import InteractionButtons from '@/components/InteractionButtons';
-import TrailerModal from '@/components/TrailerModal';
-import { Youtube } from 'lucide-react';
 
 export default function DetailsClient({ id, type }: { id: string; type: string }) {
     const mediaType = (type === 'series' || type === 'tv') ? 'tv' : 'movie';
@@ -23,7 +21,6 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
     const [similar, setSimilar] = useState<any[]>([]);
     const [logoPath, setLogoPath] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isTrailerOpen, setIsTrailerOpen] = useState(false);
 
     useEffect(() => {
         async function loadData() {
@@ -103,9 +100,6 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
     const profileBaseUrl = 'https://image.tmdb.org/t/p/w185';
     const logoBaseUrl = 'https://image.tmdb.org/t/p/w500';
 
-    const trailerVideo = details.videos?.results?.find((v: any) => v.site === 'YouTube' && v.type === 'Trailer');
-    const trailerKey = trailerVideo ? trailerVideo.key : null;
-
     const releaseDate = details.release_date || details.first_air_date;
     const isUpcoming = releaseDate ? new Date(releaseDate) > new Date() : false;
     const releaseYear = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
@@ -114,11 +108,6 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
         <div className={styles.detailsContainer}>
             <BackButton className={styles.backButton} />
             {/* Hero Section */}
-            <TrailerModal 
-                isOpen={isTrailerOpen} 
-                onClose={() => setIsTrailerOpen(false)} 
-                videoKey={trailerKey || ''} 
-            />
             <div className={styles.hero}>
                 <div
                     className={styles.backdrop}
@@ -190,15 +179,6 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                                     label="Play"
                                     releaseDate={details.release_date || details.first_air_date}
                                 />
-                                {trailerKey && (
-                                    <button 
-                                        onClick={() => setIsTrailerOpen(true)}
-                                        className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all backdrop-blur-md whitespace-nowrap"
-                                    >
-                                        <Youtube size={20} className="text-red-500" />
-                                        Trailer
-                                    </button>
-                                )}
                                 <InteractionButtons
                                     contentId={parseInt(id)}
                                     mediaType={mediaType}
