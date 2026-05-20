@@ -396,6 +396,8 @@ app.on('ready', () => {
                     delete details.requestHeaders['Origin'];
                 }
             }
+        } else if (url.includes('youtube.com') || url.includes('youtube-nocookie.com')) {
+            details.requestHeaders['Referer'] = 'https://www.youtube.com/';
         }
         callback({ requestHeaders: details.requestHeaders });
     });
@@ -467,7 +469,7 @@ app.on('web-contents-created', (event, contents) => {
             'embed.su', 'vidsrc.xyz', 'vidsrc.pro', 'vidup.to', 
             'rabbitstream.net', 'dokicloud.one', 'megacloud.tv', 'vidfast.pro', 'vidfast.net',
             'vidfast.in', 'vidfast.io', 'vidfast.me', 'vidfast.pm', 'vidfast.xyz', 'vidrock.ru',
-            'cloudflare.com', 'google.com', 'videasy.net'
+            'cloudflare.com', 'google.com', 'videasy.net', 'youtube.com', 'youtube-nocookie.com'
         ];
         const isTrusted = trusted.some(domain => parsed.hostname.endsWith(domain));
 
