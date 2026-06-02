@@ -11,9 +11,7 @@ interface VideoPlayerProps {
     startTime?: number;
 }
 
-import { memo } from 'react';
-
-// ... (props interface)
+import { memo, useEffect, useState } from 'react';
 
 function VideoPlayer({
     tmdbId,
@@ -23,16 +21,43 @@ function VideoPlayer({
     className,
     startTime = 0
 }: VideoPlayerProps) {
+    const [isReady, setIsReady] = useState(false);
 
-    // ... (logic)
-    const baseUrl = 'https://vidfast.pro';
-    // Parameters: title, poster, autoPlay, startAt, theme purple (7c3aed), server Alpha, hideServer, fullscreenButton, chromecast false, sub en
-    const commonQuery = `title=true&poster=true&autoPlay=true&startAt=${startTime}&theme=7c3aed&server=Alpha&hideServer=true&fullscreenButton=true&chromecast=false&sub=en`;
+    useEffect(() => {
+        let isMounted = true;
+        const purgeAndReady = async () => {
+            if (typeof window !== 'undefined' && window.electron && window.electron.purgePlayerCache) {
+                try {
+                    await window.electron.purgePlayerCache('all');
+                } catch (e) {
+                    console.error('Failed to purge player cache before mount', e);
+                }
+            }
+            if (isMounted) setIsReady(true);
+        };
+        
+        setIsReady(false);
+        purgeAndReady();
+        
+        return () => { isMounted = false; };
+    }, [tmdbId, season, episode, type]);
+
+    const baseUrl = 'https://vidup.to';
+    // Parameters: all true except chromecast, server Alpha, theme purple (9146ff), sub en, startAt (progress)
+    const commonQuery = `title=true&poster=true&autoPlay=true&startAt=${Math.floor(startTime)}&theme=9146ff&server=Alpha&hideServer=true&fullscreenButton=true&chromecast=false&sub=en`;
     
-    // VidFast URL Patterns
+    // VidUp URL Patterns
     const src = type === 'movie'
         ? `${baseUrl}/movie/${tmdbId}?${commonQuery}`
         : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${commonQuery}&nextButton=true&autoNext=true`;
+
+    if (!isReady) {
+        return (
+            <div className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5 flex items-center justify-center", className)}>
+                <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <div className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5", className)}>

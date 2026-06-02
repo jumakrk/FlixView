@@ -215,7 +215,7 @@ ipcMain.handle('purge-player-cache', async (event, tmdbId) => {
     try {
         // We clear local storage for the player domains so it forgets all progress, starting from 0.
         // This is safe because our app is the source of truth and explicitly sets the startTime.
-        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru'];
+        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net'];
         for (const domain of domains) {
             await session.defaultSession.clearStorageData({
                 origin: domain,
@@ -391,7 +391,8 @@ app.on('ready', () => {
             url.includes('vidfast.net') || url.includes('vidfast.pro') || 
             url.includes('vidfast.in') || url.includes('vidfast.io') || 
             url.includes('vidfast.me') || url.includes('vidfast.pm') || 
-            url.includes('vidfast.xyz') || url.includes('vidrock.ru')
+            url.includes('vidfast.xyz') || url.includes('vidrock.ru') || 
+            url.includes('vidking.net')
         ) {
             // Only spoof the referer for the actual iframe load (subFrame).
             // Do not spoof internal API/XHR requests made by the player, otherwise it breaks CORS.
@@ -438,8 +439,42 @@ app.on('web-contents-created', (event, contents) => {
             window.alert = function() { console.log('Ad-Block: Blocked alert'); };
             window.confirm = function() { return true; };
             window.prompt = function() { return null; };
+
+            // Force external player iframes to be stateless (fixes split-second resume loops)
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                try {
+                    const memoryStore = {};
+                    Storage.prototype.setItem = function(key, value) { memoryStore[key] = String(value); };
+                    Storage.prototype.getItem = function(key) { return memoryStore.hasOwnProperty(key) ? memoryStore[key] : null; };
+                    Storage.prototype.removeItem = function(key) { delete memoryStore[key]; };
+                    Storage.prototype.clear = function() { for (let k in memoryStore) delete memoryStore[k]; };
+                } catch (e) {}
+
+                // Manual Progress Seek Override
+                // Bypasses player's native progress bugs by directly controlling the HTML5 video element
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const customStart = urlParams.get('custom_start');
+                    if (customStart) {
+                        const timeToSeek = parseFloat(customStart);
+                        if (timeToSeek > 0) {
+                            let attempts = 0;
+                            const trySeek = setInterval(() => {
+                                attempts++;
+                                const video = document.querySelector('video');
+                                if (video && video.readyState >= 1) { // HAVE_METADATA or more
+                                    video.currentTime = timeToSeek;
+                                    clearInterval(trySeek);
+                                }
+                                if (attempts > 50) clearInterval(trySeek); // Max 10 seconds (50 * 200ms)
+                            }, 200);
+                        }
+                    }
+                } catch(e) {}
+            }
+            undefined;
         `;
-        contents.executeJavaScript(script);
+        contents.executeJavaScript(script).catch(() => {});
     });
 
     // Handle external links (PayPal, etc.) securely
@@ -474,7 +509,7 @@ app.on('web-contents-created', (event, contents) => {
             'embed.su', 'vidsrc.xyz', 'vidsrc.pro', 'vidup.to', 
             'rabbitstream.net', 'dokicloud.one', 'megacloud.tv', 'vidfast.pro', 'vidfast.net',
             'vidfast.in', 'vidfast.io', 'vidfast.me', 'vidfast.pm', 'vidfast.xyz', 'vidrock.ru',
-            'cloudflare.com', 'google.com', 'videasy.net', 'youtube.com', 'youtube-nocookie.com'
+            'cloudflare.com', 'google.com', 'videasy.net', 'youtube.com', 'youtube-nocookie.com', 'vidking.net'
         ];
         const isTrusted = trusted.some(domain => parsed.hostname.endsWith(domain));
 
@@ -494,13 +529,37 @@ app.whenReady().then(() => {
     
     createWindow();
     
-    // Check for updates on startup
+    // Auto Updater Setup
     if (app.isPackaged) {
-        autoUpdater.checkForUpdatesAndNotify();
+        autoUpdater.autoDownload = false;
+        autoUpdater.autoInstallOnAppQuit = false;
+
+        autoUpdater.on('update-available', (info) => {
+            if (win) win.webContents.send('update-available', info);
+        });
+        autoUpdater.on('update-error', (err) => {
+            if (win) win.webContents.send('update-error', err);
+        });
+        autoUpdater.on('download-progress', (progressObj) => {
+            if (win) win.webContents.send('download-progress', progressObj);
+        });
+        autoUpdater.on('update-downloaded', (info) => {
+            if (win) win.webContents.send('update-downloaded', info);
+        });
+
+        ipcMain.handle('download-update', () => {
+            autoUpdater.downloadUpdate();
+        });
+        ipcMain.handle('quit-and-install', () => {
+            autoUpdater.quitAndInstall(false, true);
+        });
+
+        // Check for updates on startup
+        autoUpdater.checkForUpdates();
         
         // Also check every 4 hours
         setInterval(() => {
-            autoUpdater.checkForUpdatesAndNotify();
+            autoUpdater.checkForUpdates();
         }, 4 * 60 * 60 * 1000);
     }
 });

@@ -8,6 +8,8 @@ import styles from './Sidebar.module.css';
 import DonationModal from './DonationModal';
 import DonateIcon from './DonateIcon';
 
+import UpdateModal from './UpdateModal';
+
 const NAV_LINKS = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/trending', label: 'Trending', icon: TrendingUp },
@@ -20,6 +22,7 @@ const NAV_LINKS = [
 export default function Sidebar() {
     const pathname = usePathname();
     const [isDonateOpen, setIsDonateOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [version, setVersion] = useState<string>('');
     const [updateStatus, setUpdateStatus] = useState<'none' | 'available' | 'downloading' | 'downloaded'>('none');
     const [downloadPercent, setDownloadPercent] = useState(0);
@@ -35,13 +38,23 @@ export default function Sidebar() {
                 setUpdateStatus('downloading');
                 setDownloadPercent(Math.round(p.percent));
             });
-            window.electron.onUpdateDownloaded(() => setUpdateStatus('downloaded'));
+            window.electron.onUpdateDownloaded(() => {
+                setUpdateStatus('downloaded');
+                // Automatically install after a brief delay
+                setTimeout(() => {
+                    if (window.electron) window.electron.quitAndInstall();
+                }, 2000);
+            });
         }
     }, []);
 
     const handleUpdateAction = () => {
-        if (updateStatus === 'downloaded' && window.electron) {
-            window.electron.quitAndInstall();
+        setIsUpdateModalOpen(true);
+    };
+
+    const handleUpdateNow = () => {
+        if (window.electron) {
+            window.electron.downloadUpdate();
         }
     };
 
@@ -126,11 +139,10 @@ export default function Sidebar() {
                             <button 
                                 onClick={handleUpdateAction}
                                 className={`${styles.updateBtn} ${styles[updateStatus]}`}
-                                disabled={updateStatus === 'downloading' || updateStatus === 'available'}
                             >
                                 {updateStatus === 'available' && (
                                     <>
-                                        <RefreshCw size={14} className="animate-spin" />
+                                        <ArrowUpCircle size={14} className="animate-bounce" />
                                         <span>Update Available</span>
                                     </>
                                 )}
@@ -142,8 +154,8 @@ export default function Sidebar() {
                                 )}
                                 {updateStatus === 'downloaded' && (
                                     <>
-                                        <ArrowUpCircle size={14} />
-                                        <span>Restart to Update</span>
+                                        <RefreshCw size={14} className="animate-spin text-green-400" />
+                                        <span className="text-green-400">Installing...</span>
                                     </>
                                 )}
                             </button>
@@ -152,6 +164,14 @@ export default function Sidebar() {
                 </div>
             </aside>
             <DonationModal isOpen={isDonateOpen} onClose={() => setIsDonateOpen(false)} />
+            <UpdateModal 
+                isOpen={isUpdateModalOpen}
+                onClose={() => setIsUpdateModalOpen(false)}
+                onUpdateNow={handleUpdateNow}
+                status={updateStatus}
+                downloadPercent={downloadPercent}
+                version={version}
+            />
         </>
     );
 }

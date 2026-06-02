@@ -85,7 +85,19 @@ export default function ProgressManager({
 
     // 2. Event Listener
     const handleMessage = useCallback((event: MessageEvent) => {
-        const { origin, data } = event;
+        const { origin } = event;
+        let data = event.data;
+        
+        // Parse data if it's a string (VidKing format)
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                // Ignore parsing errors for non-JSON strings
+                return;
+            }
+        }
+
         const vidfastOrigins = [
             'https://vidfast.pro', 'https://vidfast.in', 'https://vidfast.io', 
             'https://vidfast.me', 'https://vidfast.net', 'https://vidfast.pm', 'https://vidfast.xyz'
@@ -94,6 +106,7 @@ export default function ProgressManager({
         const trustedOrigins = [
             'https://vidnest.fun', 'https://vidrush.net', 'https://player.vidrush.net',
             'https://vidup.to', 'https://vidup.io', 'https://vidup.me', 'https://vidrock.ru',
+            'https://www.vidking.net',
             ...vidfastOrigins
         ];
 
@@ -119,6 +132,16 @@ export default function ProgressManager({
             return;
         }
 
+        // Special VidUp progress synchronization
+        if (origin.includes('vidup') && data?.type === 'MEDIA_DATA') {
+            try {
+                localStorage.setItem('vidUpProgress', JSON.stringify(data.data));
+            } catch (e) {
+                console.error('Failed to sync VidUp progress:', e);
+            }
+            return;
+        }
+
         // Detection: 
         // - VidNest: { event, currentTime, ... }
         // - VidUp: { type: 'PLAYER_EVENT', data: { event, ... } }
@@ -133,7 +156,7 @@ export default function ProgressManager({
             const duration = isVidNest ? data.duration : data.data.duration;
             const playerSeason = isVidNest ? data.season : (isVidUp ? data.data.season : undefined);
             const playerEpisode = isVidNest ? data.episode : (isVidUp ? data.data.episode : undefined);
-            const playerTmdbId = isVidNest ? String(data.tmdbId) : (isVidRush ? String(data.data.mediaId) : (isVidUp && data.data.tmdbId ? String(data.data.tmdbId) : id));
+            const playerTmdbId = isVidNest ? String(data.tmdbId) : (isVidRush ? String(data.data.mediaId) : (isVidUp && (data.data.tmdbId || data.data.id) ? String(data.data.tmdbId || data.data.id) : id));
 
             // Security check: ensure tmdbId matches current page id (if reported)
             if (playerTmdbId && playerTmdbId !== id) return;
@@ -141,6 +164,16 @@ export default function ProgressManager({
             // Use player reported S/E if available, otherwise fallback to props
             const currentSeason = playerSeason || season;
             const currentEpisode = playerEpisode || episode;
+
+            if (type === 'tv' && (String(currentSeason) !== String(season) || String(currentEpisode) !== String(episode))) {
+                // The iframe navigated to a new episode internally (auto-next or built-in button).
+                // We MUST sync the host app's URL to match the iframe, and force a clean re-mount.
+                // This ensures startAt parameter logic works properly for every episode.
+                const source = new URLSearchParams(window.location.search).get('source');
+                const sourceParam = source ? `&source=${source}` : '';
+                router.replace(`/watch?type=tv&id=${id}&season=${currentSeason}&episode=${currentEpisode}${sourceParam}`);
+                return;
+            }
 
             const save = (): boolean => {
                 if (!currentTime || currentTime < 1 || !duration) return false;
