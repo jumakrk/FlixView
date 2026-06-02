@@ -48,6 +48,7 @@ declare global {
             onUpdateError: (callback: (error: string) => void) => void;
             onDownloadProgress: (callback: (progress: any) => void) => void;
             onUpdateDownloaded: (callback: (info: any) => void) => void;
+            downloadUpdate: () => Promise<void>;
             quitAndInstall: () => Promise<void>;
             getAppVersion: () => Promise<string>;
             purgePlayerCache: (tmdbId: string) => Promise<{ success: boolean; error?: string }>;
