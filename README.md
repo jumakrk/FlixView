@@ -14,9 +14,9 @@ Get the latest version of FlixView directly for your platform:
 
 | Platform | Download Link |
 | :--- | :--- |
-| **Windows** | [📥 Download .exe](https://github.com/jumakrk/FlixView/releases/download/v0.1.6/FlixView-Setup-0.1.12.exe) |
-| **macOS (Silicon)** | [📥 Download .dmg](https://github.com/jumakrk/FlixView/releases/download/v0.1.6/FlixView-0.1.12-arm64.dmg) |
-| **Linux** | [📥 Download .AppImage](https://github.com/jumakrk/FlixView/releases/download/v0.1.6/FlixView-0.1.12.AppImage) |
+| **Windows** | [📥 Download .exe](https://github.com/jumakrk/FlixView/releases/download/v0.1.12/FlixView-Setup-0.1.12.exe) |
+| **macOS (Silicon)** | [📥 Download .dmg](https://github.com/jumakrk/FlixView/releases/download/v0.1.12/FlixView-0.1.12-arm64.dmg) |
+| **Linux** | [📥 Download .AppImage](https://github.com/jumakrk/FlixView/releases/download/v0.1.12/FlixView-0.1.12.AppImage) |
 
 ---
 
