@@ -7,7 +7,20 @@ on:
   workflow_dispatch: # Allow manual triggering
 
 jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+
   release:
+    needs: create_release
     permissions:
       contents: write
     strategy:
