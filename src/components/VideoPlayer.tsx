@@ -42,14 +42,13 @@ function VideoPlayer({
         return () => { isMounted = false; };
     }, [tmdbId, season, episode, type]);
 
-    const baseUrl = 'https://vidup.to';
-    // Parameters: all true except chromecast, server Alpha, theme purple (9146ff), sub en, startAt (progress)
-    const commonQuery = `title=true&poster=true&autoPlay=true&startAt=${Math.floor(startTime)}&theme=9146ff&server=Alpha&hideServer=true&fullscreenButton=true&chromecast=false&sub=en`;
+    const baseUrl = 'https://peachify.top';
+    const commonQuery = `autoPlay=true&audio=English&subtitle=English&accent=9146ff&server=iron&cast=false&startAt=${Math.floor(startTime)}`;
     
-    // VidUp URL Patterns
+    // Peachify URL Patterns
     const src = type === 'movie'
-        ? `${baseUrl}/movie/${tmdbId}?${commonQuery}`
-        : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${commonQuery}&nextButton=true&autoNext=true`;
+        ? `${baseUrl}/embed/movie/${tmdbId}?${commonQuery}`
+        : `${baseUrl}/embed/tv/${tmdbId}/${season}/${episode}?${commonQuery}&showNextBtn=true&autoNext=true`;
 
     if (!isReady) {
         return (

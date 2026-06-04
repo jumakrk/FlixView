@@ -22,6 +22,32 @@ const favoritesDir = path.join(userDataPath, 'favourites');
     }
 });
 
+// --- Window State Manager ---
+const windowStatePath = path.join(userDataPath, 'window-state.json');
+
+function saveWindowState(window) {
+    if (!window) return;
+    try {
+        const bounds = window.getBounds();
+        const isMaximized = window.isMaximized();
+        const isFullScreen = window.isFullScreen();
+        fs.writeFileSync(windowStatePath, JSON.stringify({ bounds, isMaximized, isFullScreen }));
+    } catch (e) {
+        console.error('Failed to save window state:', e);
+    }
+}
+
+function loadWindowState() {
+    try {
+        if (fs.existsSync(windowStatePath)) {
+            return JSON.parse(fs.readFileSync(windowStatePath, 'utf8'));
+        }
+    } catch (e) {
+        console.error('Failed to load window state:', e);
+    }
+    return null;
+}
+
 // Helper to get directory by type
 function getDirForType(type) {
     if (type === 'watchlist') return watchlistDir;
@@ -285,9 +311,14 @@ ipcMain.handle('get-app-version', () => {
 
 
 async function createWindow() {
+    const state = loadWindowState() || {};
+    const bounds = state.bounds || { width: 1200, height: 800 };
+
     win = new BrowserWindow({
-        width: 1200,
-        height: 800,
+        width: bounds.width,
+        height: bounds.height,
+        x: bounds.x,
+        y: bounds.y,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -302,6 +333,28 @@ async function createWindow() {
             height: 32
         }
     });
+
+    if (state.isMaximized) {
+        win.maximize();
+    }
+    if (state.isFullScreen) {
+        win.setFullScreen(true);
+    }
+
+    // Save window state on various events
+    let saveTimeout;
+    const debouncedSave = () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => saveWindowState(win), 500);
+    };
+
+    win.on('resize', debouncedSave);
+    win.on('move', debouncedSave);
+    win.on('close', () => saveWindowState(win));
+    win.on('maximize', debouncedSave);
+    win.on('unmaximize', debouncedSave);
+    win.on('enter-full-screen', debouncedSave);
+    win.on('leave-full-screen', debouncedSave);
 
     // Set up Ad Blocker with full uBlock Origin filter sets
     try {

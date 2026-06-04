@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SeasonDetails, Episode, fetchSeasonDetails } from '@/lib/tmdb';
+import { useData } from '@/context/DataContext';
 import styles from './SeasonSelector.module.css';
 import { ChevronDown, Play, Tv } from 'lucide-react';
 import PlayButton from './PlayButton';
@@ -26,6 +27,7 @@ export default function SeasonSelector({ seriesId, seasons, initialSeasonNumber 
     const router = useRouter();
     const searchParams = useSearchParams();
     const currentSeason = parseInt(searchParams.get('season') || initialSeasonNumber.toString());
+    const { getProgress } = useData();
 
     const [selectedSeason, setSelectedSeason] = useState(currentSeason);
     const [seasonData, setSeasonData] = useState<SeasonDetails | null>(null);
@@ -80,6 +82,27 @@ export default function SeasonSelector({ seriesId, seasons, initialSeasonNumber 
                 <div className={cn(styles.episodeList, listClassName)}>
                     {seasonData?.episodes.map((episode) => {
                         const isComingSoon = !episode.air_date || new Date(episode.air_date) > new Date();
+
+                        // Calculate Watch Progress
+                        const tvProgress = getProgress(seriesId, 'tv');
+                        const epKey = `s${selectedSeason}e${episode.episode_number}`;
+                        const epProgress = tvProgress?.episodes?.[epKey];
+                        
+                        let watchedSecs = 0;
+                        let durationSecs = 0;
+
+                        if (epProgress && epProgress.duration_seconds > 0) {
+                            watchedSecs = epProgress.watched_seconds;
+                            durationSecs = epProgress.duration_seconds;
+                        } else if (tvProgress?.season === selectedSeason && tvProgress?.episode === episode.episode_number && (tvProgress?.duration_seconds || 0) > 0) {
+                            watchedSecs = tvProgress.watched_seconds;
+                            durationSecs = tvProgress.duration_seconds;
+                        }
+
+                        let percentWatched = 0;
+                        if (durationSecs > 0) {
+                            percentWatched = Math.min(100, Math.max(0, (watchedSecs / durationSecs) * 100));
+                        }
 
                         return (
                             <div key={episode.id} className={styles.episodeCard}>
@@ -136,6 +159,21 @@ export default function SeasonSelector({ seriesId, seasons, initialSeasonNumber 
                                             </span>
                                         )}
                                     </div>
+                                    
+                                    {/* Progress Bar under meta */}
+                                    {percentWatched > 0 && !isComingSoon && (
+                                        <div className="mt-4 flex items-center gap-3">
+                                            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.8)] rounded-full" 
+                                                    style={{ width: `${percentWatched}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-[10px] font-black text-violet-400 min-w-[32px] text-right">
+                                                {Math.round(percentWatched)}%
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );

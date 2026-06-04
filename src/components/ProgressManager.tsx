@@ -106,7 +106,7 @@ export default function ProgressManager({
         const trustedOrigins = [
             'https://vidnest.fun', 'https://vidrush.net', 'https://player.vidrush.net',
             'https://vidup.to', 'https://vidup.io', 'https://vidup.me', 'https://vidrock.ru',
-            'https://www.vidking.net',
+            'https://www.vidking.net', 'https://peachify.top',
             ...vidfastOrigins
         ];
 
@@ -138,6 +138,16 @@ export default function ProgressManager({
                 localStorage.setItem('vidUpProgress', JSON.stringify(data.data));
             } catch (e) {
                 console.error('Failed to sync VidUp progress:', e);
+            }
+            return;
+        }
+
+        // Special Peachify progress synchronization
+        if (origin === 'https://peachify.top' && data?.type === 'MEDIA_DATA') {
+            try {
+                localStorage.setItem('peachifyProgress', JSON.stringify(data.data));
+            } catch (e) {
+                console.error('Failed to sync Peachify progress:', e);
             }
             return;
         }
