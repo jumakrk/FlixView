@@ -43,7 +43,7 @@ function VideoPlayer({
     }, [tmdbId, season, episode, type]);
 
     const baseUrl = 'https://peachify.top';
-    const commonQuery = `autoPlay=true&audio=English&subtitle=English&accent=9146ff&server=wolf&cast=false&startAt=${Math.floor(startTime)}`;
+    const commonQuery = `autoPlay=true&audio=English&subtitle=English&accent=9146ff&server=iron&cast=false&startAt=${Math.floor(startTime)}`;
     
     // Peachify URL Patterns
     const src = type === 'movie'
