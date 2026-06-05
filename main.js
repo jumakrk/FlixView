@@ -241,7 +241,7 @@ ipcMain.handle('purge-player-cache', async (event, tmdbId) => {
     try {
         // We clear local storage for the player domains so it forgets all progress, starting from 0.
         // This is safe because our app is the source of truth and explicitly sets the startTime.
-        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net'];
+        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net', 'https://cinemaos.tech'];
         for (const domain of domains) {
             await session.defaultSession.clearStorageData({
                 origin: domain,
@@ -445,7 +445,7 @@ app.on('ready', () => {
             url.includes('vidfast.in') || url.includes('vidfast.io') || 
             url.includes('vidfast.me') || url.includes('vidfast.pm') || 
             url.includes('vidfast.xyz') || url.includes('vidrock.ru') || 
-            url.includes('vidking.net')
+            url.includes('vidking.net') || url.includes('cinemaos.tech')
         ) {
             // Only spoof the referer for the actual iframe load (subFrame).
             // Do not spoof internal API/XHR requests made by the player, otherwise it breaks CORS.
