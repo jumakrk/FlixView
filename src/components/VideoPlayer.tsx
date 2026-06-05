@@ -42,13 +42,13 @@ function VideoPlayer({
         return () => { isMounted = false; };
     }, [tmdbId, season, episode, type]);
 
-    const baseUrl = 'https://peachify.top';
-    const commonQuery = `autoPlay=true&audio=English&subtitle=English&accent=9146ff&server=iron&cast=false&startAt=${Math.floor(startTime)}`;
+    const baseUrl = 'https://www.vidking.net';
+    const commonQuery = `color=9146ff&autoPlay=true&progress=${Math.floor(startTime)}`;
     
-    // Peachify URL Patterns
+    // VidKing URL Patterns
     const src = type === 'movie'
         ? `${baseUrl}/embed/movie/${tmdbId}?${commonQuery}`
-        : `${baseUrl}/embed/tv/${tmdbId}/${season}/${episode}?${commonQuery}&showNextBtn=true&autoNext=true`;
+        : `${baseUrl}/embed/tv/${tmdbId}/${season}/${episode}?${commonQuery}&nextEpisode=true&episodeSelector=true`;
 
     if (!isReady) {
         return (
