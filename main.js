@@ -241,7 +241,7 @@ ipcMain.handle('purge-player-cache', async (event, tmdbId) => {
     try {
         // We clear local storage for the player domains so it forgets all progress, starting from 0.
         // This is safe because our app is the source of truth and explicitly sets the startTime.
-        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net', 'https://cinemaos.tech'];
+        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net'];
         for (const domain of domains) {
             await session.defaultSession.clearStorageData({
                 origin: domain,
@@ -440,9 +440,6 @@ app.on('ready', () => {
         } else if (url.includes('vidup.to') || url.includes('dokicloud.one')) {
             details.requestHeaders['Referer'] = 'https://vidup.to/';
             details.requestHeaders['Origin'] = 'https://vidup.to';
-        } else if (url.includes('cinemaos.tech')) {
-            details.requestHeaders['Referer'] = 'https://cinemaos.tech/';
-            details.requestHeaders['Origin'] = 'https://cinemaos.tech';
         } else if (
             url.includes('vidfast.net') || url.includes('vidfast.pro') || 
             url.includes('vidfast.in') || url.includes('vidfast.io') || 
