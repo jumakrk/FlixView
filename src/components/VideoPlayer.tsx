@@ -42,24 +42,24 @@ function VideoPlayer({
         return () => { isMounted = false; };
     }, [tmdbId, season, episode, type]);
 
-    const baseUrl = 'https://www.vidking.net';
-    const commonQuery = `color=9146ff&autoPlay=true&progress=${Math.floor(startTime)}`;
+    const baseUrl = 'https://cinemaos.tech';
+    const commonQuery = `theme=9146ff&autoPlay=true&title=true&poster=true&nextButton=true&autoNext=true&startTime=${Math.floor(startTime)}`;
     
-    // VidKing URL Patterns
+    // Cinemaos URL Patterns
     const src = type === 'movie'
-        ? `${baseUrl}/embed/movie/${tmdbId}?${commonQuery}`
-        : `${baseUrl}/embed/tv/${tmdbId}/${season}/${episode}?${commonQuery}&nextEpisode=true&episodeSelector=true`;
+        ? `${baseUrl}/player/${tmdbId}?${commonQuery}`
+        : `${baseUrl}/player/${tmdbId}/${season}/${episode}?${commonQuery}`;
 
     if (!isReady) {
         return (
-            <div className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5 flex items-center justify-center", className)}>
+            <div key="loading" className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5 flex items-center justify-center", className)}>
                 <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
-        <div className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5", className)}>
+        <div key={`player-${tmdbId}-${season}-${episode}`} className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5", className)}>
             <iframe
                 src={src}
                 className="absolute inset-0 w-full h-full"

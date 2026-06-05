@@ -46,9 +46,22 @@ export default function ProgressManager({
         }
     }, [checkResume, id, type, getProgress, router]);
 
+    // Active Polling for players that don't emit timeupdate natively (like Cinemaos)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                if (iframe.src.includes('cinemaos.tech')) {
+                    iframe.contentWindow?.postMessage({ command: 'getStatus' }, '*');
+                }
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
     // Throttling Ref
     const lastUpdateTime = useRef(0);
-    const THROTTLE_INTERVAL = 5000; // 5 seconds
+    const THROTTLE_INTERVAL = 1000; // 1 second
     const hasLoadedStart = useRef(false);
 
     // 1. Initial Load of Progress
@@ -106,7 +119,7 @@ export default function ProgressManager({
         const trustedOrigins = [
             'https://vidnest.fun', 'https://vidrush.net', 'https://player.vidrush.net',
             'https://vidup.to', 'https://vidup.io', 'https://vidup.me', 'https://vidrock.ru',
-            'https://www.vidking.net', 'https://peachify.top',
+            'https://www.vidking.net', 'https://peachify.top', 'https://cinemaos.tech',
             ...vidfastOrigins
         ];
 
@@ -152,6 +165,16 @@ export default function ProgressManager({
             return;
         }
 
+        // Special Cinemaos progress synchronization
+        if (origin === 'https://cinemaos.tech' && data?.type === 'MEDIA_DATA') {
+            try {
+                localStorage.setItem('cinemaosProgress', JSON.stringify(data.data));
+            } catch (e) {
+                console.error('Failed to sync Cinemaos progress:', e);
+            }
+            return;
+        }
+
         // Detection: 
         // - VidNest: { event, currentTime, ... }
         // - VidUp: { type: 'PLAYER_EVENT', data: { event, ... } }
@@ -186,7 +209,7 @@ export default function ProgressManager({
             }
 
             const save = (): boolean => {
-                if (!currentTime || currentTime < 1 || !duration) return false;
+                if (currentTime === undefined || currentTime === null || currentTime <= 0 || !duration) return false;
 
                 const epKey = `s${currentSeason}e${currentEpisode}`;
 
@@ -217,7 +240,7 @@ export default function ProgressManager({
                 return true;
             };
 
-            if (playerEvent === 'timeupdate') {
+            if (playerEvent === 'timeupdate' || playerEvent === 'playerstatus') {
                 const now = Date.now();
                 if (lastUpdateTime.current === 0 || (now - lastUpdateTime.current > THROTTLE_INTERVAL)) {
                     if (save()) {

@@ -273,6 +273,7 @@
 /* Actions */
 .actions {
     display: flex;
+    align-items: center;
     gap: 16px;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out 0.4s forwards;
