@@ -42,13 +42,18 @@ function VideoPlayer({
         return () => { isMounted = false; };
     }, [tmdbId, season, episode, type]);
 
-    const baseUrl = 'https://peachify.top';
-    const commonQuery = `autoPlay=true&audio=English&subtitle=English&accent=9146ff&server=iron&cast=false&startAt=${Math.floor(startTime)}`;
-    
-    // Peachify URL Patterns
+    // VidUp embed: https://vidup.to/{movie|tv}/{tmdbId}[/{season}/{episode}]
+    // Params: autoPlay, theme (hex), startAt (start time in seconds), title, poster,
+    // fullscreenButton, chromecast; TV also supports nextButton + autoNext (kept
+    // enabled so the inbuilt next-episode button and auto-advance work). Theme is
+    // the app's violet-600 purple (#7c3aed).
+    const baseUrl = 'https://vidup.to';
+    const startAtParam = startTime > 0 ? `&startAt=${Math.floor(startTime)}` : '';
+    const baseParams = 'autoPlay=true&theme=7c3aed&title=true&poster=true&fullscreenButton=true&chromecast=true';
+
     const src = type === 'movie'
-        ? `${baseUrl}/embed/movie/${tmdbId}?${commonQuery}`
-        : `${baseUrl}/embed/tv/${tmdbId}/${season}/${episode}?${commonQuery}&showNextBtn=true&autoNext=true`;
+        ? `${baseUrl}/movie/${tmdbId}?${baseParams}${startAtParam}`
+        : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${baseParams}&nextButton=true&autoNext=true${startAtParam}`;
 
     if (!isReady) {
         return (

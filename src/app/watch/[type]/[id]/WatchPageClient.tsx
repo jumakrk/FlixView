@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { fetchDetails, fetchCredits, fetchSimilar } from '@/lib/tmdb';
 import WatchClient from '@/components/WatchClient';
 import { Star, Clock, Tv } from 'lucide-react';
@@ -12,6 +13,9 @@ import Link from 'next/link';
 export default function WatchPageClient({ id, type }: { id: string; type: string }) {
     const mediaType = (type === 'series' || type === 'tv') ? 'tv' : 'movie';
     const numericId = parseInt(id);
+
+    const searchParams = useSearchParams();
+    const currentSeason = parseInt(searchParams.get('season') || '1');
 
     const [details, setDetails] = useState<any>(null);
     const [credits, setCredits] = useState<any[]>([]);
@@ -61,6 +65,12 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
     const profileBaseUrl = 'https://image.tmdb.org/t/p/w185';
     const backdropBaseUrl = 'https://image.tmdb.org/t/p/original';
 
+    // Total episodes in the season currently being watched — lets the progress
+    // tracker clamp internal episode-advance to episodes that actually exist.
+    const maxEpisode = details?.seasons
+        ? (details.seasons.find((s: any) => s.season_number === currentSeason)?.episode_count ?? undefined)
+        : undefined;
+
     return (
         <div className="min-h-screen bg-black text-white p-0 relative overflow-x-hidden">
             {/* Background Backdrop with Gradient */}
@@ -80,6 +90,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                     title={details.title || details.name || ''}
                     posterPath={details.poster_path}
                     backdropPath={details.backdrop_path}
+                    maxEpisode={maxEpisode}
                 />
 
                 {/* Content Grid */}

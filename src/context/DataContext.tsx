@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { ProgressRecord, MediaType, MediaData } from '@/lib/types';
+import { ProgressRecord, MediaType, MediaData, EpisodeProgress } from '@/lib/types';
 
 interface WatchlistItem {
     mediaId: string;
@@ -116,9 +116,21 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
         const existingRecord = progress.find(matchRecord);
 
+        const nowIso = new Date().toISOString();
+
+        // Stamp the updated episode(s) with a timestamp so we can always find
+        // the most-recently-watched one.
+        const stampedEpisodes: Record<string, EpisodeProgress> = {};
+        if (newItem.episodes) {
+            for (const key of Object.keys(newItem.episodes)) {
+                const ep = newItem.episodes[key];
+                if (ep) stampedEpisodes[key] = { ...ep, last_watched_at: nowIso };
+            }
+        }
+
         const updatedEpisodes = {
             ...(existingRecord?.episodes || {}),
-            ...(newItem.episodes || {})
+            ...stampedEpisodes
         };
 
         const updatedRecord: ProgressRecord = {
@@ -127,7 +139,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
             user_id: existingRecord?.user_id,
             watched_seconds: newItem.watched_seconds ?? existingRecord?.watched_seconds ?? 0,
             duration_seconds: newItem.duration_seconds ?? existingRecord?.duration_seconds ?? 0,
-            last_watched_at: new Date().toISOString(),
+            last_watched_at: nowIso,
             media_data: { ...(existingRecord?.media_data || {}), ...(newItem.media_data || {}) },
             episodes: updatedEpisodes,
             season: newItem.season ?? existingRecord?.season,
@@ -176,8 +188,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
             return !(String(p.media_id) === String(mediaId) && pType === targetType);
         }));
 
+        // Purge the player's internal per-episode cache so ALL episodes reset to 0,
+        // not just the one currently reflected in the record pointer. Await it so the
+        // cache is wiped before we delete our own record.
         if (typeof window !== 'undefined' && window.electron?.purgePlayerCache) {
-            window.electron.purgePlayerCache(mediaId).catch(console.error);
+            await window.electron.purgePlayerCache(mediaId).catch(console.error);
         }
 
         if (typeof window !== 'undefined' && window.electron) {

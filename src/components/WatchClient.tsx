@@ -13,9 +13,10 @@ interface WatchClientProps {
     title: string;
     posterPath?: string | null;
     backdropPath?: string | null;
+    maxEpisode?: number;
 }
 
-export default function WatchClient({ id, type, title, posterPath, backdropPath }: WatchClientProps) {
+export default function WatchClient({ id, type, title, posterPath, backdropPath, maxEpisode }: WatchClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -106,6 +107,7 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath 
                 backdropPath={backdropPath}
                 onStartTimeFound={handleStartTimeFound}
                 checkResume={shouldCheckResume}
+                maxEpisode={maxEpisode}
             />
 
             {/* Top Navigation Bar */}
