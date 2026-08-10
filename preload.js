@@ -15,8 +15,11 @@ contextBridge.exposeInMainWorld('electron', {
     onUpdateError: (callback) => ipcRenderer.on('update-error', (_event, error) => callback(error)),
     onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (_event, progress) => callback(progress)),
     onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (_event, info) => callback(info)),
+    onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', (_event) => callback()),
+    checkForUpdates: () => ipcRenderer.invoke('check-for-update'),
     downloadUpdate: () => ipcRenderer.invoke('download-update'),
     quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    getPlatform: () => ipcRenderer.invoke('get-platform'),
     purgePlayerCache: (tmdbId) => ipcRenderer.invoke('purge-player-cache', tmdbId)
 });

@@ -3,7 +3,7 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import { X, Info } from 'lucide-react';
-import { ProgressRecord } from '@/lib/types';
+import { ProgressRecord, getLastWatchedEpisode } from '@/lib/types';
 import { useData } from '@/context/DataContext';
 import styles from './MovieCard.module.css'; // Reuse basic card styles but add custom overlays inline or new module
 
@@ -28,9 +28,15 @@ function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) 
 
     const isTv = record.media_type === 'tv';
 
+    // For TV, always resume from the most recently watched episode (computed
+    // from per-episode progress), not just a stale season/episode pointer.
+    const lastSE = getLastWatchedEpisode(record);
+    const resumeSeason = isTv ? lastSE.season : 1;
+    const resumeEpisode = isTv ? lastSE.episode : 1;
+
     // Resume Link
     const resumeLink = isTv
-        ? `/watch?type=tv&id=${record.media_id}&season=${record.season || 1}&episode=${record.episode || 1}&source=home`
+        ? `/watch?type=tv&id=${record.media_id}&season=${resumeSeason}&episode=${resumeEpisode}&source=home`
         : `/watch?type=movie&id=${record.media_id}&source=home`;
 
     // Info Link
@@ -66,8 +72,8 @@ function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) 
                 */}
                 <div className={styles.content}>
                     <h3 className={styles.title}>{title}</h3>
-                    {isTv && record.season && (
-                        <p className="text-xs text-white/70 mt-1">S{record.season} E{record.episode}</p>
+                    {isTv && (
+                        <p className="text-xs text-white/70 mt-1">S{resumeSeason} E{resumeEpisode}</p>
                     )}
                 </div>
 

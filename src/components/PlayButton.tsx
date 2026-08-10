@@ -3,6 +3,7 @@
 import { Play } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
 import { useData } from '@/context/DataContext';
+import { getLastWatchedEpisode } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
@@ -42,15 +43,16 @@ export default function PlayButton({
 
     // Determine target Season/Episode
     const isSpecificEpisode = season !== undefined || episode !== undefined;
-    const targetSeason = isSpecificEpisode ? (season || 1) : (progress?.season || 1);
-    const targetEpisode = isSpecificEpisode ? (episode || 1) : (progress?.episode || 1);
+    const resumeSE = getLastWatchedEpisode(progress);
+    const targetSeason = isSpecificEpisode ? (season || 1) : resumeSE.season;
+    const targetEpisode = isSpecificEpisode ? (episode || 1) : resumeSE.episode;
 
     // Resume Label Logic
     let buttonLabel = label;
     if (mounted && !isSpecificEpisode) {
-        if (type === 'tv' && progress?.season && progress?.episode) {
-            if (progress.watched_seconds > 0) {
-                buttonLabel = `Resume S${progress.season} E${progress.episode}`;
+        if (type === 'tv' && resumeSE) {
+            if (progress && progress.watched_seconds > 0) {
+                buttonLabel = `Resume S${resumeSE.season} E${resumeSE.episode}`;
             }
         } else if (type === 'movie' && progress && progress.watched_seconds > 0) {
             buttonLabel = 'Resume';

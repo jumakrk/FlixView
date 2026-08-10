@@ -1,6 +1,6 @@
 {
   "name": "flixview",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "private": true,
   "main": "main.js",
   "scripts": {
@@ -46,7 +46,7 @@
       "shortcutName": "FlixView"
     },
     "mac": {
-      "target": "dmg",
+      "target": ["dmg", "zip"],
       "icon": "public/icon.png"
     },
     "linux": {

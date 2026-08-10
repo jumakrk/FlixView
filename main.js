@@ -241,7 +241,7 @@ ipcMain.handle('purge-player-cache', async (event, tmdbId) => {
     try {
         // We clear local storage for the player domains so it forgets all progress, starting from 0.
         // This is safe because our app is the source of truth and explicitly sets the startTime.
-        const domains = ['https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net'];
+        const domains = ['https://vidcore.net', 'https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net'];
         for (const domain of domains) {
             await session.defaultSession.clearStorageData({
                 origin: domain,
@@ -437,6 +437,9 @@ app.on('ready', () => {
         } else if (url.includes('vidrush.net')) {
             details.requestHeaders['Referer'] = 'https://vidrush.net/';
             details.requestHeaders['Origin'] = 'https://vidrush.net';
+        } else if (url.includes('vidcore.net')) {
+            details.requestHeaders['Referer'] = 'https://vidcore.net/';
+            details.requestHeaders['Origin'] = 'https://vidcore.net';
         } else if (url.includes('vidup.to') || url.includes('dokicloud.one')) {
             details.requestHeaders['Referer'] = 'https://vidup.to/';
             details.requestHeaders['Origin'] = 'https://vidup.to';
@@ -558,6 +561,7 @@ app.on('web-contents-created', (event, contents) => {
         const isLocal = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
         const isInternal = parsed.protocol === 'app:';
         const trusted = [
+            'vidcore.net',
             'vidnest.fun', 'vidrush.net', 'player.vidrush.net', 'player.videasy.net', 'vidsrc.me', 'vidsrc.to', 
             'embed.su', 'vidsrc.xyz', 'vidsrc.pro', 'vidup.to', 
             'rabbitstream.net', 'dokicloud.one', 'megacloud.tv', 'vidfast.pro', 'vidfast.net',
@@ -599,12 +603,21 @@ app.whenReady().then(() => {
         autoUpdater.on('update-downloaded', (info) => {
             if (win) win.webContents.send('update-downloaded', info);
         });
+        autoUpdater.on('update-not-available', () => {
+            if (win) win.webContents.send('update-not-available');
+        });
 
+        ipcMain.handle('check-for-update', () => {
+            autoUpdater.checkForUpdates();
+        });
         ipcMain.handle('download-update', () => {
             autoUpdater.downloadUpdate();
         });
         ipcMain.handle('quit-and-install', () => {
             autoUpdater.quitAndInstall(false, true);
+        });
+        ipcMain.handle('get-platform', () => {
+            return process.platform;
         });
 
         // Check for updates on startup
