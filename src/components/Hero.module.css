@@ -273,6 +273,10 @@
 /* Actions */
 .actions {
     display: flex;
+    /* Wrap instead of squashing: a flex item that runs out of room must move to
+       the next line, never deform its background/padding. */
+    flex-wrap: wrap;
+    align-items: center;
     gap: 16px;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out 0.4s forwards;
@@ -292,6 +296,9 @@
     gap: 12px;
     transition: all 0.2s;
     white-space: nowrap;
+    /* Keep the button (or the upcoming-release countdown that replaces it) at
+       its natural size so the row can never squeeze it out of shape. */
+    flex: 0 0 auto;
 }
 
 .btn-play:hover {
@@ -316,6 +323,7 @@
     transition: all 0.2s;
     text-decoration: none;
     white-space: nowrap;
+    flex: 0 0 auto;
 }
 
 .btn-wishlist:hover,
@@ -364,8 +372,11 @@
     }
 }
 
-/* Tablet & Mobile: Icon-only buttons or when space is tight */
-@media (max-width: 1350px) {
+/* Tablet & Mobile: Icon-only buttons or when space is tight.
+   Raised from 1350px to 1440px because an upcoming title replaces Play with the
+   (wider) release countdown, which would otherwise push the labelled More Info
+   button onto a second line between 1350px and 1440px. */
+@media (max-width: 1440px) {
 
     .btn-wishlist span,
     .btn-secondary span {
@@ -374,7 +385,11 @@
 
     .btn-wishlist,
     .btn-secondary {
-        padding: 12px;
+        /* Square icon button: fixed box so it stays symmetrical now that the
+           label is gone. */
+        padding: 0;
+        width: 48px;
+        height: 48px;
         gap: 0;
         justify-content: center;
     }

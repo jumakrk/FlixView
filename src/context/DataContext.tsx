@@ -180,23 +180,35 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         return favorites.some(i => String(i.mediaId) === String(mediaId) && i.mediaType === mediaType);
     };
 
+    // Removing a title from Continue Watching is a FULL reset of that title:
+    // every episode of every season goes back to 0, so the show starts fresh
+    // from S1E1 the next time it is opened.
     const removeProgress = async (mediaId: string, mediaType: MediaType) => {
-        const targetType = (mediaType as string) === 'series' ? 'tv' : mediaType;
-        
-        setProgress(prev => prev.filter(p => {
-            const pType = (p.media_type as string) === 'series' ? 'tv' : p.media_type;
-            return !(String(p.media_id) === String(mediaId) && pType === targetType);
-        }));
+        const normaliseType = (t: string) => (t === 'series' ? 'tv' : t);
+        const targetType = normaliseType(mediaType as string);
 
-        // Purge the player's internal per-episode cache so ALL episodes reset to 0,
-        // not just the one currently reflected in the record pointer. Await it so the
-        // cache is wiped before we delete our own record.
+        // 1. Drop every record for this id, whatever spelling of the type it was
+        //    stored under, so a stale 'series' record cannot survive the removal.
+        setProgress(prev => prev.filter(p =>
+            !(String(p.media_id) === String(mediaId) && normaliseType(p.media_type as string) === targetType)
+        ));
+
+        // 2. Purge the player's internal per-episode cache so ALL episodes reset to 0,
+        //    not just the one currently reflected in the record pointer. Await it so the
+        //    cache is wiped before we delete our own records.
         if (typeof window !== 'undefined' && window.electron?.purgePlayerCache) {
             await window.electron.purgePlayerCache(mediaId).catch(console.error);
         }
 
+        // 3. Delete every stored file that can hold this title's progress. Older
+        //    builds wrote TV shows to `<id>_series.json`; leaving that sibling file
+        //    behind made the whole show (per-episode progress included) reload on
+        //    the next launch, so removing it looked like it had done nothing.
         if (typeof window !== 'undefined' && window.electron) {
-            await window.electron.deleteData('progress', `${mediaId}_${targetType}`);
+            const suffixes = targetType === 'tv' ? ['tv', 'series'] : ['movie'];
+            for (const suffix of suffixes) {
+                await window.electron.deleteData('progress', `${mediaId}_${suffix}`);
+            }
         }
     };
 

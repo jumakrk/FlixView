@@ -170,8 +170,11 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                     <p className={styles.overview}>{details.overview}</p>
 
                     <div className={styles.mainActions}>
-                        <div className="flex flex-col w-full max-w-sm">
-                            <div className="flex items-center gap-4">
+                        <div className="flex flex-col w-full max-w-md">
+                            {/* flex-wrap: an upcoming title swaps Play for the
+                                release countdown — the buttons wrap rather
+                                than being squeezed out of shape. */}
+                            <div className="flex flex-wrap items-center gap-4">
                                 <PlayButton
                                     id={id}
                                     type={mediaType}

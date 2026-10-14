@@ -64,19 +64,23 @@ export default function PlayButton({
 
     if (isUnreleased && releaseDate) {
         return (
-            <div 
-                className={cn("flex flex-col items-center md:items-start gap-1", className)}
-                style={{ background: 'transparent', padding: 0, border: 'none', width: '100%' }}
+            // Deliberately NOT full width: the countdown is a sibling of the
+            // Watchlist / More Info buttons, so forcing `width: 100%` here made
+            // them shrink and deform. Hugging the content (and refusing to
+            // shrink) keeps every button in the row at its natural size.
+            <div
+                className={cn("flex flex-col items-center md:items-start gap-1 shrink-0", className)}
+                style={{ background: 'transparent', padding: 0, border: 'none' }}
             >
-                <div 
+                <div
                     className={cn(
-                        "flex flex-col items-center justify-center rounded-xl font-bold bg-black/60 backdrop-blur-xl border border-white/10 cursor-not-allowed transition-all w-full",
-                        !iconOnly ? "px-8 py-4 min-w-[200px]" : "p-3"
+                        "flex flex-col items-center justify-center rounded-xl font-bold bg-black/60 backdrop-blur-xl border border-white/10 cursor-not-allowed transition-all shrink-0",
+                        !iconOnly ? "px-3 py-2.5" : "p-3"
                     )}
                     style={{ color: 'rgba(255,255,255,0.9)' }}
                 >
                     {!iconOnly && (
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-1">
+                        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-yellow-500 mb-0.5">
                             Coming Soon
                         </span>
                     )}
