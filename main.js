@@ -241,11 +241,18 @@ ipcMain.handle('purge-player-cache', async (event, tmdbId) => {
     try {
         // We clear local storage for the player domains so it forgets all progress, starting from 0.
         // This is safe because our app is the source of truth and explicitly sets the startTime.
-        const domains = ['https://vidcore.net', 'https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net'];
+        const domains = ['https://vidstuck.xyz', 'https://vidcore.net', 'https://vidup.to', 'https://vidfast.net', 'https://vidfast.pro', 'https://vidrock.ru', 'https://www.vidking.net'];
         for (const domain of domains) {
+            // VidStuck sits behind Cloudflare bot protection, so its cookies are
+            // left intact (wiping them before every mount would force a fresh
+            // challenge). The playback position lives in localStorage/IndexedDB,
+            // which is what actually has to be reset.
+            const storages = domain.includes('vidstuck.xyz')
+                ? ['localstorage', 'indexdb']
+                : ['localstorage', 'cookies', 'indexdb'];
             await session.defaultSession.clearStorageData({
                 origin: domain,
-                storages: ['localstorage', 'cookies', 'indexdb']
+                storages
             });
         }
         return { success: true };
@@ -443,6 +450,14 @@ app.on('ready', () => {
         } else if (url.includes('vidup.to') || url.includes('dokicloud.one')) {
             details.requestHeaders['Referer'] = 'https://vidup.to/';
             details.requestHeaders['Origin'] = 'https://vidup.to';
+        } else if (url.includes('vidstuck.xyz')) {
+            // VidStuck accepts embeds from any site, but its frame navigation is
+            // happiest with its own referer. Only the iframe document load is
+            // rewritten — spoofing Origin on the player's internal API/XHR calls
+            // would break CORS.
+            if (details.resourceType === 'subFrame') {
+                details.requestHeaders['Referer'] = 'https://vidstuck.xyz/';
+            }
         } else if (
             url.includes('vidfast.net') || url.includes('vidfast.pro') || 
             url.includes('vidfast.in') || url.includes('vidfast.io') || 
@@ -563,7 +578,7 @@ app.on('web-contents-created', (event, contents) => {
         const trusted = [
             'vidcore.net',
             'vidnest.fun', 'vidrush.net', 'player.vidrush.net', 'player.videasy.net', 'vidsrc.me', 'vidsrc.to', 
-            'embed.su', 'vidsrc.xyz', 'vidsrc.pro', 'vidup.to', 
+            'embed.su', 'vidsrc.xyz', 'vidsrc.pro', 'vidup.to', 'vidstuck.xyz', 
             'rabbitstream.net', 'dokicloud.one', 'megacloud.tv', 'vidfast.pro', 'vidfast.net',
             'vidfast.in', 'vidfast.io', 'vidfast.me', 'vidfast.pm', 'vidfast.xyz', 'vidrock.ru',
             'cloudflare.com', 'google.com', 'videasy.net', 'youtube.com', 'youtube-nocookie.com', 'vidking.net'

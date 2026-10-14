@@ -149,7 +149,10 @@ function Hero({ movies }: HeroProps) {
                         {movie.overview}
                     </p>
 
-                    <div className="flex flex-col w-full max-w-md">
+                    {/* Wide enough for the action row to stay on one line even
+                        when Play is replaced by the (now much smaller) release
+                        countdown plus Watchlist and More Info. */}
+                    <div className="flex flex-col w-full max-w-xl">
                         <div className={styles.actions}>
                             <PlayButton
                                 id={movie.id}

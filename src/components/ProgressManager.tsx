@@ -19,6 +19,13 @@ interface ProgressManagerProps {
     maxEpisode?: number;
 }
 
+// Minimum playback time before a position is worth remembering. The player is
+// loaded with an explicit start position (see @/lib/player), so a freshly reset
+// title opens a second or two into the episode; without this floor that first
+// tick would immediately recreate a Continue Watching entry for a show the user
+// just removed.
+const MIN_SAVE_SECONDS = 5;
+
 export default function ProgressManager({
     id, type, season, episode,
     title, posterPath, backdropPath,
@@ -28,10 +35,10 @@ export default function ProgressManager({
     const { getProgress, updateProgress } = useData();
     const router = useRouter();
 
-    // The episode we believe is currently playing. VidUp reports the
-    // authoritative season/episode on EVERY PLAYER_EVENT, so internal switches
-    // (the inbuilt next button, autoNext, the player's own episode selector)
-    // are always reflected here without any guessing.
+    // The episode we believe is currently playing. VidStuck reports the
+    // authoritative season/episode on EVERY progress message, so internal
+    // switches (the inbuilt next button, autoplayNextEpisode, the player's own
+    // episode selector) are always reflected here without any guessing.
     const activeSeasonRef = useRef(season);
     const activeEpisodeRef = useRef(episode);
 
@@ -39,6 +46,9 @@ export default function ProgressManager({
     // the player moves to another one on its own.
     const lastTimeRef = useRef(0);
     const lastDurationRef = useRef(0);
+
+    // Guards against re-writing a finished episode on every subsequent message.
+    const completedRef = useRef(false);
 
     // Auto-Redirect Effect: if the user opens the show with no S/E, jump to the
     // most recently watched episode.
@@ -73,6 +83,7 @@ export default function ProgressManager({
         lastTimeRef.current = 0;
         lastDurationRef.current = 0;
         lastUpdateTime.current = 0;
+        completedRef.current = false;
 
         const record = getProgress(id, type);
         let current = 0;
@@ -106,10 +117,17 @@ export default function ProgressManager({
     }, [id, type, season, episode, getProgress, onStartTimeFound]);
 
     // 2. Event Listener
+    // VidStuck posts a progress message to the parent window roughly once a
+    // second. Verified shape (posted from origin https://vidstuck.xyz as a plain
+    // object, not a JSON string):
+    //   { type: 'VIDEO_PROGRESS', payload: { currentTime, duration,
+    //     tmdbId, media_type, season, episode } }
+    // The documented flat form (id/type/progress/timestamp) is also tolerated in
+    // case the frontend changes.
     const handleMessage = useCallback((event: MessageEvent) => {
-        // Accept messages from the VidUp player (with or without www).
+        // Accept messages from the VidStuck player only.
         const origin = event.origin || '';
-        if (!origin.includes('vidup.to')) return;
+        if (!origin.includes('vidstuck.xyz') && !origin.includes('zxcstream.icu')) return;
 
         let data = event.data;
 
@@ -123,19 +141,19 @@ export default function ProgressManager({
 
         if (!data || typeof data !== 'object') return;
 
-        // VidUp protocol:
-        //   { type: 'PLAYER_EVENT', data: { event, currentTime, duration,
-        //     tmdbId, mediaType, season, episode, playing, muted, volume } }
-        if (data.type !== 'PLAYER_EVENT' || !data.data || typeof data.data !== 'object') return;
-        const msg = data.data as any;
+        // Unwrap the envelope ({ type, payload }) and the documented
+        // { type, data } form; fall back to the object itself when flat.
+        const payload = (data.payload && typeof data.payload === 'object')
+            ? data.payload
+            : (data.data && typeof data.data === 'object' ? data.data : data);
+        const msg = payload as any;
 
         // Security: only accept events for the content currently on this page.
-        // VidUp reports tmdbId (falls back to id for older embeds).
         const msgId = msg.tmdbId !== undefined ? msg.tmdbId : msg.id;
         if (msgId !== undefined && String(msgId) !== String(id)) return;
 
         const saveEpisode = (s: number, e: number, time: number, dur: number): boolean => {
-            if (time < 1 || dur < 1) return false;
+            if (time < MIN_SAVE_SECONDS || dur < 1) return false;
 
             const epKey = `s${s}e${e}`;
             const episodesUpdate = type === 'tv' ? {
@@ -165,9 +183,9 @@ export default function ProgressManager({
             return true;
         };
 
-        const currentTime = typeof msg.currentTime === 'number' ? msg.currentTime : (parseFloat(msg.currentTime) || 0);
-        const duration = typeof msg.duration === 'number' ? msg.duration : (parseFloat(msg.duration) || 0);
-        const playerEvent = msg.event || '';
+        const currentTime = parseFloat(msg.currentTime ?? msg.timestamp) || 0;
+        const duration = parseFloat(msg.duration) || 0;
+        const progressPct = parseFloat(msg.progress);
 
         // The player tells us which episode it is actually playing.
         const reportedSeason = msg.season !== undefined ? parseInt(msg.season) : NaN;
@@ -202,6 +220,7 @@ export default function ProgressManager({
             lastTimeRef.current = 0;
             lastDurationRef.current = 0;
             lastUpdateTime.current = 0; // Allow an immediate save for the new episode
+            completedRef.current = false;
         }
 
         if (duration > 0) {
@@ -209,36 +228,36 @@ export default function ProgressManager({
             lastDurationRef.current = duration;
         }
 
-        const save = (force = false): boolean => {
-            if (!force && (currentTime < 1 || duration < 1)) return false;
+        const save = (): boolean => {
+            if (currentTime < MIN_SAVE_SECONDS || duration < 1) return false;
             return saveEpisode(currentSeason, currentEpisode, currentTime, duration);
         };
 
-        if (currentTime > 0) {
+        // VidStuck exposes no discrete pause/seek/ended events, so completion is
+        // derived from the reported position/percentage. At (or within 3s of) the
+        // end we store the full duration — matching the old player's "watched"
+        // behaviour so a finished title never resumes from the credits, and so
+        // autoplayNextEpisode has a completed record to advance from.
+        const finished = duration > 0 && (
+            currentTime >= duration - 3 ||
+            (Number.isFinite(progressPct) && progressPct >= 98)
+        );
+
+        if (finished) {
+            if (!completedRef.current) {
+                completedRef.current = true;
+                saveEpisode(currentSeason, currentEpisode, duration, duration);
+            }
+            return;
+        }
+
+        // Throttled periodic save of the live position.
+        if (currentTime >= MIN_SAVE_SECONDS) {
             const now = Date.now();
             if (lastUpdateTime.current === 0 || (now - lastUpdateTime.current > THROTTLE_INTERVAL)) {
                 if (save()) {
                     lastUpdateTime.current = now;
                 }
-            }
-        }
-
-        // Persist immediately on pause/seeked so the latest position survives
-        // when the user leaves the player or jumps around.
-        if (playerEvent === 'pause' || playerEvent === 'seeked') {
-            save(true);
-        }
-
-        // Episode finished: mark it complete. The player's autoNext (still
-        // enabled) advances internally; the next PLAYER_EVENT carries the new
-        // episode and the switch branch above records it correctly. If the
-        // ended event reports a zero position, fall back to the last known one.
-        if (playerEvent === 'ended') {
-            const endedTime = currentTime > 1 ? currentTime : (lastDurationRef.current > 0 ? lastDurationRef.current : 0);
-            if (endedTime > 1 && lastDurationRef.current > 1) {
-                saveEpisode(currentSeason, currentEpisode, endedTime, lastDurationRef.current);
-            } else {
-                save(true);
             }
         }
     }, [id, type, title, posterPath, backdropPath, updateProgress]);

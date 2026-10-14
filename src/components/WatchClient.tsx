@@ -41,7 +41,7 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath,
 
     const handleBack = () => {
         // "Rewind" approach:
-        // The iframe (VidFast) pollutes history with multiple entries (one per episode).
+        // The player iframe can pollute history with multiple entries (one per episode).
         // Standard router.back() gets trapped in these entries.
         // router.replace() creates duplicate history entries (Details -> Details), requiring double clicks.
         // Solution: Recursively call back() until we are no longer on the watch page.

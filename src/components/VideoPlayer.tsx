@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from "@/lib/utils";
+import { buildPlayerUrl } from "@/lib/player";
 
 interface VideoPlayerProps {
     tmdbId: string | number;
@@ -42,18 +43,10 @@ function VideoPlayer({
         return () => { isMounted = false; };
     }, [tmdbId, season, episode, type]);
 
-    // VidUp embed: https://vidup.to/{movie|tv}/{tmdbId}[/{season}/{episode}]
-    // Params: autoPlay, theme (hex), startAt (start time in seconds), title, poster,
-    // fullscreenButton, chromecast; TV also supports nextButton + autoNext (kept
-    // enabled so the inbuilt next-episode button and auto-advance work). Theme is
-    // the app's violet-600 purple (#7c3aed).
-    const baseUrl = 'https://vidup.to';
-    const startAtParam = startTime > 0 ? `&startAt=${Math.floor(startTime)}` : '';
-    const baseParams = 'autoPlay=true&theme=7c3aed&title=true&poster=true&fullscreenButton=true&chromecast=true';
-
-    const src = type === 'movie'
-        ? `${baseUrl}/movie/${tmdbId}?${baseParams}${startAtParam}`
-        : `${baseUrl}/tv/${tmdbId}/${season}/${episode}?${baseParams}&nextButton=true&autoNext=true${startAtParam}`;
+    // VidStuck embed. The URL (accent colour, branding, in-player episode
+    // controls, overlay and the always-present resume position) is built in
+    // @/lib/player so it can be asserted without a browser.
+    const src = buildPlayerUrl({ tmdbId, type, season, episode, startTime });
 
     if (!isReady) {
         return (
