@@ -22,6 +22,12 @@ const { setupAdBlocker } = require('./main/adblocker');
 let win = null;
 const getMainWindow = () => win;
 
+// The player lives in a cross-origin iframe, where Chromium blocks unmuted
+// autoplay. Vidly then never attaches its stream and sits on a spinner until
+// the user clicks (and its first click is spent on an ad popup we block).
+// Must be set before the app is ready.
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 // Create/migrate the on-disk data directories before anything can read them.
 prepareDataDirs();
 

@@ -3,6 +3,7 @@ const fetch = require('cross-fetch');
 const path = require('path');
 const fs = require('fs');
 const { DATA_ROOT } = require('./constants');
+const { installFrameHeaderGuard } = require('./security');
 
 // uBlock Origin filter sets, fetched from the same repo uBO itself uses.
 const FILTER_LISTS = [
@@ -31,6 +32,7 @@ async function refreshEngine(appSession) {
         const fresh = await ElectronBlocker.fromLists(fetch, FILTER_LISTS, {});
         await fs.promises.writeFile(ENGINE_CACHE_PATH, fresh.serialize());
         fresh.enableBlockingInSession(appSession);
+        installFrameHeaderGuard(appSession, fresh);
         console.log('[adblock] filter lists refreshed');
     } catch (error) {
         console.warn('[adblock] background refresh failed, keeping current engine:', error.message);
@@ -50,6 +52,8 @@ async function setupAdBlocker(appSession) {
     try {
         const blocker = await ElectronBlocker.fromLists(fetch, FILTER_LISTS, {}, caching);
         blocker.enableBlockingInSession(appSession);
+        // The engine just replaced the session's onHeadersReceived listener.
+        installFrameHeaderGuard(appSession, blocker);
         console.log('[adblock] engine enabled');
 
         if (isCacheStale()) {

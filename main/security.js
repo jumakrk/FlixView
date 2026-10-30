@@ -1,4 +1,58 @@
 const { app, session, shell } = require('electron');
+const { PLAYER_ORIGINS } = require('./constants');
+
+const PLAYER_HOSTS = PLAYER_ORIGINS.map(origin => new URL(origin).hostname);
+
+function isPlayerFrame(details) {
+    if (details.resourceType !== 'subFrame') return false;
+    try {
+        return PLAYER_HOSTS.includes(new URL(details.url).hostname);
+    } catch {
+        return false;
+    }
+}
+
+// Packaged builds load the UI from app://-, and the player answers with
+// "Content-Security-Policy: frame-ancestors *". CSP's "*" only matches
+// http(s)/ws(s) parents, so Chromium refuses to render the player inside the
+// app (a black box; dev builds on http://localhost are unaffected). Only the
+// framing rules are removed, and only for the player's own frame documents.
+function allowPlayerFraming(responseHeaders) {
+    const headers = { ...responseHeaders };
+    for (const name of Object.keys(headers)) {
+        const lower = name.toLowerCase();
+        if (lower === 'x-frame-options') {
+            delete headers[name];
+        } else if (lower === 'content-security-policy') {
+            const values = headers[name]
+                .map(value => value
+                    .split(';')
+                    .filter(directive => !/^\s*frame-ancestors\b/i.test(directive))
+                    .join(';')
+                    .trim())
+                .filter(Boolean);
+            if (values.length) headers[name] = values;
+            else delete headers[name];
+        }
+    }
+    return headers;
+}
+
+// Electron keeps a single onHeadersReceived listener per session and the
+// adblocker registers its own (for $csp filters), so this guard wraps it: the
+// blocker runs first, then the player's framing headers are relaxed. Call it
+// at startup without a blocker and again every time a blocker is enabled.
+function installFrameHeaderGuard(appSession, blocker) {
+    appSession.webRequest.onHeadersReceived({ urls: ['<all_urls>'] }, (details, callback) => {
+        const finish = (result = {}) => {
+            if (!isPlayerFrame(details)) return callback(result);
+            const headers = result.responseHeaders || details.responseHeaders || {};
+            callback({ ...result, responseHeaders: allowPlayerFraming(headers) });
+        };
+        if (blocker) blocker.onHeadersReceived(details, finish);
+        else finish();
+    });
+}
 
 // Simple network-level ad patterns. This is a FALLBACK that is active during
 // the window between startup and the uBlock-based engine becoming ready (and
@@ -59,6 +113,10 @@ const DOM_SAFETY_SCRIPT = `
 // live session).
 function installNetworkGuards() {
     const filter = { urls: ['*://*/*'] };
+
+    // Player framing works from the first launch, before (or without) the
+    // adblocker engine, which re-installs this guard around its own handler.
+    installFrameHeaderGuard(session.defaultSession);
 
     session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
         const url = details.url.toLowerCase();
@@ -130,4 +188,4 @@ function installWebContentsSentries() {
     });
 }
 
-module.exports = { installNetworkGuards, installWindowSentry, installWebContentsSentries };
+module.exports = { installNetworkGuards, installFrameHeaderGuard, installWindowSentry, installWebContentsSentries };

@@ -1,54 +1,75 @@
 'use client';
 
-import { X, Download, ArrowUpCircle, RefreshCw } from 'lucide-react';
+import { X, Download, ArrowUpCircle, RefreshCw, AlertCircle } from 'lucide-react';
+import type { UpdateStatus } from '@/context/UpdateContext';
 import styles from './UpdateModal.module.css';
 
 interface UpdateModalProps {
     isOpen: boolean;
-    onClose: () => void;
-    onUpdateNow: () => void;
-    status: 'none' | 'available' | 'downloading' | 'downloaded';
-    downloadPercent: number;
+    status: UpdateStatus;
     version: string;
+    currentVersion: string;
+    downloadPercent: number;
+    error: string;
+    onUpdate: () => void;
+    onCancel: () => void;
 }
 
 export default function UpdateModal({
     isOpen,
-    onClose,
-    onUpdateNow,
     status,
-    downloadPercent
+    version,
+    currentVersion,
+    downloadPercent,
+    error,
+    onUpdate,
+    onCancel,
 }: UpdateModalProps) {
     if (!isOpen) return null;
 
+    const isBusy = status === 'downloading' || status === 'downloaded';
+
     return (
-        <div className={styles.overlay}>
+        <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="update-modal-title">
             <div className={styles.modal}>
-                <button onClick={onClose} className={styles.closeBtn} disabled={status === 'downloading'}>
+                <button onClick={onCancel} className={styles.closeBtn} disabled={isBusy} aria-label="Close">
                     <X size={20} />
                 </button>
 
                 <div className={styles.header}>
                     <div className={styles.iconContainer}>
-                        <ArrowUpCircle size={32} className="text-violet-400" />
+                        {status === 'error'
+                            ? <AlertCircle size={32} className="text-red-400" />
+                            : <ArrowUpCircle size={32} className="text-violet-400" />}
                     </div>
-                    <h2 className={styles.title}>Update Available</h2>
+                    <h2 id="update-modal-title" className={styles.title}>
+                        {status === 'error' ? 'Update Failed' : 'Update Available'}
+                    </h2>
                     <p className={styles.subtitle}>
-                        A new version of FlixView is ready to install! Keep your app up to date to enjoy the latest features and bug fixes.
+                        {status === 'error'
+                            ? 'The update could not be downloaded. Check your connection and try again.'
+                            : <>
+                                FlixView {version ? <strong className="text-white">v{version}</strong> : 'a new version'} is ready
+                                {currentVersion ? <> (you have v{currentVersion})</> : null}. Update now to get the latest features and fixes.
+                            </>}
                     </p>
                 </div>
 
                 <div className={styles.content}>
-                    {status === 'available' && (
+                    {(status === 'available' || status === 'error') && (
                         <div className={styles.actions}>
-                            <button onClick={onUpdateNow} className={styles.primaryBtn}>
+                            <button onClick={onUpdate} className={styles.primaryBtn}>
                                 <Download size={18} />
-                                Update Now
+                                {status === 'error' ? 'Try Again' : 'Update'}
                             </button>
-                            <button onClick={onClose} className={styles.secondaryBtn}>
-                                Update Later
+                            <button onClick={onCancel} className={styles.secondaryBtn}>
+                                Cancel
                             </button>
                         </div>
+                    )}
+
+                    {status === 'error' && error && (
+                        <p className={styles.helpText}>{error}</p>
                     )}
 
                     {status === 'downloading' && (
@@ -58,8 +79,8 @@ export default function UpdateModal({
                                 <span>{downloadPercent}%</span>
                             </div>
                             <div className={styles.progressBar}>
-                                <div 
-                                    className={styles.progressFill} 
+                                <div
+                                    className={styles.progressFill}
                                     style={{ width: `${downloadPercent}%` }}
                                 />
                             </div>

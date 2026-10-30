@@ -5,13 +5,16 @@ import { useData } from '@/context/DataContext';
 import { 
     Settings, Download, Upload, Bookmark, Heart, Database, 
     CheckCircle2, AlertCircle, Loader2, Trash2, AlertTriangle, 
-    X, Info, BarChart3, ShieldAlert, Copy, Check, ExternalLink 
+    X, Info, BarChart3, ShieldAlert, Copy, Check, ExternalLink,
+    ArrowUpCircle, RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUpdates, platformLabel } from '@/context/UpdateContext';
 
 const TABS = [
     { id: 'stats', label: 'Library & Stats', icon: BarChart3, color: 'text-violet-400', activeColor: 'bg-violet-600', glow: 'rgba(139, 92, 246, 0.25)' },
     { id: 'backup', label: 'Backup & Sync', icon: Database, color: 'text-blue-400', activeColor: 'bg-blue-600', glow: 'rgba(59, 130, 246, 0.25)' },
+    { id: 'updates', label: 'App Updates', icon: ArrowUpCircle, color: 'text-emerald-400', activeColor: 'bg-emerald-600', glow: 'rgba(16, 185, 129, 0.25)' },
     { id: 'danger', label: 'Danger Zone', icon: ShieldAlert, color: 'text-red-400', activeColor: 'bg-red-600', glow: 'rgba(239, 68, 68, 0.25)' }
 ] as const;
 
@@ -30,6 +33,12 @@ export default function SettingsPage() {
     const [isClearing, setIsClearing] = useState(false);
     const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
     const [copiedPath, setCopiedPath] = useState(false);
+
+    const {
+        status: updateStatus, newVersion, downloadPercent, error: updateError,
+        appVersion, platform, checkForUpdates,
+    } = useUpdates();
+    const isElectron = typeof window !== 'undefined' && Boolean(window.electron);
 
     // Where the data actually lives on disk (fetched from the main process).
     const [dataPath, setDataPath] = useState('');
@@ -155,7 +164,7 @@ export default function SettingsPage() {
                                 {isActive && (
                                     <motion.div 
                                         layoutId="activeTabIndicator"
-                                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${tab.id === 'stats' ? 'from-violet-600/20 to-indigo-600/5 border border-violet-500/20' : tab.id === 'backup' ? 'from-blue-600/20 to-cyan-600/5 border border-blue-500/20' : 'from-red-600/20 to-rose-600/5 border border-red-500/20'}`}
+                                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${tab.id === 'stats' ? 'from-violet-600/20 to-indigo-600/5 border border-violet-500/20' : tab.id === 'backup' ? 'from-blue-600/20 to-cyan-600/5 border border-blue-500/20' : tab.id === 'updates' ? 'from-emerald-600/20 to-teal-600/5 border border-emerald-500/20' : 'from-red-600/20 to-rose-600/5 border border-red-500/20'}`}
                                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
                                 )}
@@ -408,7 +417,81 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/* TAB 3: DANGER ZONE */}
+                            {/* TAB 3: APP UPDATES */}
+                            {activeTab === 'updates' && (
+                                <div className="space-y-8 flex-grow flex flex-col justify-between">
+                                    <div>
+                                        <h3 className="text-2xl font-black uppercase text-white mb-2 tracking-wide flex items-center gap-2.5">
+                                            <ArrowUpCircle className="text-emerald-400" size={24} />
+                                            App Updates
+                                        </h3>
+                                        <p className="text-gray-400 text-sm leading-relaxed mb-8 font-medium">
+                                            FlixView checks for a new version every time it starts and every 30 minutes while open. When one is out, you will be asked to update or cancel. You can also check manually here.
+                                        </p>
+
+                                        <div className="bg-gradient-to-br from-white/4 to-white/1 border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                                                    <ArrowUpCircle size={22} />
+                                                </div>
+                                                <div>
+                                                    <span className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 block">Installed version</span>
+                                                    <span className="text-2xl font-black text-white tracking-tight">
+                                                        v{appVersion || '0.0.0'}
+                                                    </span>
+                                                    {platform && (
+                                                        <span className="text-xs text-gray-500 font-semibold ml-2">{platformLabel(platform)}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={checkForUpdates}
+                                                disabled={!isElectron || updateStatus === 'checking' || updateStatus === 'downloading' || updateStatus === 'downloaded'}
+                                                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 shrink-0"
+                                            >
+                                                {updateStatus === 'checking' || updateStatus === 'downloading' || updateStatus === 'downloaded'
+                                                    ? <RefreshCw size={16} className="animate-spin" />
+                                                    : <RefreshCw size={16} />}
+                                                <span>
+                                                    {updateStatus === 'checking' && 'Checking...'}
+                                                    {updateStatus === 'downloading' && `Downloading ${downloadPercent}%`}
+                                                    {updateStatus === 'downloaded' && 'Installing...'}
+                                                    {updateStatus === 'available' && 'Update Available'}
+                                                    {(updateStatus === 'idle' || updateStatus === 'uptodate' || updateStatus === 'error') && 'Check for Updates'}
+                                                </span>
+                                            </button>
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {updateStatus === 'uptodate' && (
+                                                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2 text-sm font-semibold text-emerald-400">
+                                                    <CheckCircle2 size={16} />
+                                                    You&apos;re on the latest version.
+                                                </motion.div>
+                                            )}
+                                            {updateStatus === 'available' && newVersion && (
+                                                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2 text-sm font-semibold text-violet-300">
+                                                    <ArrowUpCircle size={16} />
+                                                    Version {newVersion} is available. Click the button to install it.
+                                                </motion.div>
+                                            )}
+                                            {updateStatus === 'error' && (
+                                                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-start gap-2 text-sm font-semibold text-red-400">
+                                                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                                                    <span>Couldn&apos;t check for updates{updateError ? `: ${updateError}` : '.'}</span>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {!isElectron && (
+                                            <p className="mt-4 text-xs text-gray-500 font-medium">Updates are only available in the desktop app.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 4: DANGER ZONE */}
                             {activeTab === 'danger' && (
                                 <div className="space-y-8 flex-grow flex flex-col justify-between">
                                     <div>

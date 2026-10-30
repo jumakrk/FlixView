@@ -1,11 +1,13 @@
 const { app, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 
-// electron-updater picks the right artifact per platform; the flow is
-// user-driven from the sidebar: check -> "Update Available" -> download with
-// progress -> install (see Sidebar.tsx). Automatic background downloads were
-// removed in v0.1.11 on purpose.
-const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
+// electron-updater picks the right artifact per platform. The renderer
+// (src/context/UpdateContext.tsx) asks for a check on every launch and prompts
+// "Update" / "Cancel" when one exists; Update downloads with progress and then
+// installs. Automatic background downloads were removed in v0.1.11 on purpose.
+// While the app stays open we re-check periodically so long sessions still
+// hear about new releases.
+const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
 function send(getMainWindow, channel, payload) {
     const win = getMainWindow();
@@ -23,7 +25,7 @@ function setupAutoUpdater(getMainWindow) {
     ipcMain.handle('check-for-update', () => {
         if (!app.isPackaged) {
             // Dev builds have no update feed; report "up to date" shortly so
-            // the sidebar button resolves instead of hanging on "Checking...".
+            // the Settings button resolves instead of hanging on "Checking...".
             console.log('[updater] dev build: skipping update check');
             setTimeout(() => send(getMainWindow, 'update-not-available'), 600);
             return;
@@ -64,8 +66,8 @@ function setupAutoUpdater(getMainWindow) {
         send(getMainWindow, 'update-error', error?.message || String(error));
     });
 
-    // Check once at startup and then every few hours.
-    autoUpdater.checkForUpdates().catch(error => console.error('[updater] startup check failed:', error));
+    // The launch check comes from the renderer once its listeners exist (a
+    // check fired here could finish before the page loads and be lost).
     const interval = setInterval(() => {
         autoUpdater.checkForUpdates().catch(error => console.error('[updater] periodic check failed:', error));
     }, CHECK_INTERVAL_MS);
