@@ -27,6 +27,7 @@
     },
     "files": [
       "main.js",
+      "main/**/*",
       "preload.js",
       "out/**/*",
       "node_modules/**/*",
