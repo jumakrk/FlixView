@@ -59,10 +59,14 @@ jobs:
       - name: Fix Git Permissions
         run: git config --global --add safe.directory '*'
 
-      - name: Build and Package
-        run: |
-          npm run build
-          npx electron-builder --publish always
+      # Separate steps so a failed build stops the job on every OS. A multi-line
+      # run block on Windows (PowerShell) carries on after a failing command and
+      # would package and publish a broken app.
+      - name: Build
+        run: npm run build
+
+      - name: Package and Publish
+        run: npx electron-builder --publish always
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
