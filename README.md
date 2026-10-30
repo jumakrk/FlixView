@@ -1,7 +1,7 @@
 # 🍿 FlixView
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.15-blueviolet.svg)](https://github.com/jumakrk/FlixView/releases)
+[![Version](https://img.shields.io/badge/version-0.1.16-blueviolet.svg)](https://github.com/jumakrk/FlixView/releases)
 [![Build Status](https://github.com/jumakrk/FlixView/actions/workflows/build.yml/badge.svg)](https://github.com/jumakrk/FlixView/actions)
 [![Checks](https://github.com/jumakrk/FlixView/actions/workflows/checks.yml/badge.svg)](https://github.com/jumakrk/FlixView/actions/workflows/checks.yml)
 
@@ -9,15 +9,15 @@
 
 ---
 
-## 🚀 Direct Downloads (v0.1.15)
+## 🚀 Direct Downloads (v0.1.16)
 
 Get the latest version of FlixView directly for your platform:
 
 | Platform | Download Link |
 | :--- | :--- |
-| **Windows** | [📥 Download .exe](https://github.com/jumakrk/FlixView/releases/download/v0.1.15/FlixView-Setup-0.1.15.exe) |
-| **macOS (Silicon)** | [📥 Download .dmg](https://github.com/jumakrk/FlixView/releases/download/v0.1.15/FlixView-0.1.15-arm64.dmg) |
-| **Linux** | [📥 Download .AppImage](https://github.com/jumakrk/FlixView/releases/download/v0.1.15/FlixView-0.1.15.AppImage) |
+| **Windows** | [📥 Download .exe](https://github.com/jumakrk/FlixView/releases/download/v0.1.16/FlixView-Setup-0.1.16.exe) |
+| **macOS (Silicon)** | [📥 Download .dmg](https://github.com/jumakrk/FlixView/releases/download/v0.1.16/FlixView-0.1.16-arm64.dmg) |
+| **Linux** | [📥 Download .AppImage](https://github.com/jumakrk/FlixView/releases/download/v0.1.16/FlixView-0.1.16.AppImage) |
 
 Or browse [all releases](https://github.com/jumakrk/FlixView/releases).
 
