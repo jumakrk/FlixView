@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchDetails, fetchCredits, fetchRecommendations, fetchMovieLogo, fetchCollection, fetchPersonCredits } from '@/lib/tmdb';
+import { fetchDetails, fetchCredits, fetchRecommendations, fetchMovieLogo, fetchCollection, fetchPersonCredits, MovieDetails, Cast, Movie } from '@/lib/tmdb';
 import styles from './Details.module.css';
 import { Star, Clock, Calendar, Tv } from 'lucide-react';
 import Link from 'next/link';
@@ -12,13 +12,14 @@ import BackButton from '@/components/BackButton';
 import MediaProgressBar from '@/components/MediaProgressBar';
 import Image from 'next/image';
 import InteractionButtons from '@/components/InteractionButtons';
+import ExpandableDescription from '@/components/ExpandableDescription';
 
 export default function DetailsClient({ id, type }: { id: string; type: string }) {
     const mediaType = (type === 'series' || type === 'tv') ? 'tv' : 'movie';
 
-    const [details, setDetails] = useState<any>(null);
-    const [credits, setCredits] = useState<any[]>([]);
-    const [similar, setSimilar] = useState<any[]>([]);
+    const [details, setDetails] = useState<MovieDetails | null>(null);
+    const [credits, setCredits] = useState<Cast[]>([]);
+    const [similar, setSimilar] = useState<Movie[]>([]);
     const [logoPath, setLogoPath] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -45,7 +46,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                 if (detailsData.belongs_to_collection) {
                     const collectionParts = await fetchCollection(detailsData.belongs_to_collection.id);
                     // Filter out current movie and merge
-                    const sequels = collectionParts.filter((m: any) => m.id !== parseInt(id));
+                    const sequels = collectionParts.filter((m) => m.id !== parseInt(id));
                     advancedRecs = [...sequels, ...advancedRecs];
                 }
 
@@ -55,11 +56,11 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                     topCast.map(person => fetchPersonCredits(person.id.toString()))
                 );
 
-                castCreditsResults.forEach((personCredits: any) => {
+                castCreditsResults.forEach((personCredits) => {
                     if (personCredits && personCredits.cast) {
                         // Sort by popularity and take top 5 per person
                         const popularCastRoles = personCredits.cast
-                            .sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
+                            .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
                             .slice(0, 5);
                         advancedRecs = [...advancedRecs, ...popularCastRoles];
                     }
@@ -167,7 +168,11 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                     )}
 
                     {details.tagline && <p className={styles.tagline}>{details.tagline}</p>}
-                    <p className={styles.overview}>{details.overview}</p>
+                    <ExpandableDescription
+                        text={details.overview}
+                        title={details.title || details.name}
+                        className={styles.overview}
+                    />
 
                     <div className={styles.mainActions}>
                         <div className="flex flex-col w-full max-w-md">
@@ -225,7 +230,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                 {mediaType === 'tv' && details.seasons && (
                     <SeasonSelector
                         seriesId={id}
-                        seasons={details.seasons.filter((s: any) => s.season_number > 0)}
+                        seasons={details.seasons.filter((s) => s.season_number > 0)}
                     />
                 )}
 
@@ -240,7 +245,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                         <div>
                             <span className={styles.detailItemLabel}>Genres</span>
                             <span className={styles.detailItemValue}>
-                                {details.genres?.map((g: any) => g.name).join(', ')}
+                                {details.genres?.map((g) => g.name).join(', ')}
                             </span>
                         </div>
                         {details.homepage && (

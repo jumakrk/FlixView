@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, AlertCircle, X, ChevronRight } from 'lucide-react';
+import { Download, AlertCircle } from 'lucide-react';
 import styles from './UpdateNotification.module.css';
 
 export default function UpdateNotification() {
@@ -25,13 +25,13 @@ export default function UpdateNotification() {
         window.electron.onDownloadProgress((progressObj) => {
             setStatus('downloading');
             setProgress(Math.round(progressObj.percent));
-            if (!show) setShow(true);
+            setShow(true);
         });
 
-        window.electron.onUpdateDownloaded((info) => {
+        window.electron.onUpdateDownloaded(() => {
             setStatus('downloaded');
             setProgress(100);
-            if (!show) setShow(true);
+            setShow(true);
         });
 
         window.electron.onUpdateError((err) => {
@@ -45,6 +45,17 @@ export default function UpdateNotification() {
     const handleInstall = () => {
         if (window.electron) {
             window.electron.quitAndInstall();
+        }
+    };
+
+    const handleDownload = () => {
+        if (window.electron) {
+            // downloadUpdate() is safe to call while the sidebar's one-click
+            // flow is already downloading — electron-updater reuses the
+            // in-flight download promise.
+            window.electron.downloadUpdate();
+            setStatus('downloading');
+            setProgress(0);
         }
     };
 
@@ -74,7 +85,7 @@ export default function UpdateNotification() {
                     </div>
 
                     <div className={styles.content}>
-                        {status === 'available' && `A new version (${version}) is available. It's downloading in the background.`}
+                        {status === 'available' && `A new version (${version}) is available.`}
                         {status === 'downloading' && `Downloading version ${version}...`}
                         {status === 'downloaded' && `Version ${version} has been downloaded and is ready to be installed.`}
                         {status === 'error' && `Failed to update: ${error}`}
@@ -100,6 +111,10 @@ export default function UpdateNotification() {
                         {status === 'downloaded' ? (
                             <button onClick={handleInstall} className={styles.installButton}>
                                 Restart and Install
+                            </button>
+                        ) : status === 'available' ? (
+                            <button onClick={handleDownload} className={styles.installButton}>
+                                Download Update
                             </button>
                         ) : (
                             <button onClick={handleClose} className={styles.closeButton}>

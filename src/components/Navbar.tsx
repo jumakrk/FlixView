@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Bell, User, Home, TrendingUp, Film, Tv, Bookmark, Heart, ChevronLeft } from 'lucide-react';
+import { Search, Bell, Home, TrendingUp, Film, Tv, Bookmark, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import AnimeIcon from './AnimeIcon';
 import styles from './Navbar.module.css';
 
 const NAV_LINKS = [
@@ -11,15 +12,14 @@ const NAV_LINKS = [
     { href: '/trending', label: 'Trending', icon: TrendingUp },
     { href: '/movies', label: 'Movies', icon: Film },
     { href: '/series', label: 'Series', icon: Tv },
+    { href: '/anime', label: 'Anime', icon: AnimeIcon },
     { href: '/watchlist', label: 'My Watchlist', icon: Bookmark },
     { href: '/favorites', label: 'My Favorites', icon: Heart },
 ];
 
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
-    const router = useRouter();
     const pathname = usePathname();
-    const isHomePage = pathname === '/';
 
     useEffect(() => {
         const handleScroll = () => {

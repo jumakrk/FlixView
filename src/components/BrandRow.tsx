@@ -8,7 +8,7 @@ import BrandLogo from './BrandLogo';
 interface Brand {
     id: string;
     name: string;
-    type: 'company' | 'network';
+    type: 'company' | 'network' | 'provider';
     tmdbId: number;
     glow: string;
     providerId?: number;
@@ -36,6 +36,8 @@ const BRANDS: Brand[] = [
     { id: 'dreamworks', name: 'DreamWorks', type: 'company', tmdbId: 7, glow: 'rgba(255, 255, 255, 0.3)' },
     { id: 'mgm', name: 'MGM', type: 'company', tmdbId: 21, glow: 'rgba(212, 175, 55, 0.4)' },
     { id: 'lionsgate', name: 'Lionsgate', type: 'company', tmdbId: 35, glow: 'rgba(200, 160, 40, 0.4)' },
+    // Streaming provider (not a TMDB network), so TV and movies both list its full catalogue.
+    { id: 'crunchyroll', name: 'Crunchyroll', type: 'provider', tmdbId: 283, glow: 'rgba(244, 117, 33, 0.5)', providerId: 283 },
     { id: 'a24', name: 'A24', type: 'company', tmdbId: 41077, glow: 'rgba(255, 255, 255, 0.25)' },
     { id: 'new-line', name: 'New Line Cinema', type: 'company', tmdbId: 12, glow: 'rgba(180, 180, 255, 0.4)' },
     { id: 'lucasfilm', name: 'Lucasfilm', type: 'company', tmdbId: 1, glow: 'rgba(0, 255, 100, 0.4)' },

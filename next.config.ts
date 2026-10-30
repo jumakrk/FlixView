@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   
   // Ensure webpack is used instead of Turbopack
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     return config;
   },
   

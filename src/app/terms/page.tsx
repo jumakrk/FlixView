@@ -12,7 +12,7 @@ export default function TermsPage() {
                 <p>We do not host any files on our servers. All content is provided by non-affiliated third parties.</p>
 
                 <h2 className="text-xl font-semibold text-white mt-8">3. Disclaimer</h2>
-                <p>The service is provided "as is" without warranties of any kind.</p>
+                <p>The service is provided &quot;as is&quot; without warranties of any kind.</p>
             </div>
         </div>
     );

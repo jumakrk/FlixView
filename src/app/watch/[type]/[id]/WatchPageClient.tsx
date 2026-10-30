@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { fetchDetails, fetchCredits, fetchSimilar } from '@/lib/tmdb';
+import { fetchDetails, fetchCredits, fetchSimilar, MovieDetails, Cast, Movie } from '@/lib/tmdb';
 import WatchClient from '@/components/WatchClient';
 import { Star, Clock, Tv } from 'lucide-react';
 import Image from 'next/image';
@@ -17,9 +17,9 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
     const searchParams = useSearchParams();
     const currentSeason = parseInt(searchParams.get('season') || '1');
 
-    const [details, setDetails] = useState<any>(null);
-    const [credits, setCredits] = useState<any[]>([]);
-    const [similar, setSimilar] = useState<any[]>([]);
+    const [details, setDetails] = useState<MovieDetails | null>(null);
+    const [credits, setCredits] = useState<Cast[]>([]);
+    const [similar, setSimilar] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -68,7 +68,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
     // Total episodes in the season currently being watched — lets the progress
     // tracker clamp internal episode-advance to episodes that actually exist.
     const maxEpisode = details?.seasons
-        ? (details.seasons.find((s: any) => s.season_number === currentSeason)?.episode_count ?? undefined)
+        ? (details.seasons.find((s) => s.season_number === currentSeason)?.episode_count ?? undefined)
         : undefined;
 
     return (
@@ -142,7 +142,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                                 </p>
 
                                 <div className="flex flex-wrap gap-2 pt-2">
-                                    {details.genres?.map((g: any) => (
+                                    {details.genres?.map((g) => (
                                         <span key={g.id} className="text-xs px-3 py-1 bg-white/5 rounded-full text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white transition-colors cursor-default">
                                             {g.name}
                                         </span>
@@ -190,7 +190,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                             <div className="space-y-4">
                                 <h3 className="text-xl font-bold">Gallery</h3>
                                 <div className="flex gap-4 overflow-x-auto pb-4 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                    {details.images.backdrops.slice(0, 10).map((image: any, index: number) => (
+                                    {details.images.backdrops.slice(0, 10).map((image, index) => (
                                         <div key={index} className="min-w-[280px] w-[280px] md:min-w-[320px] md:w-[320px] aspect-video snap-start relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 shadow-lg group">
                                             <Image
                                                 src={`${backdropBaseUrl}${image.file_path}`}
@@ -211,7 +211,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                             <div className="space-y-4 bg-white/5 rounded-3xl p-6 border border-white/5 backdrop-blur-sm">
                                 <h3 className="text-xl font-bold">Production</h3>
                                 <div className="flex flex-wrap gap-6 items-center">
-                                    {details.production_companies.map((company: any) => (
+                                    {details.production_companies.map((company) => (
                                         <div key={company.id} className="flex flex-col items-center gap-2">
                                             {company.logo_path ? (
                                                 <div className="relative w-[150px] h-[60px] opacity-70 hover:opacity-100 transition-opacity">
@@ -236,7 +236,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                             <div className="space-y-4">
                                 <h3 className="text-xl font-bold flex items-center gap-2">Top Reviews</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {details.reviews.results.slice(0, 4).map((review: any) => (
+                                    {details.reviews.results.slice(0, 4).map((review) => (
                                         <div key={review.id} className="bg-white/5 rounded-2xl p-6 border border-white/5 backdrop-blur-sm flex flex-col h-full hover:bg-white/10 transition-colors">
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
@@ -281,7 +281,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                             <div className="bg-white/5 rounded-3xl p-6 border border-white/5 backdrop-blur-sm">
                                 <SeasonSelector
                                     seriesId={id}
-                                    seasons={details.seasons.filter((s: any) => s.season_number > 0 && s.episode_count > 0)}
+                                    seasons={details.seasons.filter((s) => s.season_number > 0 && s.episode_count > 0)}
                                     listClassName="max-h-[960px] overflow-y-auto pr-2"
                                 />
                             </div>
@@ -292,13 +292,13 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                     <div className="space-y-6">
                         <h3 className="text-xl font-bold sticky top-0 bg-black/90 py-2 z-10 backdrop-blur-xl">More Like This</h3>
                         <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
-                            {similar && similar.slice(0, 11).map((item: any) => (
+                            {similar && similar.slice(0, 11).map((item) => (
                                 <Link key={item.id} href={`/watch?type=${mediaType}&id=${item.id}`} className="group flex gap-4 items-center bg-white/5 p-3 rounded-2xl hover:bg-white/10 transition-all border border-transparent hover:border-white/10">
                                     <div className="relative w-20 aspect-[2/3] rounded-lg overflow-hidden flex-shrink-0 bg-black/40">
                                         {item.poster_path ? (
                                             <Image
                                                 src={`${imageBaseUrl}${item.poster_path}`}
-                                                alt={item.title || item.name}
+                                                alt={item.title || item.name || 'Poster'}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                 className="object-cover"

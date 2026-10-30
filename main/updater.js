@@ -1,0 +1,75 @@
+const { app, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
+
+// electron-updater picks the right artifact per platform; the flow is
+// user-driven from the sidebar: check -> "Update Available" -> download with
+// progress -> install (see Sidebar.tsx). Automatic background downloads were
+// removed in v0.1.11 on purpose.
+const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
+
+function send(getMainWindow, channel, payload) {
+    const win = getMainWindow();
+    if (win && !win.isDestroyed()) {
+        win.webContents.send(channel, payload);
+    }
+}
+
+function setupAutoUpdater(getMainWindow) {
+    // --- Renderer-invoked channels (registered once, on every platform) ---
+
+    ipcMain.handle('get-app-version', () => app.getVersion());
+    ipcMain.handle('get-platform', () => process.platform);
+
+    ipcMain.handle('check-for-update', () => {
+        if (!app.isPackaged) {
+            // Dev builds have no update feed; report "up to date" shortly so
+            // the sidebar button resolves instead of hanging on "Checking...".
+            console.log('[updater] dev build: skipping update check');
+            setTimeout(() => send(getMainWindow, 'update-not-available'), 600);
+            return;
+        }
+        autoUpdater.checkForUpdates().catch(error => {
+            console.error('[updater] check failed:', error);
+            send(getMainWindow, 'update-error', error.message || String(error));
+        });
+    });
+
+    ipcMain.handle('download-update', () => {
+        if (!app.isPackaged) return;
+        autoUpdater.downloadUpdate().catch(error => {
+            console.error('[updater] download failed:', error);
+            send(getMainWindow, 'update-error', error.message || String(error));
+        });
+    });
+
+    ipcMain.handle('quit-and-install', () => {
+        if (!app.isPackaged) return;
+        autoUpdater.quitAndInstall(false, true);
+    });
+
+    if (!app.isPackaged) return;
+
+    // --- Packaged builds: wire electron-updater events to the renderer ---
+
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = false;
+
+    autoUpdater.on('checking-for-update', () => console.log('[updater] checking for update...'));
+    autoUpdater.on('update-available', info => send(getMainWindow, 'update-available', info));
+    autoUpdater.on('update-not-available', () => send(getMainWindow, 'update-not-available'));
+    autoUpdater.on('download-progress', progress => send(getMainWindow, 'download-progress', progress));
+    autoUpdater.on('update-downloaded', info => send(getMainWindow, 'update-downloaded', info));
+    autoUpdater.on('error', error => {
+        console.error('[updater] error:', error);
+        send(getMainWindow, 'update-error', error?.message || String(error));
+    });
+
+    // Check once at startup and then every few hours.
+    autoUpdater.checkForUpdates().catch(error => console.error('[updater] startup check failed:', error));
+    const interval = setInterval(() => {
+        autoUpdater.checkForUpdates().catch(error => console.error('[updater] periodic check failed:', error));
+    }, CHECK_INTERVAL_MS);
+    app.on('before-quit', () => clearInterval(interval));
+}
+
+module.exports = { setupAutoUpdater };

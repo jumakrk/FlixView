@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import { Movie } from '@/lib/tmdb';
+import { resolveImageUrl } from '@/lib/images';
 import styles from './MovieCard.module.css';
 import Countdown from './Countdown';
 
@@ -13,16 +14,20 @@ interface MovieCardProps {
 }
 
 function MovieCard({ movie, className, fullWidth = false }: MovieCardProps) {
-    const imageBaseUrl = 'https://image.tmdb.org/t/p/w500'; // Hardcoded
-
-    // Prefer poster for vertical card
+    // Supports both TMDB relative paths and absolute AniList poster URLs.
     const imagePath = movie.poster_path || movie.backdrop_path;
-    const imageUrl = imagePath ? `${imageBaseUrl}${imagePath}` : '/placeholder-movie.jpg';
+    const imageUrl = resolveImageUrl(imagePath, 'w500');
 
-    const linkType = movie.media_type === 'tv' ? 'series' : 'movie';
+    const linkType = movie.media_type === 'anime'
+        ? 'anime'
+        : movie.media_type === 'tv' ? 'series' : 'movie';
 
     const releaseDate = movie.release_date || movie.first_air_date;
     const isUpcoming = releaseDate ? new Date(releaseDate) > new Date() : false;
+
+    const typeLabel = movie.media_type === 'anime'
+        ? 'Anime'
+        : movie.media_type === 'tv' ? 'TV' : 'Movie';
 
     return (
         <div className={`${styles.card} ${fullWidth ? styles.fullWidth : ''} ${className || ''}`}>
@@ -50,10 +55,10 @@ function MovieCard({ movie, className, fullWidth = false }: MovieCardProps) {
                                 {(movie.vote_average || 0).toFixed(1)}
                             </span>
                         ) : (
-                            <span style={{ 
-                                fontSize: '10px', 
-                                fontWeight: 800, 
-                                color: '#fbbf24', 
+                            <span style={{
+                                fontSize: '10px',
+                                fontWeight: 800,
+                                color: '#fbbf24',
                                 backgroundColor: 'rgba(251, 191, 36, 0.1)',
                                 padding: '2px 6px',
                                 borderRadius: '4px',
@@ -76,7 +81,7 @@ function MovieCard({ movie, className, fullWidth = false }: MovieCardProps) {
                             color: 'rgba(255,255,255,0.7)',
                             textTransform: 'uppercase'
                         }}>
-                            {movie.media_type === 'tv' ? 'TV' : 'Movie'}
+                            {typeLabel}
                         </span>
                     </div>
                 </div>

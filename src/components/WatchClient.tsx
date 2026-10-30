@@ -5,7 +5,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import ProgressManager from '@/components/ProgressManager';
 import { ArrowLeft } from 'lucide-react';
 import { useState, useCallback } from 'react';
-import { MediaType } from '@/lib/types';
+import { MediaType, isEpisodicType } from '@/lib/types';
 
 interface WatchClientProps {
     id: string;
@@ -28,10 +28,9 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath,
     const episode = episodeParam ? parseInt(episodeParam) : 1;
 
     // Check if we need to auto-redirect (if params were missing)
-    const shouldCheckResume = !seasonParam && !episodeParam && type === 'tv';
+    const shouldCheckResume = !seasonParam && !episodeParam && isEpisodicType(type);
 
     const [startTime, setStartTime] = useState(0);
-    const [isPlayerActive, setIsPlayerActive] = useState(false);
 
     // Initial Start Time Loaded Callback
     const handleStartTimeFound = useCallback((time: number) => {
@@ -58,44 +57,21 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath,
                     // Fail safe: Force replace if we are stuck deeply
                     const source = searchParams.get('source');
                     if (source === 'home') router.replace('/');
-                    else router.replace(`/details/${type === 'tv' ? 'series' : 'movie'}/${id}`);
+                    else router.replace(`/details?type=${type === 'tv' ? 'series' : type}&id=${id}`);
                     return;
                 }
 
                 // Go back one step and check again
                 window.history.back();
                 setTimeout(checkExit, 20); // Quick check
-            } else {
-                // We successfully exited!
-                // No action needed, browser handles render of new page
             }
         };
 
         checkExit();
     };
 
-    // Also activate player immediately on mount (or after brief delay for start time?)
-    // Actually, we want to wait for start time if possible?
-    // But existing logic set isPlayerActive(true) after effect.
-    // ProgressManager runs effect on mount.
-    // If we want to wait, we can set isPlayerActive(true) inside handleStartTimeFound?
-    // But if NO progress, handleStartTimeFound never called.
-    // So we should just default 0 and render.
-    // Ideally, ProgressManager should tell us "done checking".
-
-    // For now, let's keep it simple: Render player immediately (startTime 0). 
-    // If handleStartTimeFound fires quickly, it might reload iframe?
-    // Changing key or properties reloads iframe.
-    // startTime is passed to VideoPlayer.
-    // If startTime changes from 0 to 123, VideoPlayer re-renders -> Iframe Reloads.
-    // This is EXPECTED for initial resume.
-    // But it happens only ONCE.
-
-    // To avoid double load, we can delay rendering until "checked".
-    // But for speed, let's just render.
-
     return (
-        <div className="relative w-full h-[85vh] bg-black flex flex-col rounded-3xl overflow-hidden border border-white/5 shadow-2xl mb-8">
+        <div className="w-full mb-8">
             {/* Logic Component (Hidden) */}
             <ProgressManager
                 id={id}
@@ -110,22 +86,35 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath,
                 maxEpisode={maxEpisode}
             />
 
-            {/* Top Navigation Bar */}
-            <div className="absolute top-0 left-0 right-0 p-4 z-10 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+            {/* Player chrome lives above the video so it never covers the
+                stream's own top controls (or the title). */}
+            <div className="flex items-center justify-between gap-4 px-1 pb-3">
                 <button
                     onClick={handleBack}
-                    className="pointer-events-auto p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md text-white transition-all flex items-center gap-2 group"
+                    aria-label="Back to details"
+                    className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-2 text-sm font-semibold text-white/85 backdrop-blur-md transition-colors hover:border-violet-400/40 hover:bg-white/10 hover:text-white"
                 >
-                    <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="font-medium pr-1">Back</span>
+                    <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+                    <span>Back</span>
                 </button>
+
+                <div className="hidden min-w-0 items-center gap-2 text-xs font-medium text-white/45 sm:flex">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500 shadow-[0_0_10px_rgba(124,58,237,0.8)]" />
+                    <span className="shrink-0 uppercase tracking-[0.16em]">Now playing</span>
+                    <span className="h-3 w-px bg-white/15" />
+                    <span className="truncate text-white/70">{title}</span>
+                    {isEpisodicType(type) && (
+                        <span className="shrink-0 text-white/40">· S{season} E{episode}</span>
+                    )}
+                </div>
             </div>
 
-            {/* Video Player - Full Screen */}
-            <div className={`w-full h-full opacity-100 transition-opacity duration-500`}>
+            {/* Video Player — no top gradient overlay so the provider's own
+                controls stay fully visible. */}
+            <div className="relative h-[calc(85vh-56px)] min-h-[380px] max-h-[960px] w-full overflow-hidden rounded-3xl border border-white/5 bg-black shadow-2xl">
                 <VideoPlayer
                     key={`${id}-${type}-${season}-${episode}`}
-                    tmdbId={id}
+                    mediaId={id}
                     type={type}
                     season={season}
                     episode={episode}

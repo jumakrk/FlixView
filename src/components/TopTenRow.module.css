@@ -18,8 +18,9 @@
     gap: 65px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 60px 4% 40px 4%;
-    /* Increased top padding to prevent clipping */
+    /* Top padding prevents clipping; the extra left padding makes room for
+       the first rank number, which sits outside its card (see .rank left). */
+    padding: 60px 4% 40px calc(4% + 58px);
     scroll-behavior: smooth;
 }
 
@@ -73,7 +74,7 @@
     }
 
     .rail {
-        padding: 40px 4% 30px 4%;
+        padding: 40px 4% 30px calc(4% + 30px);
         gap: 15px;
     }
 }

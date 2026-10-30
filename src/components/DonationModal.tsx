@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import Link from 'next/link';
@@ -11,19 +10,8 @@ interface DonationModalProps {
 }
 
 export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-        return () => setMounted(false);
-    }, []);
-
-    useEffect(() => {
-        setMounted(true);
-        return () => setMounted(false);
-    }, []);
-
-    if (!isOpen || !mounted) return null;
+    // The portal needs a live document; static-export prerendering has none.
+    if (!isOpen || typeof document === 'undefined') return null;
 
     return createPortal(
         <>
@@ -56,6 +44,9 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
                             rel="noopener noreferrer"
                             className="flex justify-center w-full transform hover:scale-105 transition-transform duration-200"
                         >
+                            {/* Third-party donation button artwork; next/image's
+                                optimizer cannot be configured for these CDNs. */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src="https://pics.paypal.com/00/s/ZThhYmNiZDktMzcwNC00MTgwLWIxNzgtM2YyNDVkMjM1ZDMx/file.PNG"
                                 alt="Donate with PayPal"
@@ -72,6 +63,7 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
                             target="_blank"
                             className="transform hover:scale-105 transition-transform duration-200 block"
                         >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
                                 alt="Buy Me A Coffee"

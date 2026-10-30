@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
+import type { Context, Next } from 'hono';
 import { cors } from 'hono/cors';
-import { jwt } from 'hono/jwt';
+import { jwt, sign } from 'hono/jwt';
 import { hash, compare } from 'bcryptjs';
 import { zValidator } from '@hono/zod-validator';
 import { registerSchema, loginSchema, progressSchema, listSchema, updateUserSchema } from './validators';
@@ -19,7 +20,7 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 100; // 100 requests per minute per IP
 
-const rateLimiter = async (c: any, next: any) => {
+const rateLimiter = async (c: Context, next: Next) => {
     const ip = c.req.header('CF-Connecting-IP') || 'unknown';
     const now = Date.now();
 
@@ -46,9 +47,12 @@ app.use('/*', rateLimiter);
 
 // JWT Middleware for protected routes
 app.use('/api/*', async (c, next) => {
-    const jwtMiddleware = jwt({
-        secret: c.env.JWT_SECRET || 'flixview-secret-key-change-me',
-    });
+    const secret = c.env.JWT_SECRET;
+    if (!secret) {
+        // Fail closed: never fall back to a publicly-known default secret.
+        return c.json({ error: 'Server misconfiguration: JWT_SECRET is not set' }, 500);
+    }
+    const jwtMiddleware = jwt({ secret });
     return jwtMiddleware(c, next);
 });
 
@@ -72,17 +76,21 @@ app.post('/auth/register', zValidator('json', registerSchema), async (c) => {
         } else {
             return c.json({ error: 'Failed to create user' }, 500);
         }
-    } catch (e: any) {
-        if (e.message.includes('UNIQUE constraint failed')) {
+    } catch (e) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        if (message.includes('UNIQUE constraint failed')) {
             return c.json({ error: 'Email or Username already exists' }, 409);
         }
-        return c.json({ error: e.message }, 500);
+        return c.json({ error: message }, 500);
     }
 });
 
 app.post('/auth/login', zValidator('json', loginSchema), async (c) => {
     const { email, password } = c.req.valid('json');
-    const secret = c.env.JWT_SECRET || 'flixview-secret-key-change-me';
+    const secret = c.env.JWT_SECRET;
+    if (!secret) {
+        return c.json({ error: 'Server misconfiguration: JWT_SECRET is not set' }, 500);
+    }
 
     const user = await c.env.DB.prepare(
         'SELECT * FROM users WHERE email = ?'
@@ -98,13 +106,12 @@ app.post('/auth/login', zValidator('json', loginSchema), async (c) => {
     }
 
     // Generate JWT
-    // @ts-ignore
-    const token = await import('hono/jwt').then(m => m.sign({
+    const token = await sign({
         id: user.id,
         email: user.email,
         username: user.username,
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 // 30 days
-    }, secret));
+    }, secret);
 
     return c.json({ token, user: { id: user.id, email: user.email, username: user.username, profilePicture: user.profile_picture_url } });
 });
@@ -122,7 +129,7 @@ app.put('/api/user', zValidator('json', updateUserSchema.extend({ profilePicture
     }
 
     const updates: string[] = [];
-    const values: any[] = [];
+    const values: (string | null)[] = [];
 
     if (username) {
         updates.push('username = ?');
@@ -149,11 +156,12 @@ app.put('/api/user', zValidator('json', updateUserSchema.extend({ profilePicture
         const user = await c.env.DB.prepare('SELECT id, email, username, profile_picture_url as profilePicture FROM users WHERE id = ?').bind(userId).first();
         return c.json({ user });
 
-    } catch (e: any) {
-        if (e.message.includes('UNIQUE constraint failed')) {
+    } catch (e) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        if (message.includes('UNIQUE constraint failed')) {
             return c.json({ error: 'Username already taken' }, 409);
         }
-        return c.json({ error: e.message }, 500);
+        return c.json({ error: message }, 500);
     }
 });
 
@@ -176,7 +184,7 @@ app.get('/api/sync', async (c) => {
     ).bind(userId).all();
 
     // Helper to parse JSON columns
-    const parseItems = (items: any[]) => items.map(item => ({
+    const parseItems = (items: Record<string, unknown>[]) => items.map(item => ({
         ...item,
         progress_data: item.progress_data ? JSON.parse(item.progress_data as string) : null,
         media_data: item.media_data ? JSON.parse(item.media_data as string) : null

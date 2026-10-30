@@ -1,5 +1,4 @@
 import { fetchPopularMovies, fetchNowPlaying, fetchUpcoming } from '@/lib/tmdb';
-import MovieCard from '@/components/MovieCard';
 import SectionRow from '@/components/SectionRow';
 import DiscoverFilters from '@/components/DiscoverFilters';
 import ContentGrid from '@/components/ContentGrid';

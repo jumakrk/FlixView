@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SeasonDetails, Episode, fetchSeasonDetails } from '@/lib/tmdb';
+import { SeasonDetails, fetchSeasonDetails } from '@/lib/tmdb';
 import { useData } from '@/context/DataContext';
 import styles from './SeasonSelector.module.css';
-import { ChevronDown, Play, Tv } from 'lucide-react';
+import { ChevronDown, Tv } from 'lucide-react';
 import PlayButton from './PlayButton';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';

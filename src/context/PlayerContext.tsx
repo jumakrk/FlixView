@@ -2,9 +2,10 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { MediaType, isEpisodicType } from '@/lib/types';
 
 interface PlayerContextType {
-    openPlayer: (id: string | number, type?: 'movie' | 'tv', season?: number, episode?: number) => void;
+    openPlayer: (id: string | number, type?: MediaType, season?: number, episode?: number) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -12,17 +13,21 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 export function PlayerProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
 
-    const openPlayer = (id: string | number, type: 'movie' | 'tv' = 'movie', season: number = 1, episode: number = 1) => {
-        const query = `?type=${type}&id=${id}${type === 'tv' ? `&season=${season}&episode=${episode}` : ''}`;
+    const openPlayer = (id: string | number, type: MediaType = 'movie', season: number = 1, episode: number = 1) => {
+        const params = new URLSearchParams({ type, id: String(id) });
+        if (isEpisodicType(type)) {
+            params.set('season', String(season));
+            params.set('episode', String(episode));
+        }
         const targetPath = '/watch/';
 
         // Handle both trailing and non-trailing slash for comparison
         const isCurrentlyWatching = window.location.pathname.startsWith('/watch');
 
         if (isCurrentlyWatching) {
-            router.replace(`${targetPath}${query}`);
+            router.replace(`${targetPath}?${params.toString()}`);
         } else {
-            router.push(`${targetPath}${query}`);
+            router.push(`${targetPath}?${params.toString()}`);
         }
     };
 

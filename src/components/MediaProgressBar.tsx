@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useData } from '@/context/DataContext';
+import { getLastWatchedEpisode, isEpisodicType, MediaType } from '@/lib/types';
 import { cn } from '@/lib/utils'; // Keep className utility
 
 interface MediaProgressBarProps {
     id: string | number;
-    type: 'movie' | 'tv';
+    type: MediaType;
     className?: string;
     season?: number;
     episode?: number;
@@ -14,71 +14,51 @@ interface MediaProgressBarProps {
 
 export default function MediaProgressBar({ id, type, className, season, episode }: MediaProgressBarProps) {
     const { getProgress } = useData();
-    const [progressPct, setProgressPct] = useState(0);
-    const [isVisible, setIsVisible] = useState(false);
-    const [label, setLabel] = useState<string | null>(null);
-    const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    // Derived from context on every render — DataContext updates trigger a
+    // re-render, so no local state/effects are needed here.
+    const record = getProgress(id.toString(), type);
 
-    useEffect(() => {
-        if (!mounted) return;
+    let progressPct = 0;
+    let label: string | null = null;
 
-        const record = getProgress(id.toString(), type);
+    if (record) {
+        let current = 0;
+        let duration = 0;
 
-        if (record) {
-            let current = 0;
-            let duration = 0;
-            let currentLabel = null;
-
-            if (type === 'tv') {
-                if (season && episode) {
-                    // Check specific episode
-                    const epKey = `s${season}e${episode}`;
-                    const epProgress = record.episodes?.[epKey];
-                    if (epProgress) {
-                        current = epProgress.watched_seconds;
-                        duration = epProgress.duration_seconds;
-                        // If specific episode requested, we usually don't need label as context implies it
-                        // But user requested "S2 E3 | 20%" for details page specifically
-                        // Details page passes "Main Show ID" but MIGHT NOT pass season/episode props?
-                        // If S/E props passed, we are likely in Episode List => Dont show label?
-                        // If S/E props NOT passed, we are in Hero/Details Header => Show Label (Resume Point)
-                        if (!season && !episode) {
-                            // Actually this block is 'if season && episode'. So we are specific.
-                        }
-                    }
-                } else {
-                    // Check overall show (resume point)
-                    current = record.watched_seconds;
-                    duration = record.duration_seconds;
-
-                    // Derive label from resume point
-                    if (record.season && record.episode) {
-                        currentLabel = `S${record.season} E${record.episode}`;
-                    }
+        if (isEpisodicType(type)) {
+            if (season && episode) {
+                // Specific episode requested (episode list context) — no label.
+                const epProgress = record.episodes?.[`s${season}e${episode}`];
+                if (epProgress) {
+                    current = epProgress.watched_seconds;
+                    duration = epProgress.duration_seconds;
                 }
             } else {
-                // Movie
+                // Overall show (resume point) — label the resume point.
                 current = record.watched_seconds;
                 duration = record.duration_seconds;
-            }
-
-            if (duration > 0 && current > 0) {
-                setProgressPct(Math.min((current / duration) * 100, 100));
-                setLabel(currentLabel);
-                setIsVisible(true);
-            } else {
-                setIsVisible(false);
+                if (record.season && record.episode) {
+                    label = type === 'anime'
+                        ? `E${record.episode}`
+                        : `S${record.season} E${record.episode}`;
+                } else if (type === 'anime') {
+                    const lastSE = getLastWatchedEpisode(record);
+                    label = `E${lastSE.episode}`;
+                }
             }
         } else {
-            setIsVisible(false);
+            // Movie
+            current = record.watched_seconds;
+            duration = record.duration_seconds;
         }
-    }, [id, type, season, episode, getProgress, mounted]);
 
-    if (!isVisible || progressPct <= 0) return null;
+        if (duration > 0 && current > 0) {
+            progressPct = Math.min((current / duration) * 100, 100);
+        }
+    }
+
+    if (progressPct <= 0) return null;
 
     return (
         <div className={cn("flex items-center gap-3 w-full mt-3", className)}>

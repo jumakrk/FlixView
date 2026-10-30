@@ -7,12 +7,14 @@ import { useState, useEffect, useRef } from 'react';
 import styles from './Sidebar.module.css';
 import DonationModal from './DonationModal';
 import DonateIcon from './DonateIcon';
+import AnimeIcon from './AnimeIcon';
 
 const NAV_LINKS = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/trending', label: 'Trending', icon: TrendingUp },
     { href: '/movies', label: 'Movies', icon: Film },
     { href: '/series', label: 'Series', icon: Tv },
+    { href: '/anime', label: 'Anime', icon: AnimeIcon },
     { href: '/watchlist', label: 'My Watchlist', icon: Bookmark },
     { href: '/favorites', label: 'My Favorites', icon: Heart },
 ];

@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electron', {
     
     exportData: () => ipcRenderer.invoke('export-data'),
     importData: () => ipcRenderer.invoke('import-data'),
+    getDataPath: () => ipcRenderer.invoke('get-data-path'),
     
     // Auto Updater
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (_event, info) => callback(info)),

@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Movie, fetchBrandContent } from '@/lib/tmdb';
 import MovieCard from '@/components/MovieCard';
 import BrandLogo from '@/components/BrandLogo';
-import { ChevronLeft, Loader2, ArrowUpDown, Filter } from 'lucide-react';
+import { ChevronLeft, Loader2, ArrowUpDown } from 'lucide-react';
 
 const MOVIE_GENRES = [
     { id: 28, name: 'Action' },
@@ -75,6 +75,7 @@ const getBrandGlow = (id: string) => {
         case 'dreamworks': return 'rgba(255, 255, 255, 0.25)';
         case 'mgm': return 'rgba(212, 175, 55, 0.4)';
         case 'lionsgate': return 'rgba(200, 160, 40, 0.4)';
+        case 'crunchyroll': return 'rgba(244, 117, 33, 0.5)';
         case 'a24': return 'rgba(255, 255, 255, 0.25)';
         case 'new-line': return 'rgba(180, 180, 255, 0.4)';
         case 'lucasfilm': return 'rgba(0, 255, 100, 0.35)';
@@ -88,7 +89,7 @@ function StudioDiscoveryContent() {
     const router = useRouter();
     
     const brandId = Number(searchParams.get('id'));
-    const brandType = searchParams.get('type') as 'company' | 'network';
+    const brandType = searchParams.get('type') as 'company' | 'network' | 'provider';
     const brandName = searchParams.get('name') || '';
     const logoId = searchParams.get('logoId') || '';
     const providerId = Number(searchParams.get('providerId')) || undefined;
@@ -116,9 +117,11 @@ function StudioDiscoveryContent() {
         }
 
         try {
-            const targetId = brandType === 'network' 
-                ? (mediaType === 'tv' ? brandId : (providerId || brandId))
-                : brandId;
+            const targetId = brandType === 'provider'
+                ? (providerId || brandId)
+                : brandType === 'network'
+                    ? (mediaType === 'tv' ? brandId : (providerId || brandId))
+                    : brandId;
 
             const results = await fetchBrandContent(brandType, targetId, mediaType, pageNum, selectedGenre, sortBy);
             

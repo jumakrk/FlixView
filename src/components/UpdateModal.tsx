@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Download, ArrowUpCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, Download, ArrowUpCircle, RefreshCw } from 'lucide-react';
 import styles from './UpdateModal.module.css';
 
 interface UpdateModalProps {
@@ -17,8 +17,7 @@ export default function UpdateModal({
     onClose,
     onUpdateNow,
     status,
-    downloadPercent,
-    version
+    downloadPercent
 }: UpdateModalProps) {
     if (!isOpen) return null;
 
@@ -64,7 +63,7 @@ export default function UpdateModal({
                                     style={{ width: `${downloadPercent}%` }}
                                 />
                             </div>
-                            <p className={styles.helpText}>Please don't close the app while downloading.</p>
+                            <p className={styles.helpText}>Please don&apos;t close the app while downloading.</p>
                         </div>
                     )}
 

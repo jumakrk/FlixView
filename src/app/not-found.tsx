@@ -19,9 +19,9 @@ export default function NotFound() {
                     </div>
                 </div>
 
-                <h2 className="text-3xl font-bold mb-4">You've drifted into the void</h2>
+                <h2 className="text-3xl font-bold mb-4">You&apos;ve drifted into the void</h2>
                 <p className="text-lg text-white/60 mb-10 max-w-sm">
-                    The page you are looking for doesn't exist or has been moved to another dimension.
+                    The page you are looking for doesn&apos;t exist or has been moved to another dimension.
                 </p>
 
                 <Link

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { ProgressRecord, MediaType, MediaData, EpisodeProgress } from '@/lib/types';
+import { ProgressRecord, MediaType, EpisodeProgress } from '@/lib/types';
 
 interface WatchlistItem {
     mediaId: string;
@@ -45,43 +45,48 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
                 const w = await window.electron.getAllData('watchlist');
                 const f = await window.electron.getAllData('favorites');
                 const p = await window.electron.getAllData('progress');
-                
-                setWatchlist(w || []);
-                setFavorites(f || []);
-                
+
+                setWatchlist((w as WatchlistItem[]) || []);
+                setFavorites((f as WatchlistItem[]) || []);
+
                 // Sort progress by last_watched_at
-                const sortedProgress = (p || []).sort((a: any, b: any) => 
+                const sortedProgress = ((p as ProgressRecord[]) || []).sort((a, b) =>
                     new Date(b.last_watched_at).getTime() - new Date(a.last_watched_at).getTime()
                 );
                 setProgress(sortedProgress);
             };
             loadData();
         } else {
-            // Fallback to localStorage for web (though this app should be run in electron)
-            const storedWatchlist = localStorage.getItem('flixview_watchlist');
-            const storedFavorites = localStorage.getItem('flixview_favorites');
-            const storedProgress = localStorage.getItem('flixview_progress');
+            // Fallback to localStorage for web (though this app should be run in
+            // electron). Deferred to a microtask: the static export prerenders
+            // without a window, so reads must happen post-hydration — and this
+            // also keeps setState out of the synchronous effect body.
+            queueMicrotask(() => {
+                const storedWatchlist = localStorage.getItem('flixview_watchlist');
+                const storedFavorites = localStorage.getItem('flixview_favorites');
+                const storedProgress = localStorage.getItem('flixview_progress');
 
-            try {
-                if (storedWatchlist) setWatchlist(JSON.parse(storedWatchlist));
-            } catch (e) {
-                console.error("Failed to parse watchlist from localStorage (data may be corrupted):", e);
-                localStorage.removeItem('flixview_watchlist');
-            }
+                try {
+                    if (storedWatchlist) setWatchlist(JSON.parse(storedWatchlist));
+                } catch (e) {
+                    console.error("Failed to parse watchlist from localStorage (data may be corrupted):", e);
+                    localStorage.removeItem('flixview_watchlist');
+                }
 
-            try {
-                if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
-            } catch (e) {
-                console.error("Failed to parse favorites from localStorage (data may be corrupted):", e);
-                localStorage.removeItem('flixview_favorites');
-            }
+                try {
+                    if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
+                } catch (e) {
+                    console.error("Failed to parse favorites from localStorage (data may be corrupted):", e);
+                    localStorage.removeItem('flixview_favorites');
+                }
 
-            try {
-                if (storedProgress) setProgress(JSON.parse(storedProgress));
-            } catch (e) {
-                console.error("Failed to parse progress from localStorage (data may be corrupted):", e);
-                localStorage.removeItem('flixview_progress');
-            }
+                try {
+                    if (storedProgress) setProgress(JSON.parse(storedProgress));
+                } catch (e) {
+                    console.error("Failed to parse progress from localStorage (data may be corrupted):", e);
+                    localStorage.removeItem('flixview_progress');
+                }
+            });
         }
     }, []);
 
@@ -205,7 +210,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         //    behind made the whole show (per-episode progress included) reload on
         //    the next launch, so removing it looked like it had done nothing.
         if (typeof window !== 'undefined' && window.electron) {
-            const suffixes = targetType === 'tv' ? ['tv', 'series'] : ['movie'];
+            const suffixes = targetType === 'tv'
+                ? ['tv', 'series']
+                : targetType === 'anime' ? ['anime'] : ['movie'];
             for (const suffix of suffixes) {
                 await window.electron.deleteData('progress', `${mediaId}_${suffix}`);
             }

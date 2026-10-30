@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Plus, Heart, Check, Loader2 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
+import { MediaType } from '@/lib/types';
 
 interface InteractionButtonsProps {
     contentId: number;
-    mediaType: 'movie' | 'tv';
+    mediaType: MediaType;
     title?: string;
     poster?: string | null;
     className?: string;

@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, TrendingUp, Film, Tv, Bookmark, Heart } from 'lucide-react';
+import { Home, TrendingUp, Film, Tv, Bookmark } from 'lucide-react';
+import AnimeIcon from './AnimeIcon';
 import styles from './MobileBottomNav.module.css';
 
 const NAV_LINKS = [
@@ -9,6 +10,7 @@ const NAV_LINKS = [
     { href: '/trending', label: 'Trending', icon: TrendingUp },
     { href: '/movies', label: 'Movies', icon: Film },
     { href: '/series', label: 'Series', icon: Tv },
+    { href: '/anime', label: 'Anime', icon: AnimeIcon },
     { href: '/watchlist', label: 'Watchlist', icon: Bookmark },
 ];
 

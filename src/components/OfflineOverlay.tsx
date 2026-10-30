@@ -1,7 +1,6 @@
 'use client';
 
 import { WifiOff, RefreshCw } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 interface OfflineOverlayProps {
     onRetry: () => void;

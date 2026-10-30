@@ -2,12 +2,15 @@
 
 import { cn } from "@/lib/utils";
 import { buildPlayerUrl } from "@/lib/player";
+import { MediaType } from "@/lib/types";
 
 interface VideoPlayerProps {
-    tmdbId: string | number;
-    type?: 'movie' | 'tv';
+    /** TMDB ID for movies/TV, AniList ID for anime. */
+    mediaId: string | number;
+    type?: MediaType;
     season?: number;
     episode?: number;
+    audio?: 'sub' | 'dub';
     className?: string;
     startTime?: number;
 }
@@ -15,10 +18,11 @@ interface VideoPlayerProps {
 import { memo, useEffect, useState } from 'react';
 
 function VideoPlayer({
-    tmdbId,
+    mediaId,
     type = 'movie',
     season = 1,
     episode = 1,
+    audio = 'dub',
     className,
     startTime = 0
 }: VideoPlayerProps) {
@@ -29,6 +33,8 @@ function VideoPlayer({
         const purgeAndReady = async () => {
             if (typeof window !== 'undefined' && window.electron && window.electron.purgePlayerCache) {
                 try {
+                    // The player remembers resume positions per title. FlixView
+                    // owns progress, so its cache is wiped before every mount.
                     await window.electron.purgePlayerCache('all');
                 } catch (e) {
                     console.error('Failed to purge player cache before mount', e);
@@ -36,17 +42,19 @@ function VideoPlayer({
             }
             if (isMounted) setIsReady(true);
         };
-        
-        setIsReady(false);
-        purgeAndReady();
-        
-        return () => { isMounted = false; };
-    }, [tmdbId, season, episode, type]);
 
-    // VidStuck embed. The URL (accent colour, branding, in-player episode
-    // controls, overlay and the always-present resume position) is built in
-    // @/lib/player so it can be asserted without a browser.
-    const src = buildPlayerUrl({ tmdbId, type, season, episode, startTime });
+        // WatchClient keys this component per (id, type, season, episode), so a
+        // fresh mount already starts with isReady=false — no synchronous
+        // setState is needed here.
+        purgeAndReady();
+
+        return () => { isMounted = false; };
+    }, [mediaId, season, episode, type]);
+
+    // Vidly embed. The URL (aurora theme, app accent colour, autoplay, next
+    // episode, disabled audio picker and the always-present resume position) is
+    // built in @/lib/player so it can be asserted without a browser.
+    const src = buildPlayerUrl({ mediaId, type, season, episode, audio, startTime });
 
     if (!isReady) {
         return (
@@ -64,7 +72,7 @@ function VideoPlayer({
                 allowFullScreen
                 allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                 referrerPolicy="origin"
-                title={`Video Player ${tmdbId}`}
+                title={`Video Player ${mediaId}`}
                 style={{ border: 'none' }}
                 scrolling="no"
             />

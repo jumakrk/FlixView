@@ -3,7 +3,8 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import { X, Info } from 'lucide-react';
-import { ProgressRecord, getLastWatchedEpisode } from '@/lib/types';
+import { ProgressRecord, getLastWatchedEpisode, isEpisodicType, MediaType } from '@/lib/types';
+import { resolveImageUrl } from '@/lib/images';
 import { useData } from '@/context/DataContext';
 import styles from './MovieCard.module.css'; // Reuse basic card styles but add custom overlays inline or new module
 
@@ -14,33 +15,41 @@ interface ContinueWatchingCardProps {
 
 function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) {
     const { removeProgress } = useData();
-    const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
 
     const mediaData = record.media_data || {};
     const title = mediaData.title || mediaData.name || 'Unknown';
-    // Use poster from media_data if available, otherwise just use what we have (we might need to fetch if missing? 
-    // DataContext sync sets media_data.posterPath if list item, but progress might rely on client sending it.
-    // WatchClient currently sends empty media_data.
-    // Ideally we should have poster path. If missing, it's a placeholder.
-    // For now assume media_data has it or fallback.
+
+    // Supports both TMDB relative paths and absolute AniList poster URLs.
     const imagePath = mediaData.poster_path || mediaData.posterPath || mediaData.backdrop_path;
-    const imageUrl = imagePath ? `${imageBaseUrl}${imagePath}` : '/placeholder-movie.jpg';
+    const imageUrl = resolveImageUrl(imagePath, 'w500');
 
-    const isTv = record.media_type === 'tv';
+    // Older builds stored TV shows as 'series'.
+    const mediaType: MediaType = (record.media_type as string) === 'series' ? 'tv' : record.media_type;
+    const episodic = isEpisodicType(mediaType);
+    const isAnime = mediaType === 'anime';
 
-    // For TV, always resume from the most recently watched episode (computed
-    // from per-episode progress), not just a stale season/episode pointer.
+    // For episodic content, always resume from the most recently watched
+    // episode (computed from per-episode progress), not just a stale
+    // season/episode pointer.
     const lastSE = getLastWatchedEpisode(record);
-    const resumeSeason = isTv ? lastSE.season : 1;
-    const resumeEpisode = isTv ? lastSE.episode : 1;
+    const resumeSeason = episodic ? lastSE.season : 1;
+    const resumeEpisode = episodic ? lastSE.episode : 1;
 
     // Resume Link
-    const resumeLink = isTv
-        ? `/watch?type=tv&id=${record.media_id}&season=${resumeSeason}&episode=${resumeEpisode}&source=home`
-        : `/watch?type=movie&id=${record.media_id}&source=home`;
+    const resumeParams = new URLSearchParams({
+        type: mediaType,
+        id: record.media_id,
+        source: 'home'
+    });
+    if (episodic) {
+        resumeParams.set('season', String(resumeSeason));
+        resumeParams.set('episode', String(resumeEpisode));
+    }
+    const resumeLink = `/watch?${resumeParams.toString()}`;
 
     // Info Link
-    const infoLink = `/details?type=${isTv ? 'series' : 'movie'}&id=${record.media_id}`;
+    const detailType = isAnime ? 'anime' : mediaType === 'tv' ? 'series' : 'movie';
+    const infoLink = `/details?type=${detailType}&id=${record.media_id}`;
 
     // Progress Calculation
     // Ensure duration > 0 to avoid NaN
@@ -51,7 +60,7 @@ function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) 
     const handleRemove = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        removeProgress(record.media_id, record.media_type);
+        removeProgress(record.media_id, mediaType);
     };
 
     return (
@@ -64,16 +73,12 @@ function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) 
                 />
                 <div className={styles.overlay} />
 
-                {/* Content (Title etc) - Optional, maybe just progress bar is cleaner? 
-                    User asked for "Progress bar indicator on the bottom side of the poster".
-                    And buttons on top.
-                    Let's keep title hidden or minimal if they want just a row of posters.
-                    But usually titles are good. Reuse styles.content.
-                */}
                 <div className={styles.content}>
                     <h3 className={styles.title}>{title}</h3>
-                    {isTv && (
-                        <p className="text-xs text-white/70 mt-1">S{resumeSeason} E{resumeEpisode}</p>
+                    {episodic && (
+                        <p className="text-xs text-white/70 mt-1">
+                            {isAnime ? `E${resumeEpisode}` : `S${resumeSeason} E${resumeEpisode}`}
+                        </p>
                     )}
                 </div>
 

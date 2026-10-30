@@ -2,39 +2,55 @@
 
 import { useState, useEffect } from 'react';
 import { Search as SearchIcon } from 'lucide-react';
-import { searchContent, Movie } from '@/lib/tmdb';
+import { Movie } from '@/lib/tmdb';
+import { searchEverything } from '@/lib/search';
 import MovieCard from '@/components/MovieCard';
 import styles from './Search.module.css';
 
 export default function SearchPage() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<Movie[]>([]);
+    const [animeResults, setAnimeResults] = useState<Movie[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
 
     useEffect(() => {
         if (!query.trim()) {
             setResults([]);
+            setAnimeResults([]);
             setIsSearching(false);
             setHasSearched(false);
             return;
         }
 
+        let cancelled = false;
+
         const timer = setTimeout(async () => {
             setIsSearching(true);
             try {
-                const searchResults = await searchContent(query);
-                setResults(searchResults);
+                // TMDB for movies/TV, AniList for anime. The helper also
+                // recovers missing spaces ("onepiece" -> "one piece") when a
+                // provider has no exact title match.
+                const { movies, anime } = await searchEverything(query);
+
+                if (cancelled) return;
+                setResults(movies);
+                setAnimeResults(anime);
                 setHasSearched(true);
             } catch (error) {
-                console.error('Search error:', error);
+                if (!cancelled) console.error('Search error:', error);
             } finally {
-                setIsSearching(false);
+                if (!cancelled) setIsSearching(false);
             }
-        }, 500);
+        }, 600);
 
-        return () => clearTimeout(timer);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
     }, [query]);
+
+    const totalResults = results.length + animeResults.length;
 
     return (
         <div className={styles.container}>
@@ -53,7 +69,7 @@ export default function SearchPage() {
                     <input
                         type="text"
                         className={styles.searchInput}
-                        placeholder="Search for movies, TV shows, people..."
+                        placeholder="Search movies, TV shows, anime..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         autoFocus
@@ -67,24 +83,47 @@ export default function SearchPage() {
                     <>
                         <div className={styles.resultsHeader}>
                             <div className={styles.queryChip}>
-                                Results for: &nbsp;<strong>"{query}"</strong>
+                                Results for: &nbsp;<strong>&quot;{query}&quot;</strong>
                             </div>
                             <div className={styles.resultCount}>
-                                {results.length} results found
+                                {totalResults} results found
                             </div>
                         </div>
 
-                        {results.length > 0 ? (
-                            <div className={styles.grid}>
-                                {results.map((movie) => (
-                                    <MovieCard key={movie.id} movie={movie} fullWidth />
-                                ))}
+                        {totalResults > 0 ? (
+                            <div className="space-y-12">
+                                {results.length > 0 && (
+                                    <section>
+                                        <h2 className="text-xl font-bold text-white mb-5">Movies &amp; TV</h2>
+                                        <div className={styles.grid}>
+                                            {results.map((movie) => (
+                                                <MovieCard key={movie.id} movie={movie} fullWidth />
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {animeResults.length > 0 && (
+                                    <section>
+                                        <h2 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
+                                            Anime
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-violet-400 bg-violet-500/10 border border-violet-500/20 rounded px-1.5 py-0.5">
+                                                AniList
+                                            </span>
+                                        </h2>
+                                        <div className={styles.grid}>
+                                            {animeResults.map((movie) => (
+                                                <MovieCard key={movie.id} movie={movie} fullWidth />
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
                             </div>
                         ) : (
                             <div className={styles.emptyState}>
                                 <h2 className={styles.emptyTitle}>No results found</h2>
                                 <p className={styles.emptyText}>
-                                    We couldn't find any matches for "{query}". Try a different term.
+                                    We couldn&apos;t find any matches for &quot;{query}&quot;. Try a different term.
                                 </p>
                             </div>
                         )}
@@ -96,7 +135,7 @@ export default function SearchPage() {
                         </div>
                         <h2 className={styles.emptyTitle}>Start searching</h2>
                         <p className={styles.emptyText}>
-                            Enter a search term above to find movies, TV shows, and more.
+                            Enter a search term above to find movies, TV shows, anime, and more.
                         </p>
                     </div>
                 )}

@@ -1,8 +1,9 @@
 # 🍿 FlixView
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.6-blueviolet.svg)](https://github.com/jumakrk/FlixView/releases)
+[![Version](https://img.shields.io/badge/version-0.1.14-blueviolet.svg)](https://github.com/jumakrk/FlixView/releases)
 [![Build Status](https://github.com/jumakrk/FlixView/actions/workflows/build.yml/badge.svg)](https://github.com/jumakrk/FlixView/actions)
+[![Checks](https://github.com/jumakrk/FlixView/actions/workflows/checks.yml/badge.svg)](https://github.com/jumakrk/FlixView/actions/workflows/checks.yml)
 
 **FlixView** is a premium, cross-platform streaming companion designed for a seamless movie and TV show experience. Built with Next.js and Electron, it combines a stunning glassmorphic UI with robust performance and ad-blocking capabilities.
 
@@ -18,6 +19,8 @@ Get the latest version of FlixView directly for your platform:
 | **macOS (Silicon)** | [📥 Download .dmg](https://github.com/jumakrk/FlixView/releases/download/v0.1.14/FlixView-0.1.14-arm64.dmg) |
 | **Linux** | [📥 Download .AppImage](https://github.com/jumakrk/FlixView/releases/download/v0.1.14/FlixView-0.1.14.AppImage) |
 
+Or browse [all releases](https://github.com/jumakrk/FlixView/releases).
+
 ---
 
 ## ✨ Key Features
@@ -30,7 +33,7 @@ Get the latest version of FlixView directly for your platform:
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript
 - **Desktop Shell**: Electron
 - **Styling**: Tailwind CSS, CSS Modules, Framer Motion
 - **Data**: TMDB API Integration
@@ -49,13 +52,28 @@ Get the latest version of FlixView directly for your platform:
    npm install
    ```
 
-3. **Run in development mode**:
+3. **Configure your TMDB API key** (optional):
+   ```bash
+   cp .env.example .env.local
+   # then set NEXT_PUBLIC_TMDB_API_KEY in .env.local
+   ```
+   Without a key the bundled project key is used, so this step is only needed
+   if you want to point the app at your own TMDB account.
+
+4. **Run in development mode**:
    ```bash
    # Terminal 1: Next.js dev server
    npm run dev
 
    # Terminal 2: Electron runner
    npm run electron:dev
+   ```
+
+5. **Quality checks**:
+   ```bash
+   npm run lint       # ESLint
+   npm run typecheck  # TypeScript
+   npm test           # Vitest unit tests
    ```
 
 ## 📜 License

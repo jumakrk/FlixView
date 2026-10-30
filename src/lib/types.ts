@@ -1,4 +1,9 @@
-export type MediaType = 'movie' | 'tv';
+export type MediaType = 'movie' | 'tv' | 'anime';
+
+/** TV shows and anime both track progress per episode. */
+export function isEpisodicType(type: MediaType): boolean {
+    return type === 'tv' || type === 'anime';
+}
 
 export interface EpisodeProgress {
     season_number: number;
@@ -10,8 +15,12 @@ export interface EpisodeProgress {
 
 export interface MediaData {
     title?: string;
-    poster_path?: string;
-    [key: string]: any;
+    name?: string;
+    poster_path?: string | null;
+    posterPath?: string | null;
+    backdrop_path?: string | null;
+    media_type?: MediaType;
+    [key: string]: unknown;
 }
 
 export interface ProgressRecord {
@@ -77,21 +86,22 @@ export function getLastWatchedEpisode(record: ProgressRecord | undefined): { sea
 declare global {
     interface Window {
         electron: {
-            saveData: (type: string, fileName: string, data: any) => Promise<{ success: boolean; error?: string }>;
-            loadData: (type: string, fileName: string) => Promise<any>;
+            saveData: (type: string, fileName: string, data: unknown) => Promise<{ success: boolean; error?: string }>;
+            loadData: (type: string, fileName: string) => Promise<unknown>;
             deleteData: (type: string, fileName: string) => Promise<{ success: boolean; error?: string }>;
-            getAllData: (type: string) => Promise<any[]>;
+            getAllData: (type: string) => Promise<unknown[]>;
             clearAllData: (type: string) => Promise<{ success: boolean; error?: string }>;
             
             exportData: () => Promise<{ success: boolean; path?: string; canceled?: boolean; error?: string }>;
             importData: () => Promise<{ success: boolean; canceled?: boolean; error?: string }>;
+            getDataPath: () => Promise<string>;
 
 
             // Auto Updater
-            onUpdateAvailable: (callback: (info: any) => void) => void;
+            onUpdateAvailable: (callback: (info: { version: string }) => void) => void;
             onUpdateError: (callback: (error: string) => void) => void;
-            onDownloadProgress: (callback: (progress: any) => void) => void;
-            onUpdateDownloaded: (callback: (info: any) => void) => void;
+            onDownloadProgress: (callback: (progress: { percent: number }) => void) => void;
+            onUpdateDownloaded: (callback: (info: { version: string }) => void) => void;
             onUpdateNotAvailable: (callback: () => void) => void;
             checkForUpdates: () => Promise<void>;
             downloadUpdate: () => Promise<void>;

@@ -1,23 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useSyncExternalStore } from 'react';
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import ScrollToTop from "@/components/ScrollToTop";
 import UpdateNotification from "@/components/UpdateNotification";
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
-  
-  useEffect(() => {
-    setIsReady(true);
-  }, [pathname]);
+const emptySubscribe = () => () => {};
 
-  // Prevent flicker
-  if (!isReady) return null;
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  // The shell renders only after hydration (server + first client pass get
+  // `false`), which is how the old isReady flag prevented flicker — but
+  // without a setState-in-effect. useSyncExternalStore is the supported way
+  // to express "is hydration done yet".
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  if (!isClient) return null;
 
   return (
     <div className="flex min-h-screen">

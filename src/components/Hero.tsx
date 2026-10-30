@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image'; // Import the Image component
 import { Movie } from '@/lib/tmdb';
 import styles from './Hero.module.css';
-import { usePlayer } from '@/context/PlayerContext';
 import InteractionButtons from './InteractionButtons';
 import PlayButton from './PlayButton';
 import MediaProgressBar from '@/components/MediaProgressBar';
@@ -30,7 +29,6 @@ function Hero({ movies }: HeroProps) {
     const logoBaseUrl = 'https://image.tmdb.org/t/p/w500'; // Smaller size for logo
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
-    const { openPlayer } = usePlayer();
 
     const currentMovie = useMemo(() => movies[currentIndex], [movies, currentIndex]);
 

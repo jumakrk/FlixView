@@ -13,14 +13,14 @@ export const loginSchema = z.object({
 
 export const progressSchema = z.object({
     mediaId: z.string(),
-    mediaType: z.enum(['movie', 'tv']),
+    mediaType: z.enum(['movie', 'tv', 'anime']),
     progressData: z.record(z.any()), // JSON object
     mediaData: z.record(z.any()), // JSON object
 });
 
 export const listSchema = z.object({
     mediaId: z.union([z.string(), z.number()]), // Client sends number sometimes, converted to string? Let's check api.ts
-    mediaType: z.string().refine((val) => val === 'movie' || val === 'tv'),
+    mediaType: z.string().refine((val) => val === 'movie' || val === 'tv' || val === 'anime'),
     listType: z.enum(['watchlist', 'favorites']),
     title: z.string().optional(), // title/poster might be optional if deleting?
     posterPath: z.string().nullable().optional(),

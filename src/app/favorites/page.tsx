@@ -1,7 +1,8 @@
 'use client';
 
 import { useData } from "@/context/DataContext";
-import { fetchDetails } from "@/lib/tmdb";
+import { fetchDetails, Movie } from "@/lib/tmdb";
+import { fetchAnimeByIds, animeToMovie } from "@/lib/anilist";
 import MovieCard from "@/components/MovieCard";
 import { Heart, Loader2 } from 'lucide-react';
 import { useEffect, useState } from "react";
@@ -9,7 +10,7 @@ import Link from 'next/link';
 
 export default function FavoritesPage() {
     const { favorites } = useData();
-    const [contentItems, setContentItems] = useState<any[]>([]);
+    const [contentItems, setContentItems] = useState<Movie[]>([]);
     const [isLoadingDetails, setIsLoadingDetails] = useState(true);
 
     useEffect(() => {
@@ -20,16 +21,28 @@ export default function FavoritesPage() {
                 return;
             }
 
+            // Anime metadata always comes from AniList, never TMDB. Fetch all
+            // anime in one request so a large favorites list cannot exhaust
+            // AniList's rate limit.
+            const animeItems = favorites.filter(item => item.mediaType === 'anime');
+            const animeMedia = animeItems.length > 0
+                ? await fetchAnimeByIds(animeItems.map(item => item.mediaId))
+                : [];
+            const animeById = new Map(animeMedia.map(anime => [String(anime.id), animeToMovie(anime)]));
+
             const promises = favorites.map(async (item) => {
                 try {
-                    const detail = await fetchDetails(item.mediaId, item.mediaType);
+                    if (item.mediaType === 'anime') {
+                        return animeById.get(String(item.mediaId)) ?? null;
+                    }
+                    const detail = await fetchDetails(item.mediaId, item.mediaType === 'tv' ? 'tv' : 'movie');
                     return detail ? { ...detail, media_type: item.mediaType } : null;
-                } catch (e) {
+                } catch {
                     return null;
                 }
             });
 
-            const results = (await Promise.all(promises)).filter(Boolean);
+            const results = (await Promise.all(promises)).flatMap((d) => (d ? [d] : []));
             setContentItems(results.reverse());
             setIsLoadingDetails(false);
         }
@@ -70,7 +83,7 @@ export default function FavoritesPage() {
             </h1>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {contentItems.map((item: any) => (
+                {contentItems.map((item) => (
                     <MovieCard key={item.id} movie={item} fullWidth />
                 ))}
             </div>

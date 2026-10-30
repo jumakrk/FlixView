@@ -10,9 +10,11 @@ import { Movie } from '@/lib/tmdb';
 interface SectionRowProps {
     title: string;
     movies: Movie[];
+    /** Pass null to hide the "View All" link (e.g. on the section's own page). */
+    viewAllHref?: string | null;
 }
 
-function SectionRow({ title, movies }: SectionRowProps) {
+function SectionRow({ title, movies, viewAllHref = '/movies' }: SectionRowProps) {
     if (!movies || movies.length === 0) return null;
 
     return (
@@ -21,12 +23,14 @@ function SectionRow({ title, movies }: SectionRowProps) {
                 <h2 className={styles.title}>
                     {title}
                 </h2>
-                <Link
-                    href="/movies"
-                    className={styles['view-all']}
-                >
-                    View All <ChevronRight size={16} />
-                </Link>
+                {viewAllHref !== null && (
+                    <Link
+                        href={viewAllHref}
+                        className={styles['view-all']}
+                    >
+                        View All <ChevronRight size={16} />
+                    </Link>
+                )}
             </div>
 
             <div className={styles.rail}>

@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
-import Sidebar from "@/components/Sidebar";
-import TopBar from "@/components/TopBar";
-import ScrollToTop from "@/components/ScrollToTop";
-import UpdateNotification from "@/components/UpdateNotification";
-
 
 import { PlayerProvider } from "@/context/PlayerContext";
 

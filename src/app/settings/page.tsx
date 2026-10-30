@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
 import { 
     Settings, Download, Upload, Bookmark, Heart, Database, 
@@ -30,6 +30,14 @@ export default function SettingsPage() {
     const [isClearing, setIsClearing] = useState(false);
     const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
     const [copiedPath, setCopiedPath] = useState(false);
+
+    // Where the data actually lives on disk (fetched from the main process).
+    const [dataPath, setDataPath] = useState('');
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.electron) return;
+        window.electron.getDataPath().then(setDataPath);
+    }, []);
 
     const handleClearRequest = (type: 'favorites' | 'watchlist' | 'progress' | 'all', title: string) => {
         setClearModal({ isOpen: true, type, title });
@@ -62,8 +70,8 @@ export default function SettingsPage() {
             } else if (!result.canceled) {
                 setExportStatus({ type: 'error', message: result.error || 'Export failed.' });
             }
-        } catch (error: any) {
-            setExportStatus({ type: 'error', message: error.message || 'An error occurred during export.' });
+        } catch (error) {
+            setExportStatus({ type: 'error', message: error instanceof Error ? error.message : 'An error occurred during export.' });
         } finally {
             setIsExporting(false);
             setTimeout(() => setExportStatus(null), 5000);
@@ -85,8 +93,8 @@ export default function SettingsPage() {
             } else if (!result.canceled) {
                 setImportStatus({ type: 'error', message: result.error || 'Import failed. Make sure you selected a valid export folder.' });
             }
-        } catch (error: any) {
-            setImportStatus({ type: 'error', message: error.message || 'An error occurred during import.' });
+        } catch (error) {
+            setImportStatus({ type: 'error', message: error instanceof Error ? error.message : 'An error occurred during import.' });
         } finally {
             setIsImporting(false);
             setTimeout(() => setImportStatus(null), 5000);
@@ -94,7 +102,7 @@ export default function SettingsPage() {
     };
 
     const handleCopyPath = () => {
-        navigator.clipboard.writeText("Documents/FlixView User Data");
+        navigator.clipboard.writeText(dataPath || 'FlixView User Data');
         setCopiedPath(true);
         setTimeout(() => setCopiedPath(false), 2000);
     };
@@ -179,7 +187,7 @@ export default function SettingsPage() {
                                             Library Storage & Stats
                                         </h3>
                                         <p className="text-gray-400 text-sm leading-relaxed mb-6 font-medium">
-                                            FlixView keeps your watch data entirely local and private. Your information is securely stored inside your system documents directory. No cloud server accounts required.
+                                            FlixView keeps your watch data entirely local and private. Your information is securely stored inside your local app data folder. No cloud server accounts required.
                                         </p>
                                         
                                         {/* Dynamic Stats Cards */}
@@ -227,7 +235,7 @@ export default function SettingsPage() {
                                                 <h4 className="text-sm font-black uppercase text-white tracking-wider">Local Data Directory</h4>
                                                 <div className="flex items-center gap-2 mt-1.5">
                                                     <code className="text-xs bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 text-violet-300 font-mono tracking-wide break-all">
-                                                        Documents/FlixView User Data
+                                                        {dataPath || 'FlixView User Data'}
                                                     </code>
                                                 </div>
                                             </div>
@@ -409,7 +417,7 @@ export default function SettingsPage() {
                                             Danger Zone
                                         </h3>
                                         <p className="text-gray-400 text-sm leading-relaxed mb-8 font-medium">
-                                            Reset your databases and clear stored logs. Stored information is deleted permanently from your local device storage. **These actions are irreversible.**
+                                            Reset your databases and clear stored logs. Stored information is deleted permanently from your local device storage. <strong className="text-red-400">These actions are irreversible.</strong>
                                         </p>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

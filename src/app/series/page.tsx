@@ -1,5 +1,4 @@
 import { fetchPopularSeries, fetchAiringTodaySeries, fetchOnTheAirSeries } from '@/lib/tmdb';
-import MovieCard from '@/components/MovieCard';
 import SectionRow from '@/components/SectionRow';
 import DiscoverFilters from '@/components/DiscoverFilters';
 import ContentGrid from '@/components/ContentGrid';

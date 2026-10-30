@@ -32,7 +32,7 @@ export function ConnectivityProvider({ children }: { children: ReactNode }) {
             } else {
                 setIsOnline(false);
             }
-        } catch (error) {
+        } catch {
             // Fetch failed = offline
             setIsOnline(false);
         } finally {

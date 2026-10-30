@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchPersonDetails, fetchPersonCredits } from '@/lib/tmdb';
+import { fetchPersonDetails, fetchPersonCredits, PersonDetails, PersonCredits } from '@/lib/tmdb';
 import styles from './Person.module.css';
 import MovieCard from '@/components/MovieCard';
 import { Calendar, MapPin, User } from 'lucide-react';
@@ -9,8 +9,8 @@ import BackButton from '@/components/BackButton';
 import Image from 'next/image';
 
 export default function PersonClient({ id }: { id: string }) {
-    const [person, setPerson] = useState<any>(null);
-    const [credits, setCredits] = useState<any>(null);
+    const [person, setPerson] = useState<PersonDetails | null>(null);
+    const [credits, setCredits] = useState<PersonCredits | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -50,8 +50,8 @@ export default function PersonClient({ id }: { id: string }) {
 
     // Filter credits to have unique items and sort by popularity
     const uniqueCredits = credits?.cast
-        ? Array.from(new Map(credits.cast.map((item: any) => [item.id, item])).values())
-            .sort((a: any, b: any) => (b.vote_count || 0) - (a.vote_count || 0))
+        ? Array.from(new Map(credits.cast.map((item) => [item.id, item] as const)).values())
+            .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))
             .slice(0, 48)
         : [];
 
@@ -110,7 +110,7 @@ export default function PersonClient({ id }: { id: string }) {
                     <div className={styles.creditsSection}>
                         <h2 className={styles.sectionTitle}>Known For</h2>
                         <div className={styles.creditsGrid}>
-                            {uniqueCredits.map((item: any) => (
+                            {uniqueCredits.map((item) => (
                                 <MovieCard key={item.id} movie={item} fullWidth />
                             ))}
                         </div>

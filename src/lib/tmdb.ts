@@ -1,7 +1,10 @@
-const API_KEY = 'e3e0dac3e79f074f3b5908195a80c23e'; // Hardcoded for debugging
-const BASE_URL = 'https://api.themoviedb.org/3';
+// TMDB API key. For your own builds set NEXT_PUBLIC_TMDB_API_KEY (see
+// .env.example); the fallback is the FlixView project key so local dev and
+// release builds work without extra setup.
+import { compactSearchText } from './searchQuery';
 
-console.log('TMDB Client Initialized with Key length:', API_KEY?.length);
+const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || 'e3e0dac3e79f074f3b5908195a80c23e';
+const BASE_URL = 'https://api.themoviedb.org/3';
 
 export interface Movie {
     id: number;
@@ -14,8 +17,10 @@ export interface Movie {
     first_air_date?: string;
     vote_average: number;
     vote_count: number;
+    popularity?: number;
     media_type?: string;
     genre_ids?: number[];
+    original_language?: string;
 }
 
 export interface Episode {
@@ -42,6 +47,11 @@ export interface MovieDetails extends Movie {
     runtime?: number;
     number_of_seasons?: number;
     number_of_episodes?: number;
+    production_companies?: {
+        id: number;
+        name: string;
+        logo_path: string | null;
+    }[];
     seasons?: {
         id: number;
         name: string;
@@ -118,164 +128,217 @@ export const fetchTrending = async (timeWindow: 'day' | 'week' = 'day'): Promise
 };
 
 export const fetchNowPlaying = async (): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1`,
-        { next: { revalidate: 3600 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch now playing');
-    const data = await res.json();
-    return data.results.map((m: any) => ({ ...m, media_type: 'movie' }));
-};
-
-export const fetchUpcoming = async (): Promise<Movie[]> => {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    // Use discover with popularity sort to find high-profile upcoming movies
-    const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&region=US&sort_by=popularity.desc&primary_release_date.gte=${todayStr}&page=1`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch upcoming movies');
-    const data = await res.json();
-    return data.results
-        .filter((m: any) => m.release_date && new Date(m.release_date) > today)
-        .map((m: any) => ({ ...m, media_type: 'movie' }));
-};
-
-export const fetchPopularMovies = async (page: number = 1): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch popular movies');
-    const data = await res.json();
-    return data.results.map((m: any) => ({ ...m, media_type: 'movie' }));
-};
-
-export const fetchAiringTodaySeries = async (): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/tv/airing_today?api_key=${API_KEY}&language=en-US&page=1`,
-        { next: { revalidate: 3600 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch airing today series');
-    const data = await res.json();
-    return data.results.map((show: any) => ({ ...show, title: show.name, media_type: 'tv' }));
-};
-
-export const fetchOnTheAirSeries = async (): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/tv/on_the_air?api_key=${API_KEY}&language=en-US&page=1`,
-        { next: { revalidate: 3600 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch on the air series');
-    const data = await res.json();
-    return data.results.map((show: any) => ({ ...show, title: show.name, media_type: 'tv' }));
-};
-
-export const fetchPopularSeries = async (page: number = 1): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US&page=${page}`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch popular series');
-    const data = await res.json();
-    return data.results.map((show: any) => ({ ...show, title: show.name, media_type: 'tv' }));
-};
-
-export const fetchTopRatedMovies = async (page: number = 1): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=en-US&page=${page}`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch top rated movies');
-    const data = await res.json();
-    return data.results.map((m: any) => ({ ...m, media_type: 'movie' }));
-};
-
-export const fetchTopRatedSeries = async (page: number = 1): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/tv/top_rated?api_key=${API_KEY}&language=en-US&page=${page}`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch top rated series');
-    const data = await res.json();
-    return data.results.map((show: any) => ({ ...show, title: show.name, media_type: 'tv' }));
-};
-
-export const fetchUpcomingSeries = async (): Promise<Movie[]> => {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    // Use discover with popularity sort to find high-profile upcoming series
-    const res = await fetch(
-        `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&sort_by=popularity.desc&first_air_date.gte=${todayStr}&page=1`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch upcoming series');
-    const data = await res.json();
-    return data.results
-        .filter((show: any) => show.first_air_date && new Date(show.first_air_date) > today)
-        .map((show: any) => ({ ...show, title: show.name, media_type: 'tv' }));
-};
-
-export const fetchGenreMovies = async (genreId: number): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&language=en-US&page=1`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) throw new Error('Failed to fetch genre movies');
-    const data = await res.json();
-    return data.results;
-}
-
-export const fetchDetails = async (id: string, type: 'movie' | 'tv' = 'movie', isRetry: boolean = false): Promise<MovieDetails> => {
-    const cleanId = id.toString().trim();
     try {
-        const timestamp = Date.now();
         const res = await fetch(
-            `${BASE_URL}/${type}/${cleanId}?api_key=${API_KEY}&language=en-US&append_to_response=videos,images,reviews&include_image_language=en,null&_t=${timestamp}`,
-            { cache: 'no-store' }
+            `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1`,
+            { next: { revalidate: 3600 } }
         );
-
-        if (!res.ok) {
-            const errorText = await res.text().catch(() => 'No response body');
-            console.warn(`fetchDetails failed for ${type} with ID ${cleanId}, status: ${res.status}, body: ${errorText}`);
-            if (!isRetry) {
-                const nextType = type === 'movie' ? 'tv' : 'movie';
-                console.log(`Retrying fetchDetails as ${nextType} for ID ${cleanId}`);
-                return fetchDetails(cleanId, nextType, true);
-            }
-            throw new Error(`Failed to fetch details for ${type} with ID ${cleanId} after retry. Status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Failed to fetch now playing: ${res.status}`);
         const data = await res.json();
-        return data;
+        return data.results.map((m: Movie) => ({ ...m, media_type: 'movie' }));
     } catch (error) {
-        if (!isRetry) {
-            const nextType = type === 'movie' ? 'tv' : 'movie';
-            return fetchDetails(id, nextType, true);
-        }
-        throw error;
+        console.error('fetchNowPlaying:', error);
+        return [];
     }
 };
 
-export const fetchCredits = async (id: string, type: 'movie' | 'tv' = 'movie'): Promise<Cast[]> => {
+export const fetchUpcoming = async (): Promise<Movie[]> => {
+    try {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        // Use discover with popularity sort to find high-profile upcoming movies
+        const res = await fetch(
+            `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&region=US&sort_by=popularity.desc&primary_release_date.gte=${todayStr}&page=1`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch upcoming movies: ${res.status}`);
+        const data = await res.json();
+        return data.results
+            .filter((m: Movie) => m.release_date && new Date(m.release_date) > today)
+            .map((m: Movie) => ({ ...m, media_type: 'movie' }));
+    } catch (error) {
+        console.error('fetchUpcoming:', error);
+        return [];
+    }
+};
+
+export const fetchPopularMovies = async (page: number = 1): Promise<Movie[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch popular movies: ${res.status}`);
+        const data = await res.json();
+        return data.results.map((m: Movie) => ({ ...m, media_type: 'movie' }));
+    } catch (error) {
+        console.error('fetchPopularMovies:', error);
+        return [];
+    }
+};
+
+export const fetchAiringTodaySeries = async (): Promise<Movie[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/tv/airing_today?api_key=${API_KEY}&language=en-US&page=1`,
+            { next: { revalidate: 3600 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch airing today series: ${res.status}`);
+        const data = await res.json();
+        return data.results.map((show: Movie) => ({ ...show, title: show.name ?? show.title, media_type: 'tv' }));
+    } catch (error) {
+        console.error('fetchAiringTodaySeries:', error);
+        return [];
+    }
+};
+
+export const fetchOnTheAirSeries = async (): Promise<Movie[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/tv/on_the_air?api_key=${API_KEY}&language=en-US&page=1`,
+            { next: { revalidate: 3600 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch on the air series: ${res.status}`);
+        const data = await res.json();
+        return data.results.map((show: Movie) => ({ ...show, title: show.name ?? show.title, media_type: 'tv' }));
+    } catch (error) {
+        console.error('fetchOnTheAirSeries:', error);
+        return [];
+    }
+};
+
+export const fetchPopularSeries = async (page: number = 1): Promise<Movie[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US&page=${page}`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch popular series: ${res.status}`);
+        const data = await res.json();
+        return data.results.map((show: Movie) => ({ ...show, title: show.name ?? show.title, media_type: 'tv' }));
+    } catch (error) {
+        console.error('fetchPopularSeries:', error);
+        return [];
+    }
+};
+
+export const fetchTopRatedMovies = async (page: number = 1): Promise<Movie[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=en-US&page=${page}`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch top rated movies: ${res.status}`);
+        const data = await res.json();
+        return data.results.map((m: Movie) => ({ ...m, media_type: 'movie' }));
+    } catch (error) {
+        console.error('fetchTopRatedMovies:', error);
+        return [];
+    }
+};
+
+export const fetchTopRatedSeries = async (page: number = 1): Promise<Movie[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/tv/top_rated?api_key=${API_KEY}&language=en-US&page=${page}`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch top rated series: ${res.status}`);
+        const data = await res.json();
+        return data.results.map((show: Movie) => ({ ...show, title: show.name ?? show.title, media_type: 'tv' }));
+    } catch (error) {
+        console.error('fetchTopRatedSeries:', error);
+        return [];
+    }
+};
+
+export const fetchUpcomingSeries = async (): Promise<Movie[]> => {
+    try {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        // Use discover with popularity sort to find high-profile upcoming series
+        const res = await fetch(
+            `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&sort_by=popularity.desc&first_air_date.gte=${todayStr}&page=1`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch upcoming series: ${res.status}`);
+        const data = await res.json();
+        return data.results
+            .filter((show: Movie) => show.first_air_date && new Date(show.first_air_date) > today)
+            .map((show: Movie) => ({ ...show, title: show.name ?? show.title, media_type: 'tv' }));
+    } catch (error) {
+        console.error('fetchUpcomingSeries:', error);
+        return [];
+    }
+};
+
+export const fetchGenreMovies = async (genreId: number): Promise<Movie[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&language=en-US&page=1`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) throw new Error(`Failed to fetch genre movies: ${res.status}`);
+        const data = await res.json();
+        return data.results;
+    } catch (error) {
+        console.error('fetchGenreMovies:', error);
+        return [];
+    }
+};
+
+export const fetchDetails = async (id: string, type: 'movie' | 'tv' = 'movie', isRetry: boolean = false): Promise<MovieDetails> => {
+    const cleanId = id.toString().trim();
     const res = await fetch(
-        `${BASE_URL}/${type}/${id}/credits?api_key=${API_KEY}&language=en-US`,
+        `${BASE_URL}/${type}/${cleanId}?api_key=${API_KEY}&language=en-US&append_to_response=videos,images,reviews&include_image_language=en,null`,
         { next: { revalidate: 86400 } }
     );
-    if (!res.ok) return [];
+
+    if (!res.ok) {
+        // A 404 usually means the id belongs to the other namespace (a TV
+        // id opened as a movie or vice versa); retry once as the flipped
+        // type. Anything else (rate limit, server error) is a real error
+        // and must not be masked by a type flip.
+        if (res.status === 404 && !isRetry) {
+            const nextType = type === 'movie' ? 'tv' : 'movie';
+            console.log(`fetchDetails: ${type}/${cleanId} not found, retrying as ${nextType}`);
+            return fetchDetails(cleanId, nextType, true);
+        }
+        throw new Error(`Failed to fetch details for ${type} with ID ${cleanId}. Status: ${res.status}`);
+    }
     const data = await res.json();
-    if (!data.cast) return [];
-    return data.cast.slice(0, 10); // Limit to top 10 cast
+    return data;
+};
+
+export const fetchCredits = async (id: string, type: 'movie' | 'tv' = 'movie'): Promise<Cast[]> => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/${type}/${id}/credits?api_key=${API_KEY}&language=en-US`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) return [];
+        const data = await res.json();
+        if (!data.cast) return [];
+        return (data.cast as Cast[]).slice(0, 10); // Limit to top 10 cast
+    } catch (error) {
+        console.error('fetchCredits:', error);
+        return [];
+    }
 };
 
 export const fetchSimilar = async (id: string, type: 'movie' | 'tv' = 'movie'): Promise<Movie[]> => {
-    const res = await fetch(
-        `${BASE_URL}/${type}/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`,
-        { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.results;
+    try {
+        const res = await fetch(
+            `${BASE_URL}/${type}/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`,
+            { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.results;
+    } catch (error) {
+        console.error('fetchSimilar:', error);
+        return [];
+    }
 };
 
 export const fetchRecommendations = async (id: string, type: 'movie' | 'tv' = 'movie'): Promise<Movie[]> => {
@@ -289,9 +352,9 @@ export const fetchRecommendations = async (id: string, type: 'movie' | 'tv' = 'm
             return fetchSimilar(id, type);
         }
         const data = await res.json();
-        return data.results.map((item: any) => ({
+        return data.results.map((item: Movie) => ({
             ...item,
-            title: item.title || item.name,
+            title: item.title || item.name || '',
             media_type: type
         }));
     } catch (error) {
@@ -308,7 +371,7 @@ export const fetchCollection = async (collectionId: number): Promise<Movie[]> =>
         );
         if (!res.ok) return [];
         const data = await res.json();
-        return (data.parts || []).map((m: any) => ({ ...m, media_type: 'movie' }));
+        return (data.parts || []).map((m: Movie) => ({ ...m, media_type: 'movie' }));
     } catch (error) {
         console.error('fetchCollection error:', error);
         return [];
@@ -322,7 +385,12 @@ export const searchContent = async (query: string): Promise<Movie[]> => {
 
     if (!res.ok) throw new Error('Failed to search');
     const data = await res.json();
-    return data.results.filter((item: Movie) => item.backdrop_path || item.poster_path); // Filter out items without images
+    return data.results.filter((item: Movie) => {
+        // Anime is fetched from AniList, never TMDB. Japanese animation is the
+        // reliable signal available in TMDB's multi-search payload.
+        const looksLikeAnime = item.original_language === 'ja' && item.genre_ids?.includes(16);
+        return !looksLikeAnime && (item.backdrop_path || item.poster_path);
+    });
 };
 
 export const fetchMovieLogo = async (id: number, type: 'movie' | 'tv'): Promise<string | null> => {
@@ -334,12 +402,98 @@ export const fetchMovieLogo = async (id: number, type: 'movie' | 'tv'): Promise<
         if (!res.ok) return null;
         const data = await res.json();
         // detailed logic: find first 'en' logo, or first logo
-        const logo = data.logos.find((l: any) => l.iso_639_1 === 'en') || data.logos[0];
+        const logos: { file_path: string; iso_639_1: string | null }[] = data.logos || [];
+        const logo = logos.find(l => l.iso_639_1 === 'en') || logos[0];
         return logo ? logo.file_path : null;
     } catch (error) {
         console.error('Error fetching logo:', error);
         return null;
     }
+};
+
+interface TmdbLogoSearchResult {
+    id: number;
+    media_type?: string;
+    title?: string;
+    name?: string;
+    original_title?: string;
+    original_name?: string;
+    release_date?: string;
+    first_air_date?: string;
+}
+
+const animeLogoCache = new Map<string, Promise<string | null>>();
+
+/**
+ * Find a transparent title logo for an AniList anime.
+ *
+ * Anime metadata (titles, synopsis, episodes, artwork) stays on AniList; this
+ * only borrows TMDB's logo image for the hero heading, exactly like the
+ * movie/TV details pages already do. The title and year must match an exact
+ * TMDB entry, so a wrong title can never pick up an unrelated logo. When no
+ * match/logo exists the caller keeps the normal text heading.
+ */
+export const fetchAnimeLogo = async (
+    titles: (string | null | undefined)[],
+    year?: number | null
+): Promise<string | null> => {
+    const uniqueTitles = [...new Set(
+        titles
+            .map((title) => title?.trim())
+            .filter((title): title is string => Boolean(title))
+    )].slice(0, 2);
+
+    if (uniqueTitles.length === 0) return null;
+
+    const cacheKey = `${uniqueTitles.join('|')}|${year ?? ''}`;
+    const cached = animeLogoCache.get(cacheKey);
+    if (cached) return cached;
+
+    const request = (async () => {
+        for (const title of uniqueTitles) {
+            try {
+                const res = await fetch(
+                    `${BASE_URL}/search/multi?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(title)}&page=1&include_adult=false`
+                );
+                if (!res.ok) continue;
+
+                const data = await res.json();
+                const compactTitle = compactSearchText(title);
+                const matches: TmdbLogoSearchResult[] = (data.results || []).filter(
+                    (item: TmdbLogoSearchResult) => {
+                        if (item.media_type !== 'movie' && item.media_type !== 'tv') return false;
+                        const names = [item.title, item.name, item.original_title, item.original_name]
+                            .filter((value): value is string => Boolean(value))
+                            .map(compactSearchText);
+                        return names.includes(compactTitle);
+                    }
+                );
+
+                if (matches.length === 0) continue;
+
+                const yearMatches = matches.filter((item) => {
+                    if (!year) return true;
+                    const date = item.release_date || item.first_air_date;
+                    if (!date) return true;
+                    const releaseYear = new Date(date).getFullYear();
+                    return Number.isFinite(releaseYear) && Math.abs(releaseYear - year) <= 1;
+                });
+
+                const candidate = yearMatches[0] || matches[0];
+                if (!candidate) continue;
+
+                const logo = await fetchMovieLogo(candidate.id, candidate.media_type as 'movie' | 'tv');
+                if (logo) return logo;
+            } catch (error) {
+                console.error('fetchAnimeLogo:', error);
+            }
+        }
+
+        return null;
+    })();
+
+    animeLogoCache.set(cacheKey, request);
+    return request;
 };
 
 export const fetchSeasonDetails = async (seriesId: string, seasonNumber: number): Promise<SeasonDetails | null> => {
@@ -427,9 +581,9 @@ export const fetchDiscover = async (
         const res = await fetch(url, { next: { revalidate: 3600 } });
         if (!res.ok) throw new Error(`Discovery fetch failed: ${res.status}`);
         const data = await res.json();
-        return data.results.map((item: any) => ({
+        return data.results.map((item: Movie) => ({
             ...item,
-            title: item.title || item.name,
+            title: item.title || item.name || '',
             media_type: type
         }));
     } catch (error) {
@@ -454,7 +608,7 @@ const getGenreId = (genreName: string): number | null => {
 };
 
 export const fetchBrandContent = async (
-    brandType: 'company' | 'network',
+    brandType: 'company' | 'network' | 'provider',
     id: number,
     mediaType: 'movie' | 'tv',
     page: number = 1,
@@ -464,7 +618,11 @@ export const fetchBrandContent = async (
     try {
         let url = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&language=en-US&page=${page}`;
 
-        if (mediaType === 'movie') {
+        if (brandType === 'provider') {
+            // Pure streaming providers (e.g. Crunchyroll) have tiny TMDB network
+            // catalogues, so both media types filter by watch provider.
+            url += `&with_watch_providers=${id}&watch_region=US`;
+        } else if (mediaType === 'movie') {
             if (brandType === 'company') {
                 url += `&with_companies=${id}`;
             } else {
@@ -491,9 +649,9 @@ export const fetchBrandContent = async (
         const res = await fetch(url, { next: { revalidate: 3600 } });
         if (!res.ok) throw new Error(`Brand discovery fetch failed: ${res.status}`);
         const data = await res.json();
-        return data.results.map((item: any) => ({
+        return data.results.map((item: Movie) => ({
             ...item,
-            title: item.title || item.name,
+            title: item.title || item.name || '',
             media_type: mediaType
         }));
     } catch (error) {

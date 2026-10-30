@@ -67,7 +67,9 @@ export default async function Home() {
     [...trendingDay, ...trendingWeek].forEach(movie => combinedTrending.set(movie.id, movie));
     const uniquePool = Array.from(combinedTrending.values());
 
-    // Shuffle and pick 5 for Hero
+    // Shuffle and pick 5 for Hero. This is a server component rendered once at
+    // build time, so calling an impure function here is intended.
+    // eslint-disable-next-line react-hooks/purity
     const heroSlice = uniquePool.sort(() => 0.5 - Math.random()).slice(0, 5);
 
     // Fetch logos for the Hero items

@@ -82,6 +82,9 @@ export default function BrandLogo({ brandId, className = '', width = '100%', hei
         : { objectFit: 'contain' as const };
 
     return (
+        // Brand logos come from many third-party CDNs and are recoloured via a
+        // runtime CSS filter, so next/image's optimizer is not a fit here.
+        // eslint-disable-next-line @next/next/no-img-element
         <img
             src={imageUrl}
             alt={`${brandId} logo`}
