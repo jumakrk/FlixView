@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import InfiniteScroll from '@/components/InfiniteScroll';
 import AnimeIcon from '@/components/AnimeIcon';
 import SectionRow from '@/components/SectionRow';
 import MovieCard from '@/components/MovieCard';
@@ -209,24 +209,13 @@ export default function AnimePageClient() {
                     </div>
                 )}
 
-                {browseHasMore && (
-                    <div className="flex justify-center mt-12">
-                        <button
-                            onClick={() => loadBrowse(browsePage + 1, false)}
-                            disabled={browseLoading}
-                            className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
-                        >
-                            {browseLoading ? (
-                                <>
-                                    <Loader2 size={20} className="animate-spin" />
-                                    Loading...
-                                </>
-                            ) : (
-                                'Load More'
-                            )}
-                        </button>
-                    </div>
-                )}
+                {/* Loads the next page as the user scrolls */}
+                <InfiniteScroll
+                    onLoadMore={() => loadBrowse(browsePage + 1, false)}
+                    hasMore={browseHasMore && browse.length > 0}
+                    loading={browseLoading}
+                    className="mt-6"
+                />
             </div>
         </div>
     );

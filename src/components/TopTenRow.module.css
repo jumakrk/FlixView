@@ -18,10 +18,12 @@
     gap: 65px;
     overflow-x: auto;
     overflow-y: hidden;
-    /* Top padding prevents clipping; the extra left padding makes room for
-       the first rank number, which sits outside its card (see .rank left). */
-    padding: 60px 4% 40px calc(4% + 58px);
+    /* Top padding prevents clipping. The left edge matches every other row
+       (4%) so the first poster lines up with the rows and brands around it. */
+    padding: 60px 4% 40px 4%;
     scroll-behavior: smooth;
+    /* Lets .rank size its offset to this rail's left padding (cqw units). */
+    container-type: inline-size;
 }
 
 .item {
@@ -34,7 +36,10 @@
 .rank {
     position: absolute;
     bottom: -28px;
-    left: -58px;
+    /* Sits in the left gutter, never further out than the rail's 4% padding
+       (4cqw), so the first number is never clipped at the sidebar; on narrow
+       windows it overlaps the poster's corner instead. */
+    left: max(-58px, calc(4px - 4cqw));
     font-size: 155px;
     font-weight: 950;
     line-height: 0.8;
@@ -69,12 +74,12 @@
     .rank {
         font-size: 100px;
         bottom: -15px;
-        left: -30px;
+        left: max(-30px, calc(4px - 4cqw));
         -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
     }
 
     .rail {
-        padding: 40px 4% 30px calc(4% + 30px);
+        padding: 40px 4% 30px 4%;
         gap: 15px;
     }
 }

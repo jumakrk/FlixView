@@ -3,7 +3,7 @@
     top: 0;
     right: 0;
     left: 260px;
-    height: 32px;
+    height: var(--titlebar-height);
     /* Just the height of the drag region now */
     z-index: 1100;
     /* Above sidebar to ensure dragging works across width */
@@ -13,7 +13,7 @@
 }
 
 .dragRegion {
-    height: 32px;
+    height: var(--titlebar-height);
     width: 100%;
     background: rgba(0, 0, 0, 0.4);
     -webkit-app-region: drag;

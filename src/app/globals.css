@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 :root {
+  /* Height of the desktop title bar (drag region + window buttons). Electron
+     reports the native overlay's real height, which grows with Windows display
+     scaling; 32px is the 100% size and the browser fallback. */
+  --titlebar-height: max(32px, env(titlebar-area-height, 32px));
+
   /* Purple Theme Colors */
   --background: #0a0814;
   --foreground: #ffffff;

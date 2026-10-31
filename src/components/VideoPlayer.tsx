@@ -15,7 +15,17 @@ interface VideoPlayerProps {
     startTime?: number;
 }
 
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+
+// Keys the embedded player handles itself (play/pause, seek, volume, fullscreen,
+// mute). Pressed while focus is on the page, they would scroll it instead.
+const PLAYER_KEYS = new Set([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'f', 'F', 'k', 'K', 'm', 'M']);
+
+function isTypingTarget(element: Element | null): boolean {
+    if (!element) return false;
+    const tag = element.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (element as HTMLElement).isContentEditable;
+}
 
 function VideoPlayer({
     mediaId,
@@ -27,6 +37,32 @@ function VideoPlayer({
     startTime = 0
 }: VideoPlayerProps) {
     const [isReady, setIsReady] = useState(false);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+
+    // Keyboard focus belongs to the player so Space / arrows / F control
+    // playback right away, without a click (which would also pause it).
+    const focusPlayer = useCallback(() => {
+        const frame = iframeRef.current;
+        if (!frame) return;
+        frame.focus();
+        frame.contentWindow?.focus();
+    }, []);
+
+    // If focus has drifted back to the page (e.g. after clicking a button),
+    // a player key must not scroll the page: hand focus back to the player.
+    // The player cannot receive that first keystroke (it is cross-origin and
+    // has no command API), but every following one goes straight to it.
+    useEffect(() => {
+        if (!isReady) return;
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (!PLAYER_KEYS.has(event.key) || event.ctrlKey || event.metaKey || event.altKey) return;
+            if (isTypingTarget(document.activeElement)) return;
+            event.preventDefault();
+            focusPlayer();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isReady, focusPlayer]);
 
     useEffect(() => {
         let isMounted = true;
@@ -67,6 +103,8 @@ function VideoPlayer({
     return (
         <div className={cn("relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/5", className)}>
             <iframe
+                ref={iframeRef}
+                onLoad={focusPlayer}
                 src={src}
                 className="absolute inset-0 w-full h-full"
                 allowFullScreen

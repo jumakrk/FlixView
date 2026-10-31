@@ -199,14 +199,13 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
             <div className={styles.mainContent}>
                 {/* Episode list (movies have exactly one playable "episode") */}
                 {!movie && (
-                    <section>
-                        <h2 className={styles.sectionTitle}>Episodes</h2>
-                        <AnimeEpisodeList
-                            animeId={id}
-                            totalEpisodes={totalEpisodes}
-                            className="bg-white/5 rounded-3xl p-6 border border-white/5"
-                        />
-                    </section>
+                    <AnimeEpisodeList
+                        animeId={id}
+                        totalEpisodes={totalEpisodes}
+                        title={title}
+                        fallbackImage={backdrop}
+                        nextAiringEpisode={media.nextAiringEpisode}
+                    />
                 )}
 
                 {/* Details Grid */}

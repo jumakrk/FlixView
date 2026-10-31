@@ -248,14 +248,6 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                                 {details.genres?.map((g) => g.name).join(', ')}
                             </span>
                         </div>
-                        {details.homepage && (
-                            <div>
-                                <span className={styles.detailItemLabel}>Official Site</span>
-                                <a href={details.homepage} target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline">
-                                    Visit Website
-                                </a>
-                            </div>
-                        )}
                         {mediaType === 'tv' && (
                             <div>
                                 <span className={styles.detailItemLabel}>Total Episodes</span>

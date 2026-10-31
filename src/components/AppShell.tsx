@@ -26,7 +26,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 md:pl-[260px] pl-[80px] transition-[padding] duration-300">
           <TopBar />
-          <main className="flex-grow pt-[32px]">
+          <main className="flex-grow pt-[var(--titlebar-height)]">
             {children}
           </main>
         </div>

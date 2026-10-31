@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Movie, fetchDiscover } from '@/lib/tmdb';
 import MovieCard from './MovieCard';
 import { useSearchParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import InfiniteScroll from './InfiniteScroll';
 
 interface ContentGridProps {
     initialItems: Movie[];
@@ -71,22 +71,7 @@ export default function ContentGrid({ initialItems, type }: ContentGridProps) {
                 ))}
             </div>
 
-            {hasMore && (
-                <button
-                    onClick={loadMore}
-                    disabled={loading}
-                    className="mt-12 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
-                >
-                    {loading ? (
-                        <>
-                            <Loader2 size={20} className="animate-spin" />
-                            Loading...
-                        </>
-                    ) : (
-                        'Load More'
-                    )}
-                </button>
-            )}
+            <InfiniteScroll onLoadMore={loadMore} hasMore={hasMore} loading={loading} className="mt-6 w-full" />
         </div>
     );
 }

@@ -156,11 +156,14 @@ export default function AnimeWatchPageClient({ id }: { id: string }) {
 
                         {!movie && (
                             <div className="bg-white/5 rounded-3xl p-6 border border-white/5 backdrop-blur-sm">
-                                <h3 className="text-xl font-bold mb-5">Episodes</h3>
                                 <AnimeEpisodeList
                                     animeId={id}
                                     totalEpisodes={totalEpisodes}
                                     currentEpisode={currentEpisode}
+                                    title={title}
+                                    fallbackImage={backdrop}
+                                    nextAiringEpisode={media.nextAiringEpisode}
+                                    listClassName="max-h-[960px] overflow-y-auto pr-2"
                                 />
                             </div>
                         )}

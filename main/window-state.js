@@ -19,13 +19,17 @@ function isVisibleOnSomeDisplay(bounds) {
     });
 }
 
+// Fullscreen is deliberately NOT persisted. The player's fullscreen button
+// puts the whole window into fullscreen, which hides the title bar and its
+// minimize / maximize / close buttons; restoring that on launch left users in
+// a chromeless window with no way out. While fullscreen, the last windowed
+// size is kept instead.
 function saveWindowState(win) {
-    if (!win || win.isDestroyed()) return;
+    if (!win || win.isDestroyed() || win.isFullScreen()) return;
     try {
         const bounds = win.getBounds();
         const isMaximized = win.isMaximized();
-        const isFullScreen = win.isFullScreen();
-        fs.writeFileSync(windowStatePath, JSON.stringify({ bounds, isMaximized, isFullScreen }));
+        fs.writeFileSync(windowStatePath, JSON.stringify({ bounds, isMaximized }));
     } catch (error) {
         console.error('[window] failed to save state:', error);
     }
@@ -35,6 +39,14 @@ function loadWindowState() {
     try {
         if (!fs.existsSync(windowStatePath)) return null;
         const state = JSON.parse(fs.readFileSync(windowStatePath, 'utf8'));
+        // Older builds saved fullscreen; a fullscreen window's bounds are the
+        // whole display, so fall back to maximized instead of a borderless
+        // screen-sized window.
+        if (state.isFullScreen) {
+            state.isMaximized = true;
+            state.bounds = null;
+        }
+        delete state.isFullScreen;
         if (state.bounds && !isVisibleOnSomeDisplay(state.bounds)) {
             console.warn('[window] saved bounds are off-screen; using default size');
             state.bounds = null;
@@ -46,7 +58,7 @@ function loadWindowState() {
     }
 }
 
-// Persist position/size/maximized/fullscreen state across restarts. Saves are
+// Persist position/size/maximized state across restarts. Saves are
 // debounced because resize/move fire continuously while dragging.
 function attachWindowStateSaver(win) {
     let saveTimeout;

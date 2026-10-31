@@ -53,3 +53,6 @@ next-env.d.ts
 
 # temp data
 trending.gz
+
+# AI coding tool project state
+.freebuff/

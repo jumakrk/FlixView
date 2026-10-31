@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Movie, fetchBrandContent } from '@/lib/tmdb';
 import MovieCard from '@/components/MovieCard';
 import BrandLogo from '@/components/BrandLogo';
+import InfiniteScroll from '@/components/InfiniteScroll';
 import { ChevronLeft, Loader2, ArrowUpDown } from 'lucide-react';
 
 const MOVIE_GENRES = [
@@ -330,23 +331,13 @@ function StudioDiscoveryContent() {
                                     ))}
                                 </div>
 
-                                {/* Pagination Button */}
-                                {hasMore && (
-                                    <button
-                                        onClick={handleLoadMore}
-                                        disabled={loadingMore}
-                                        className="mt-14 px-8 py-3.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 hover:border-white/20 rounded-xl text-white text-xs font-black tracking-wider uppercase transition-all duration-300 flex items-center gap-3 disabled:opacity-50 shadow-md"
-                                    >
-                                        {loadingMore ? (
-                                            <>
-                                                <Loader2 size={15} className="animate-spin text-violet-400" />
-                                                <span>Loading titles...</span>
-                                            </>
-                                        ) : (
-                                            <span>Load More Releases</span>
-                                        )}
-                                    </button>
-                                )}
+                                {/* Loads the next page as the user scrolls */}
+                                <InfiniteScroll
+                                    onLoadMore={handleLoadMore}
+                                    hasMore={hasMore}
+                                    loading={loading || loadingMore}
+                                    className="mt-6 w-full"
+                                />
                             </div>
                         )}
                     </main>

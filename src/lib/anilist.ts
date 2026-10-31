@@ -286,6 +286,58 @@ export async function fetchAnimeById(id: string | number): Promise<AniListMedia 
     }
 }
 
+export interface AnimeEpisodeMeta {
+    title: string | null;
+    thumbnail: string | null;
+}
+
+const STREAMING_EPISODES_QUERY = `
+    query AnimeEpisodes($id: Int) {
+        Media(id: $id, type: ANIME) {
+            streamingEpisodes { title thumbnail }
+        }
+    }
+`;
+
+/**
+ * Map AniList streaming entries ("Episode 12 - The Title") to episode numbers.
+ * Entries arrive in no guaranteed order and some carry no number, so only
+ * entries whose number can be read are kept; the first one for a number wins.
+ */
+export function parseStreamingEpisodes(
+    entries: { title?: string | null; thumbnail?: string | null }[] | null | undefined
+): Record<number, AnimeEpisodeMeta> {
+    const byEpisode: Record<number, AnimeEpisodeMeta> = {};
+    for (const entry of entries || []) {
+        const match = entry.title?.match(/^\s*Episode\s+(\d+)\s*(?:[-:–—]\s*(.*))?$/i);
+        if (!match) continue;
+        const episode = parseInt(match[1], 10);
+        if (!Number.isFinite(episode) || episode < 1 || byEpisode[episode]) continue;
+        byEpisode[episode] = {
+            title: match[2]?.trim() || null,
+            thumbnail: entry.thumbnail || null,
+        };
+    }
+    return byEpisode;
+}
+
+/** Per-episode titles and thumbnails, when AniList has streaming data. */
+export async function fetchAnimeEpisodeMeta(id: string | number): Promise<Record<number, AnimeEpisodeMeta>> {
+    const numericId = parseInt(String(id), 10);
+    if (!Number.isFinite(numericId)) return {};
+
+    try {
+        const data = await anilistRequest<{ Media: { streamingEpisodes?: { title?: string | null; thumbnail?: string | null }[] | null } | null }>(
+            STREAMING_EPISODES_QUERY,
+            { id: numericId }
+        );
+        return parseStreamingEpisodes(data.Media?.streamingEpisodes);
+    } catch (error) {
+        console.error('fetchAnimeEpisodeMeta:', error);
+        return {};
+    }
+}
+
 export async function fetchAnimeByIds(ids: (string | number)[]): Promise<AniListMedia[]> {
     const numericIds = ids
         .map(id => parseInt(String(id), 10))
