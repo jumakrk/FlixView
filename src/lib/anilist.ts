@@ -424,7 +424,7 @@ export function stripAnimeHtml(html: string | null | undefined): string {
         .trim();
 }
 
-/** Number of playable episodes. Movies are a single episode for Vidly. */
+/** Number of playable episodes. Movies are a single episode. */
 export function animeEpisodeCount(media: AniListMedia | null | undefined): number {
     if (!media) return 1;
     if (media.format === 'MOVIE' || media.format === 'MUSIC') return 1;

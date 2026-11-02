@@ -157,9 +157,9 @@ function registerStorageIpc({ getMainWindow }) {
     });
 
     // --- Player cache purge ---
-    // Vidly keeps its own resume position per title in localStorage /
-    // IndexedDB. FlixView is the source of truth for progress (it always sends
-    // an explicit start position), so the player's stored position is dropped.
+    // The player can keep its own per-title state (positions, server picks) in
+    // localStorage / IndexedDB. FlixView is the source of truth for progress
+    // (it always sends an explicit resume position), so that state is dropped.
     // Cookies are left intact: the player sits behind Cloudflare and wiping
     // them before every mount would force a fresh bot challenge each time.
     ipcMain.handle('purge-player-cache', async () => {

@@ -8,27 +8,44 @@ export interface PlayerEmbedOptions {
     type?: PlayerMediaType;
     season?: number;
     episode?: number;
-    /** Anime audio track. Defaults to the dubbed stream. */
+    /** Anime audio track. Defaults to the English dub. */
     audio?: 'sub' | 'dub';
-    /** Resume position in seconds. 0 means "start from the beginning". */
-    startTime?: number;
+    /** AniList movies have no episodes and use the episode-less route. */
+    isAnimeMovie?: boolean;
 }
 
 /** App accent colour, hex without the leading '#' (matches --primary #7c3aed). */
 export const PLAYER_ACCENT_COLOR = '7C3AED';
 
-const PLAYER_BASE_URL = 'https://vidly.pro';
+/** Name shown on the player's loading card. */
+export const PLAYER_BRAND = 'FLIXVIEW';
+
+/** The app's typeface (Outfit, a Google Font), so the player matches the UI. */
+export const PLAYER_FONT = 'Outfit';
 
 /**
- * Hosts the embedded provider may post progress messages from. Mirrors
- * PLAYER_ORIGINS in main/constants.js.
+ * Size of the player's controls, icons and labels. 1 matches the app's own UI:
+ * the iframe lives in the same page, so it shares the app's display-scale
+ * compensation and its text renders at the same size as the app's.
  */
-const PLAYER_ORIGIN_HOSTS = ['vidly.pro'];
+export const PLAYER_UI_SCALE = '1';
+
+/** Origin the player is served from; also the postMessage target. */
+export const PLAYER_ORIGIN = 'https://embed.vidrift.net';
+
+const PLAYER_BASE_URL = `${PLAYER_ORIGIN}/embed`;
+
+/**
+ * Hosts the embedded provider may post messages from. embed.vidrift.in is the
+ * provider's older domain and serves the same player. Mirrors PLAYER_ORIGINS
+ * in main/constants.js.
+ */
+const PLAYER_ORIGIN_HOSTS = ['vidrift.net', 'vidrift.in'];
 
 /**
  * True when a postMessage origin belongs to the embedded player.
  * The origin is parsed and compared by hostname, so lookalike domains such
- * as "vidly.pro.evil.com" are rejected.
+ * as "vidrift.net.evil.com" are rejected.
  */
 export function isTrustedPlayerOrigin(origin: string): boolean {
     let hostname: string;
@@ -41,32 +58,22 @@ export function isTrustedPlayerOrigin(origin: string): boolean {
 }
 
 /**
- * Smallest start position the player accepts as "start from the beginning".
+ * Build a VidRift embed URL.
  *
- * The player keeps its own resume position per title and treats `t=0` (or a
- * missing `t`) as "not provided", falling back to that remembered position.
- * Sending 1 therefore starts an otherwise unwatched title at one second —
- * effectively the beginning — while still overriding any stale player-side
- * position after the user removed the title from Continue Watching or cleared
- * their data.
- */
-export const PLAYER_START_FLOOR = 1;
-
-/**
- * Build a Vidly embed URL.
+ * Movies: https://embed.vidrift.net/embed/movie/{tmdbId}
+ * TV:     https://embed.vidrift.net/embed/tv/{tmdbId}/{season}/{episode}
+ * Anime:  https://embed.vidrift.net/embed/anilist/{anilistId}/{episode}
+ *         (anime movies: /embed/anilist/{anilistId}). The player redirects
+ *         this onto the matching TMDB title and keeps every parameter.
  *
- * Movies: https://vidly.pro/movie/{tmdbId}
- * TV:     https://vidly.pro/tv/{tmdbId}/{season}/{episode}
- * Anime:  https://vidly.pro/anime/{anilistId}/{episode}/{sub|dub}
+ * The player is skinned to match FlixView: brand name and accent colour on the
+ * loading card, the app's font, sentence-case labels and controls sized like
+ * the app's UI, with the default gradient behind them. Its own Back/Exit control replaces
+ * the app's (vidrift:exit), and fullscreen is owned by the page (fs=parent) so
+ * the next episode can load without leaving fullscreen.
  *
- * `t` is ALWAYS sent and never 0: omitting it (or sending 0) lets the player
- * fall back to the position it remembers for the title, which would silently
- * resurrect progress after the user removed the show from Continue Watching
- * (a removal that resets every episode of every season back to 0).
- *
- * The aurora theme + app accent colour keep the player visually consistent with
- * FlixView. The audio picker is explicitly disabled: the stream should start
- * playing immediately instead of asking the user to choose a language track.
+ * There is no start-time parameter: resume positions are sent with
+ * vidrift:resume once the iframe has loaded (see VideoPlayer).
  */
 export function buildPlayerUrl({
     mediaId,
@@ -74,20 +81,24 @@ export function buildPlayerUrl({
     season = 1,
     episode = 1,
     audio = 'dub',
-    startTime = 0
+    isAnimeMovie = false,
 }: PlayerEmbedOptions): string {
     const params = new URLSearchParams({
-        theme: 'aurora',
-        color: PLAYER_ACCENT_COLOR,
+        brand: PLAYER_BRAND,
+        brandColor: PLAYER_ACCENT_COLOR,
+        font: PLAYER_FONT,
+        uiScale: PLAYER_UI_SCALE,
+        caps: '0',
+        showTitle: '1',
+        exit: '1',
         autoplay: '1',
-        nextEpisode: '1',
-        audioPicker: '0'
+        muted: '0',
+        fs: 'parent',
     });
 
-    // Guard against NaN / negative positions coming from a corrupt record.
-    const requested = Number.isFinite(startTime) ? Math.floor(startTime) : 0;
-    const start = requested > 0 ? requested : PLAYER_START_FLOOR;
-    params.set('t', String(start));
+    if (type === 'anime' && audio === 'dub') {
+        params.set('dub', '1');
+    }
 
     const query = params.toString();
 
@@ -96,8 +107,10 @@ export function buildPlayerUrl({
     }
 
     if (type === 'anime') {
-        // Anime is always addressed by its AniList ID and defaults to the dub.
-        return `${PLAYER_BASE_URL}/anime/${mediaId}/${episode}/${audio}?${query}`;
+        // Anime is addressed by its AniList ID and counted the AniList way.
+        return isAnimeMovie
+            ? `${PLAYER_BASE_URL}/anilist/${mediaId}?${query}`
+            : `${PLAYER_BASE_URL}/anilist/${mediaId}/${episode}?${query}`;
     }
 
     return `${PLAYER_BASE_URL}/tv/${mediaId}/${season}/${episode}?${query}`;

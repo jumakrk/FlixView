@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
 import ProgressManager from '@/components/ProgressManager';
-import { ArrowLeft } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { MediaType, isEpisodicType } from '@/lib/types';
 
@@ -14,9 +13,11 @@ interface WatchClientProps {
     posterPath?: string | null;
     backdropPath?: string | null;
     maxEpisode?: number;
+    /** AniList movies have no episodes. */
+    isAnimeMovie?: boolean;
 }
 
-export default function WatchClient({ id, type, title, posterPath, backdropPath, maxEpisode }: WatchClientProps) {
+export default function WatchClient({ id, type, title, posterPath, backdropPath, maxEpisode, isAnimeMovie }: WatchClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -52,7 +53,7 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath,
         const checkExit = () => {
             attempts++;
             // If we are still on a watch URL
-            if (window.location.pathname.includes('/watch/')) {
+            if (/^\/watch(\/|$)/.test(window.location.pathname)) {
                 if (attempts > maxAttempts) {
                     // Fail safe: Force replace if we are stuck deeply
                     const source = searchParams.get('source');
@@ -71,7 +72,7 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath,
     };
 
     return (
-        <div className="w-full mb-8">
+        <div className="w-full mb-8 pt-4">
             {/* Logic Component (Hidden) */}
             <ProgressManager
                 id={id}
@@ -86,40 +87,21 @@ export default function WatchClient({ id, type, title, posterPath, backdropPath,
                 maxEpisode={maxEpisode}
             />
 
-            {/* Player chrome lives above the video so it never covers the
-                stream's own top controls (or the title). */}
-            <div className="flex items-center justify-between gap-4 px-1 pb-3">
-                <button
-                    onClick={handleBack}
-                    aria-label="Back to details"
-                    className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-2 text-sm font-semibold text-white/85 backdrop-blur-md transition-colors hover:border-violet-400/40 hover:bg-white/10 hover:text-white"
-                >
-                    <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
-                    <span>Back</span>
-                </button>
-
-                <div className="hidden min-w-0 items-center gap-2 text-xs font-medium text-white/45 sm:flex">
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500 shadow-[0_0_10px_rgba(124,58,237,0.8)]" />
-                    <span className="shrink-0 uppercase tracking-[0.16em]">Now playing</span>
-                    <span className="h-3 w-px bg-white/15" />
-                    <span className="truncate text-white/70">{title}</span>
-                    {isEpisodicType(type) && (
-                        <span className="shrink-0 text-white/40">· S{season} E{episode}</span>
-                    )}
-                </div>
-            </div>
-
-            {/* Video Player — no top gradient overlay so the provider's own
-                controls stay fully visible. */}
-            <div className="relative h-[calc(85vh-56px)] min-h-[380px] max-h-[960px] w-full overflow-hidden rounded-3xl border border-white/5 bg-black shadow-2xl">
+            {/* Video Player. Its own top bar shows the title and a Back arrow
+                (exit=1), which leaves the watch page through handleBack, so
+                the page draws no chrome above it and the player gets the
+                space. No overlay covers the player's controls. */}
+            <div className="relative h-[85vh] min-h-[380px] max-h-[1000px] w-full overflow-hidden rounded-3xl border border-white/5 bg-black shadow-2xl">
                 <VideoPlayer
                     key={`${id}-${type}-${season}-${episode}`}
                     mediaId={id}
                     type={type}
                     season={season}
                     episode={episode}
+                    isAnimeMovie={isAnimeMovie}
                     className="w-full h-full rounded-none border-none"
                     startTime={startTime}
+                    onExit={handleBack}
                 />
             </div>
         </div>

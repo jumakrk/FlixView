@@ -7,33 +7,28 @@ import { isTrustedPlayerOrigin } from '@/lib/player';
 import { useRouter } from 'next/navigation';
 
 /**
- * Shape of the messages posted by Vidly.
+ * Messages posted by the VidRift player (all flat objects):
  *
- * VIDLY_PLAYER_EVENT:
- *   { type: 'VIDLY_PLAYER_EVENT', data: { event, currentTime, duration,
- *     tmdbId, mediaType, season, episode } }
- * SYNC_HISTORY:
- *   { type: 'SYNC_HISTORY', data: { media_id, media_type, title, duration,
- *     watched, poster, season, episode } }
+ *   vidrift:progress  every 5s while playing: currentTime, duration
+ *   vidrift:paused    currentTime (paused by the viewer, or at the end)
+ *   vidrift:ended     playback reached the end
+ *   vidrift:episode   the player is about to swap itself to season/episode
  *
- * `season`/`episode` are null for movies; anime reports `season: null` and a
- * real `episode`. `tmdbId` is null for anime (the AniList ID is only present
- * on SYNC_HISTORY as `media_id`).
+ * Every message carries tmdbId, mediaType, season and episode. Anime plays
+ * through its TMDB title (mediaType "tv"), so on anime the AniList entry and
+ * the episode within it come from `anilist: { id, mal, episode }`.
  */
-interface VidlyMessageData {
-    event?: string;
+const TRACKED_MESSAGES = new Set(['vidrift:progress', 'vidrift:paused', 'vidrift:ended', 'vidrift:episode']);
+
+interface PlayerMessage {
+    type: string;
     currentTime?: number | string;
     duration?: number | string;
     tmdbId?: string | number | null;
-    mediaId?: string | number | null;
-    media_id?: string | number | null;
     mediaType?: string | null;
-    media_type?: string | null;
-    title?: string;
-    poster?: string | null;
-    watched?: number | string;
     season?: number | string | null;
     episode?: number | string | null;
+    anilist?: { id?: number | string | null; episode?: number | string | null } | null;
 }
 
 function toSeconds(value: number | string | null | undefined): number {
@@ -47,10 +42,6 @@ function toPositiveInt(value: number | string | null | undefined): number | null
     return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function normalizeMediaType(value: string | null | undefined): string | undefined {
-    if (!value) return undefined;
-    return value === 'series' ? 'tv' : value;
-}
 
 interface ProgressManagerProps {
     id: string;
@@ -66,14 +57,12 @@ interface ProgressManagerProps {
     maxEpisode?: number;
 }
 
-// Minimum playback time before a position is worth remembering. The player is
-// loaded with an explicit start position (see @/lib/player), so a freshly reset
-// title opens a second or two into the episode; without this floor that first
-// tick would immediately recreate a Continue Watching entry for a show the user
-// just removed.
+// Minimum playback time before a position is worth remembering, so merely
+// opening a title (or one the user just removed from Continue Watching) does
+// not immediately recreate a Continue Watching entry.
 const MIN_SAVE_SECONDS = 5;
 
-// How often a live `timeupdate` is written to disk.
+// Minimum gap between two writes of the live position.
 const THROTTLE_INTERVAL = 1000;
 
 export default function ProgressManager({
@@ -85,10 +74,10 @@ export default function ProgressManager({
     const { getProgress, updateProgress } = useData();
     const router = useRouter();
 
-    // The episode we believe is currently playing. Vidly reports the
-    // authoritative episode on every message, so internal switches (the
-    // inbuilt next button, nextEpisode, the player's own episode selector) are
-    // always reflected here without guessing.
+    // The episode we believe is currently playing. The player reports the
+    // authoritative episode on every message, so internal switches (Up Next,
+    // its Next button, its own Episodes list) are always reflected here
+    // without guessing.
     const activeSeasonRef = useRef(season);
     const activeEpisodeRef = useRef(episode);
 
@@ -100,8 +89,8 @@ export default function ProgressManager({
     // Guards against re-writing a finished episode on every subsequent message.
     const completedRef = useRef(false);
 
-    // Avoids writing the exact same snapshot twice when Vidly sends both
-    // VIDLY_PLAYER_EVENT and SYNC_HISTORY for the same tick.
+    // Avoids writing the exact same snapshot twice in a row (e.g. a pause
+    // right after a progress tick).
     const recentSaveRef = useRef<{ key: string; at: number } | null>(null);
 
     // Throttling for live timeupdate writes.
@@ -179,61 +168,51 @@ export default function ProgressManager({
 
     // 2. Event Listener
     const handleMessage = useCallback((event: MessageEvent) => {
-        // Accept messages from the Vidly player only.
+        // Accept messages from the player only.
         if (!isTrustedPlayerOrigin(event.origin || '')) return;
 
-        let data = event.data;
-
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch {
-                return;
-            }
-        }
-
+        const data = event.data;
         if (!data || typeof data !== 'object') return;
 
-        const envelope = data as { type?: string; data?: unknown; payload?: unknown };
-        if (envelope.type !== 'VIDLY_PLAYER_EVENT' && envelope.type !== 'SYNC_HISTORY') return;
-
-        const payload = (envelope.data && typeof envelope.data === 'object')
-            ? envelope.data
-            : (envelope.payload && typeof envelope.payload === 'object' ? envelope.payload : null);
-        if (!payload) return;
-
-        const msg = payload as VidlyMessageData;
+        const msg = data as PlayerMessage;
+        if (!TRACKED_MESSAGES.has(msg.type)) return;
 
         // Security: only accept events for the content currently on this page.
-        // Anime events carry `tmdbId: null`, so a null ID is accepted for the
-        // page's own type; SYNC_HISTORY still supplies the AniList media_id.
-        const msgId = msg.tmdbId ?? msg.mediaId ?? msg.media_id;
-        if (msgId !== null && msgId !== undefined && String(msgId) !== String(id)) return;
+        // Anime plays through its TMDB title, so it is matched on the AniList
+        // entry instead; the episode inside that entry is counted the AniList
+        // way (from 1), like the rest of the app.
+        let anilistEntryChanged = false;
+        let reportedSeason: number | null;
+        let reportedEpisode: number | null;
 
-        const msgType = normalizeMediaType(msg.mediaType ?? msg.media_type);
-        if (msgType && msgType !== type) return;
+        if (type === 'anime') {
+            const anilistId = msg.anilist?.id;
+            if (anilistId === null || anilistId === undefined) return;
+            // vidrift:episode announces the next episode in TMDB numbering;
+            // the progress messages that follow carry the AniList numbering.
+            if (msg.type === 'vidrift:episode') return;
+            anilistEntryChanged = String(anilistId) !== String(id);
+            reportedSeason = 1;
+            reportedEpisode = toPositiveInt(msg.anilist?.episode);
+        } else {
+            if (msg.tmdbId === null || msg.tmdbId === undefined || String(msg.tmdbId) !== String(id)) return;
+            if (msg.mediaType && msg.mediaType !== type) return;
+            reportedSeason = toPositiveInt(msg.season);
+            reportedEpisode = toPositiveInt(msg.episode);
+        }
 
-        const currentTime = toSeconds(msg.currentTime ?? msg.watched);
-        const duration = toSeconds(msg.duration);
-        const progressPct = envelope.type === 'VIDLY_PLAYER_EVENT'
-            ? toSeconds((msg as { progress?: number | string }).progress)
-            : 0;
-
-        const reportedSeason = toPositiveInt(msg.season);
-        const reportedEpisode = toPositiveInt(msg.episode);
+        const currentTime = toSeconds(msg.currentTime);
+        // A pause carries no duration; it belongs to the episode last reported.
+        const duration = toSeconds(msg.duration)
+            || (msg.type === 'vidrift:paused' ? lastDurationRef.current : 0);
 
         let currentSeason = activeSeasonRef.current;
         let currentEpisode = activeEpisodeRef.current;
 
-        if (isEpisodicType(type)) {
-            if (type === 'anime') {
-                // AniList/Vidly anime is a single flat episode list.
-                currentSeason = 1;
-                if (reportedEpisode !== null) currentEpisode = reportedEpisode;
-            } else if (reportedSeason !== null && reportedEpisode !== null) {
-                currentSeason = reportedSeason;
-                currentEpisode = reportedEpisode;
-            }
+        if (isEpisodicType(type) && !anilistEntryChanged
+            && reportedSeason !== null && reportedEpisode !== null) {
+            currentSeason = reportedSeason;
+            currentEpisode = reportedEpisode;
         }
 
         const saveEpisode = (s: number, e: number, time: number, dur: number): boolean => {
@@ -267,16 +246,33 @@ export default function ProgressManager({
                 duration_seconds: dur,
                 episodes: episodesUpdate,
                 media_data: {
-                    // Fall back to Vidly's own metadata if the page could not
-                    // supply it (SYNC_HISTORY includes title and poster).
-                    title: title || msg.title || undefined,
-                    poster_path: posterPath ?? msg.poster ?? undefined,
+                    title: title || undefined,
+                    poster_path: posterPath ?? undefined,
                     backdrop_path: backdropPath ?? undefined,
                     media_type: type
                 }
             });
             return true;
         };
+
+        // --- Anime moved on to the next AniList entry ---
+        // AniList splits long shows into entries (cours). When Up Next rolls
+        // past the last episode of this entry the player continues with the
+        // next entry, which is a different AniList title. Finish this one,
+        // then open the new entry's page so its progress is recorded under it.
+        if (anilistEntryChanged) {
+            if (msg.type !== 'vidrift:progress') return;
+            const prevTime = lastTimeRef.current;
+            const prevDur = lastDurationRef.current;
+            if (prevDur > 0 && prevTime > 1) {
+                const prevEnded = prevTime >= prevDur - 3;
+                saveEpisode(activeSeasonRef.current, activeEpisodeRef.current, prevEnded ? prevDur : prevTime, prevDur);
+            }
+            lastTimeRef.current = 0;
+            lastDurationRef.current = 0;
+            router.replace(`/watch?type=anime&id=${msg.anilist?.id}&season=1&episode=${reportedEpisode ?? 1}`);
+            return;
+        }
 
         // --- Internal episode switch (autoNext / inbuilt next button / in-player selector) ---
         // The player moved to a different episode on its own. Finalize the
@@ -317,15 +313,12 @@ export default function ProgressManager({
             return saveEpisode(currentSeason, currentEpisode, currentTime, duration);
         };
 
-        // Completion is derived from the reported position/percentage and,
-        // authoritatively, from Vidly's `ended` event. At (or within 3s of) the
-        // end we store the full duration so a finished title never resumes
-        // from the credits and nextEpisode has a completed record to advance.
+        // Completion is derived from the reported position and,
+        // authoritatively, from the player's vidrift:ended. At (or within 3s
+        // of) the end we store the full duration so a finished title never
+        // resumes from the credits and the next episode is the one resumed.
         const effectiveDuration = duration > 0 ? duration : lastDurationRef.current;
-        const finished = msg.event === 'ended' || (duration > 0 && (
-            currentTime >= duration - 3 ||
-            (Number.isFinite(progressPct) && progressPct >= 98)
-        ));
+        const finished = msg.type === 'vidrift:ended' || (duration > 0 && currentTime >= duration - 3);
 
         if (finished) {
             if (!completedRef.current && effectiveDuration > 0) {
@@ -344,7 +337,7 @@ export default function ProgressManager({
                 }
             }
         }
-    }, [id, type, title, posterPath, backdropPath, updateProgress]);
+    }, [id, type, title, posterPath, backdropPath, updateProgress, router]);
 
     useEffect(() => {
         window.addEventListener('message', handleMessage);

@@ -98,6 +98,7 @@ export default function AnimeWatchPageClient({ id }: { id: string }) {
                     posterPath={poster}
                     backdropPath={backdrop}
                     maxEpisode={totalEpisodes}
+                    isAnimeMovie={movie}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-8 px-2">

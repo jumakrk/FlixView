@@ -21,11 +21,12 @@ const DATA_DIR_NAMES = ['watch progress', 'watchlist', 'favourites'];
 // ---------------------------------------------------------------------------
 // Player providers
 // ---------------------------------------------------------------------------
-// Vidly is currently the ONLY embedded provider. Player-specific behaviour in
-// the main process (cache purging, header spoofing) is derived from this list,
-// so switching or adding a provider later is a one-stop change here plus
+// VidRift is currently the ONLY embedded provider (embed.vidrift.in is its
+// older domain, serving the same player). Player-specific behaviour in the
+// main process (storage purging, frame header guard) is derived from this
+// list, so switching or adding a provider later is a one-stop change here plus
 // src/lib/player.ts in the renderer.
-const PLAYER_ORIGINS = ['https://vidly.pro', 'https://www.vidly.pro'];
+const PLAYER_ORIGINS = ['https://embed.vidrift.net', 'https://embed.vidrift.in'];
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -3,65 +3,69 @@ import {
     buildPlayerUrl,
     isTrustedPlayerOrigin,
     PLAYER_ACCENT_COLOR,
-    PLAYER_START_FLOOR,
+    PLAYER_BRAND,
+    PLAYER_FONT,
+    PLAYER_UI_SCALE,
 } from '../player';
 
 describe('isTrustedPlayerOrigin', () => {
-    it('accepts the provider hosts and their subdomains', () => {
-        expect(isTrustedPlayerOrigin('https://vidly.pro')).toBe(true);
-        expect(isTrustedPlayerOrigin('https://www.vidly.pro')).toBe(true);
-        expect(isTrustedPlayerOrigin('https://cdn.vidly.pro')).toBe(true);
+    it('accepts the provider hosts, including the older .in domain', () => {
+        expect(isTrustedPlayerOrigin('https://embed.vidrift.net')).toBe(true);
+        expect(isTrustedPlayerOrigin('https://embed.vidrift.in')).toBe(true);
+        expect(isTrustedPlayerOrigin('https://vidrift.net')).toBe(true);
     });
 
     it('rejects lookalike and unrelated origins', () => {
-        expect(isTrustedPlayerOrigin('https://vidly.pro.evil.com')).toBe(false);
-        expect(isTrustedPlayerOrigin('https://evil-vidly.pro')).toBe(false);
-        expect(isTrustedPlayerOrigin('https://example.com')).toBe(false);
+        expect(isTrustedPlayerOrigin('https://embed.vidrift.net.evil.com')).toBe(false);
+        expect(isTrustedPlayerOrigin('https://evil-vidrift.net')).toBe(false);
+        expect(isTrustedPlayerOrigin('https://vidly.pro')).toBe(false);
         expect(isTrustedPlayerOrigin('')).toBe(false);
         expect(isTrustedPlayerOrigin('null')).toBe(false);
     });
 });
 
 describe('buildPlayerUrl', () => {
-    it('builds movie URLs with the app theme and the audio picker disabled', () => {
+    it('builds movie URLs skinned to match the app', () => {
         const url = new URL(buildPlayerUrl({ mediaId: 550 }));
-        expect(url.origin).toBe('https://vidly.pro');
-        expect(url.pathname).toBe('/movie/550');
-        expect(url.searchParams.get('theme')).toBe('aurora');
-        expect(url.searchParams.get('color')).toBe(PLAYER_ACCENT_COLOR);
+        expect(url.origin).toBe('https://embed.vidrift.net');
+        expect(url.pathname).toBe('/embed/movie/550');
+        expect(url.searchParams.get('brand')).toBe(PLAYER_BRAND);
+        expect(url.searchParams.get('brandColor')).toBe(PLAYER_ACCENT_COLOR);
+        expect(url.searchParams.get('font')).toBe(PLAYER_FONT);
+        expect(url.searchParams.get('uiScale')).toBe(PLAYER_UI_SCALE);
+        expect(url.searchParams.get('caps')).toBe('0');
+        expect(url.searchParams.get('exit')).toBe('1');
+        expect(url.searchParams.get('fs')).toBe('parent');
         expect(url.searchParams.get('autoplay')).toBe('1');
-        expect(url.searchParams.get('nextEpisode')).toBe('1');
-        expect(url.searchParams.get('audioPicker')).toBe('0');
+        expect(url.searchParams.get('muted')).toBe('0');
+    });
+
+    it('leaves out options that are off by default or not wanted', () => {
+        const url = new URL(buildPlayerUrl({ mediaId: 550 }));
+        for (const name of ['brandLogo', 'watermark', 'controlBg', 'hide', 'mobileSheets', 'dub']) {
+            expect(url.searchParams.has(name)).toBe(false);
+        }
     });
 
     it('builds TV URLs with season and episode', () => {
         const url = new URL(buildPlayerUrl({ mediaId: '1399', type: 'tv', season: 3, episode: 7 }));
-        expect(url.pathname).toBe('/tv/1399/3/7');
+        expect(url.pathname).toBe('/embed/tv/1399/3/7');
     });
 
-    it('builds anime URLs with the AniList id and defaults to dub', () => {
-        const url = new URL(buildPlayerUrl({ mediaId: 154587, type: 'anime', episode: 12 }));
-        expect(url.pathname).toBe('/anime/154587/12/dub');
-        expect(url.searchParams.get('theme')).toBe('aurora');
-        expect(url.searchParams.get('autoplay')).toBe('1');
-        expect(url.searchParams.get('nextEpisode')).toBe('1');
-        expect(url.searchParams.get('audioPicker')).toBe('0');
+    it('builds anime URLs from the AniList id and starts on the dub', () => {
+        const url = new URL(buildPlayerUrl({ mediaId: 21, type: 'anime', episode: 150 }));
+        expect(url.pathname).toBe('/embed/anilist/21/150');
+        expect(url.searchParams.get('dub')).toBe('1');
+        expect(url.searchParams.get('brand')).toBe(PLAYER_BRAND);
     });
 
-    it('honours an explicit anime audio track', () => {
-        const url = new URL(buildPlayerUrl({ mediaId: 154587, type: 'anime', audio: 'sub' }));
-        expect(url.pathname).toBe('/anime/154587/1/sub');
+    it('uses the episode-less AniList route for anime movies', () => {
+        const url = new URL(buildPlayerUrl({ mediaId: 199, type: 'anime', isAnimeMovie: true }));
+        expect(url.pathname).toBe('/embed/anilist/199');
     });
 
-    it('floors fractional resume positions', () => {
-        const url = new URL(buildPlayerUrl({ mediaId: 550, startTime: 125.9 }));
-        expect(url.searchParams.get('t')).toBe('125');
-    });
-
-    it('never sends t=0, which the player would treat as "not provided"', () => {
-        for (const startTime of [0, -10, Number.NaN, Number.POSITIVE_INFINITY]) {
-            const url = new URL(buildPlayerUrl({ mediaId: 550, startTime }));
-            expect(url.searchParams.get('t')).toBe(String(PLAYER_START_FLOOR));
-        }
+    it('honours an explicit sub audio track for anime', () => {
+        const url = new URL(buildPlayerUrl({ mediaId: 21, type: 'anime', audio: 'sub' }));
+        expect(url.searchParams.has('dub')).toBe(false);
     });
 });

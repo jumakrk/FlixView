@@ -12,7 +12,7 @@ function WatchContent() {
 
     if (!id) return <div className="p-10 text-center">Invalid playback ID</div>;
 
-    // Anime playback is powered by AniList metadata + Vidly's /anime route.
+    // Anime playback is powered by AniList metadata + the player's AniList route.
     if (type === 'anime') {
         return <AnimeWatchPageClient id={id} />;
     }

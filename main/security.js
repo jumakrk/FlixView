@@ -126,27 +126,66 @@ function installNetworkGuards() {
         }
         callback({ cancel: false });
     });
-
-    // Spoof headers for the Vidly player. Only the iframe document load is
-    // rewritten — spoofing Origin on the player's internal API/XHR calls would
-    // break CORS.
-    session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
-        if (details.url.includes('vidly.pro') && details.resourceType === 'subFrame') {
-            details.requestHeaders['Referer'] = 'https://vidly.pro/';
-        }
-        callback({ requestHeaders: details.requestHeaders });
-    });
 }
 
-// "Scorched Earth": the app only ever wants ONE window. Anything else created
-// at the app level dies instantly.
+// --- Popups as hidden decoys ---------------------------------------------
+// The player opens one ad popup on the first click and treats a refused popup
+// as a sandboxed embed: it then replaces the video with "Remove sandboxing to
+// enable playback". So popups are not refused. They are allowed as an
+// invisible, inert window (no JavaScript, images or sound) that is blanked
+// at once and closed shortly after: the player sees a popup that opened, and
+// the viewer never sees an ad. FlixView's own UI opens no popups (donation
+// links go to the system browser), so every other popup is treated this way.
+const DECOY_LIFETIME_MS = 30 * 1000;
+
+const DECOY_WINDOW_OPTIONS = {
+    show: false,
+    width: 1,
+    height: 1,
+    skipTaskbar: true,
+    focusable: false,
+    paintWhenInitiallyHidden: false,
+    webPreferences: {
+        javascript: false,
+        images: false,
+        backgroundThrottling: true,
+    },
+};
+
+// Popups allowed by the open handler whose BrowserWindow has not been created
+// yet; the window sentry turns exactly that many new windows into decoys.
+let pendingDecoys = 0;
+
+function neutralizeDecoy(win) {
+    const contents = win.webContents;
+    contents.setAudioMuted(true);
+    // Never follow the ad anywhere, and drop whatever it started loading.
+    contents.on('will-navigate', event => event.preventDefault());
+    contents.on('will-redirect', event => event.preventDefault());
+    contents.stop();
+    contents.loadURL('about:blank').catch(() => {});
+    const timer = setTimeout(() => {
+        if (!win.isDestroyed()) win.destroy();
+    }, DECOY_LIFETIME_MS);
+    win.on('closed', () => clearTimeout(timer));
+}
+
+// "Scorched Earth": the app only ever wants ONE visible window. Popup decoys
+// (above) are kept hidden; anything else created at the app level dies
+// instantly.
 function installWindowSentry(getMainWindow) {
     app.on('browser-window-created', (event, newWin) => {
         const mainWin = getMainWindow();
-        if (mainWin && newWin !== mainWin) {
-            console.log('Scorched Earth: vaporizing unintended window');
-            newWin.destroy();
+        if (!mainWin || newWin === mainWin) return;
+
+        if (pendingDecoys > 0) {
+            pendingDecoys -= 1;
+            neutralizeDecoy(newWin);
+            return;
         }
+
+        console.log('Scorched Earth: vaporizing unintended window');
+        newWin.destroy();
     });
 }
 
@@ -166,8 +205,10 @@ function installWebContentsSentries() {
                     return { action: 'deny' };
                 }
             } catch {}
-            console.log('Global sentry: denied popup to:', url);
-            return { action: 'deny' };
+            // Opened as a hidden decoy instead of refused (see above).
+            console.log('Global sentry: popup opened as hidden decoy:', url);
+            pendingDecoys += 1;
+            return { action: 'allow', overrideBrowserWindowOptions: DECOY_WINDOW_OPTIONS };
         });
 
         contents.on('will-navigate', (event, url) => {
