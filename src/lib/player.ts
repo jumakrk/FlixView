@@ -14,8 +14,9 @@ export interface PlayerEmbedOptions {
     isAnimeMovie?: boolean;
 }
 
-/** App accent colour, hex without the leading '#' (matches --primary #7c3aed). */
-export const PLAYER_ACCENT_COLOR = '7C3AED';
+/** Player accent (progress bar, switches): a lighter Cyprus than the brand
+ * #004741, which would be too dark to see over video. Hex without the '#'. */
+export const PLAYER_ACCENT_COLOR = '1F8073';
 
 /** Name shown on the player's loading card. */
 export const PLAYER_BRAND = 'FLIXVIEW';

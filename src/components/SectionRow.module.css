@@ -1,8 +1,8 @@
 .section {
-    padding: 10px 0;
+    padding: 14px 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
 }
 
 .header {
@@ -10,55 +10,71 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
 }
 
 .title {
-    font-size: 24px;
+    position: relative;
+    margin: 0;
+    padding-bottom: 8px;
+    font-size: 23px;
     font-weight: 700;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
-.title::before {
+/* Accent underline that stretches when the row is hovered. */
+.title::after {
     content: '';
-    display: block;
-    width: 4px;
-    height: 24px;
-    background: var(--primary);
-    box-shadow: 0 0 15px var(--primary-glow);
-    border-radius: 4px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 34px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--cyprus-400), var(--sand));
+    transition: width 0.6s var(--ease-out);
+}
+
+.section:hover .title::after {
+    width: 100%;
 }
 
 .view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--surface-1);
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.3s;
+    white-space: nowrap;
+    transition: color 0.25s, background 0.25s, border-color 0.25s, gap 0.35s var(--ease-out);
 }
 
 .view-all:hover {
-    color: #fff;
+    gap: 11px;
+    color: var(--sand);
+    background: rgba(31, 128, 115, 0.22);
+    border-color: rgba(221, 213, 193, 0.45);
 }
 
 .rail {
     display: flex;
-    gap: 8px;
+    gap: 16px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 10px 4% 20px 4%;
-    /* Bottom padding allows for hover scale/glow */
+    /* Vertical padding leaves room for the cards' hover lift and glow. */
+    padding: 22px 4% 34px;
     scroll-behavior: smooth;
 }
 
-/* Add empty space at end to allow last item to be fully seen */
-.rail::after {
-    content: '';
-    min-width: 4%;
-    height: 1px;
+/* Rows far off screen are skipped entirely until they approach the viewport. */
+.section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 440px;
 }

@@ -4,25 +4,24 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
+    background: rgba(2, 7, 6, 0.55);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
 }
 
-.modal {
-    background: #121214;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
+/* Origin-aware wrapper (OriginPop) around the panel. */
+.pop {
     width: 90%;
     max-width: 420px;
+}
+
+/* Liquid glass panel: the material comes from .lg-glass (see globals.css). */
+.modal {
+    border-radius: 28px;
+    width: 100%;
     padding: 32px;
-    position: relative;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.1);
-    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .closeBtn {
@@ -60,13 +59,13 @@
 .iconContainer {
     width: 64px;
     height: 64px;
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(47, 138, 127, 0.1);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(47, 138, 127, 0.2);
 }
 
 .title {
@@ -93,7 +92,7 @@
 }
 
 .primaryBtn {
-    background: #8b5cf6;
+    background: #2f8a7f;
     color: white;
     border: none;
     border-radius: 12px;
@@ -109,7 +108,7 @@
 }
 
 .primaryBtn:hover {
-    background: #7c3aed;
+    background: #004741;
 }
 
 .secondaryBtn {
@@ -155,7 +154,7 @@
 
 .progressFill {
     height: 100%;
-    background: #8b5cf6;
+    background: #2f8a7f;
     border-radius: 4px;
     transition: width 0.2s ease-out;
 }

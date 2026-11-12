@@ -168,7 +168,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                                 <div className="flex gap-4 overflow-x-auto pb-4 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                                     {credits.map((person) => (
                                         <Link key={person.id} href={`/person?id=${person.id}`} className="min-w-[120px] w-[120px] snap-start group flex flex-col items-center">
-                                            <div className="relative w-full aspect-square rounded-full overflow-hidden mb-3 bg-white/5 border border-white/5 ring-2 ring-white/5 group-hover:ring-[#7c3aed] transition-all">
+                                            <div className="relative w-full aspect-square rounded-full overflow-hidden mb-3 bg-white/5 border border-white/5 ring-2 ring-white/5 group-hover:ring-[#2f8a7f] transition-all">
                                                 <Image
                                                     src={person.profile_path ? `${profileBaseUrl}${person.profile_path}` : '/placeholder-avatar.svg'}
                                                     alt={person.name}
@@ -177,7 +177,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                                                     className="object-cover transition-transform group-hover:scale-110"
                                                 />
                                             </div>
-                                            <p className="font-semibold text-sm truncate w-full text-center group-hover:text-[#7c3aed] transition-colors">{person.name}</p>
+                                            <p className="font-semibold text-sm truncate w-full text-center group-hover:text-[#f0ede4] transition-colors">{person.name}</p>
                                             <p className="text-xs text-gray-500 truncate w-full text-center">{person.character}</p>
                                         </Link>
                                     ))}
@@ -306,7 +306,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                                         ) : <div className="w-full h-full bg-white/10" />}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="font-semibold text-sm truncate group-hover:text-[#7c3aed] transition-colors">{item.title || item.name}</h4>
+                                        <h4 className="font-semibold text-sm truncate group-hover:text-[#f0ede4] transition-colors">{item.title || item.name}</h4>
                                         <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                                             <span className="flex items-center gap-1 text-yellow-500"><Star size={10} fill="currentColor" /> {item.vote_average.toFixed(1)}</span>
                                             <span>•</span>

@@ -1,14 +1,16 @@
 'use client';
 
-import { memo, useState, useEffect, useCallback, useMemo } from 'react';
-import { Info, ChevronRight, ChevronLeft } from 'lucide-react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Info, Star } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image'; // Import the Image component
+import Image from 'next/image';
 import { Movie } from '@/lib/tmdb';
 import styles from './Hero.module.css';
 import InteractionButtons from './InteractionButtons';
 import PlayButton from './PlayButton';
 import MediaProgressBar from '@/components/MediaProgressBar';
+import Glass from './ui/Glass';
 
 interface HeroProps {
     movies: (Movie & { logo_path?: string | null })[];
@@ -24,183 +26,252 @@ const GENRE_MAP: Record<number, string> = {
     10766: 'Soap', 10767: 'Talk', 10768: 'War & Politics'
 };
 
+const IMAGE_BASE = 'https://image.tmdb.org/t/p/w1280';
+const THUMB_BASE = 'https://image.tmdb.org/t/p/w300';
+const LOGO_BASE = 'https://image.tmdb.org/t/p/w500';
+
+/** Seconds each slide stays up before the hero advances by itself. */
+const SLIDE_SECONDS = 10;
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+const textVariants = {
+    hidden: { opacity: 0, y: 26 },
+    shown: (order: number) => ({
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.75, ease: EASE, delay: 0.12 + order * 0.07 },
+    }),
+};
+
 function Hero({ movies }: HeroProps) {
-    const imageBaseUrl = 'https://image.tmdb.org/t/p/original';
-    const logoBaseUrl = 'https://image.tmdb.org/t/p/w500'; // Smaller size for logo
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [isAnimating, setIsAnimating] = useState(false);
+    const [paused, setPaused] = useState(false);
+    const heroRef = useRef<HTMLDivElement>(null);
 
-    const currentMovie = useMemo(() => movies[currentIndex], [movies, currentIndex]);
+    // Parallax: the backdrop drifts down and the copy fades as the hero
+    // scrolls away.
+    const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+    const backdropY = useTransform(scrollYProgress, [0, 1], ['0%', '22%']);
+    const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-14%']);
+    const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
-    const handleNext = useCallback(() => {
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), 500); // Reset animation state
-        setCurrentIndex((prev) => (prev + 1) % movies.length);
-    }, [movies.length]);
+    const count = movies.length;
 
-    const handlePrev = useCallback(() => {
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), 500);
-        setCurrentIndex((prev) => (prev - 1 + movies.length) % movies.length);
-    }, [movies.length]);
+    const goTo = useCallback((index: number) => {
+        if (count === 0) return;
+        setCurrentIndex(((index % count) + count) % count);
+    }, [count]);
 
-    // Auto-play - fixed dependency issue
+    // Autoplay, restarted whenever the slide changes and held while the
+    // pointer is over the hero.
     useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % movies.length);
-        }, 10000); // 10 seconds per slide
+        if (paused || count < 2) return;
+        const timer = setTimeout(() => goTo(currentIndex + 1), SLIDE_SECONDS * 1000);
+        return () => clearTimeout(timer);
+    }, [paused, count, currentIndex, goTo]);
 
-        return () => clearInterval(timer);
-    }, [movies.length, currentIndex]);
-
-    const [touchStart, setTouchStart] = useState<number | null>(null);
-    const [touchEnd, setTouchEnd] = useState<number | null>(null);
-    const minSwipeDistance = 50;
-
-    const onTouchStart = (e: React.TouchEvent) => {
-        setTouchEnd(null);
-        setTouchStart(e.targetTouches[0].clientX);
+    const touchStart = useRef<number | null>(null);
+    const onTouchStart = (event: React.TouchEvent) => {
+        touchStart.current = event.targetTouches[0].clientX;
+    };
+    const onTouchEnd = (event: React.TouchEvent) => {
+        if (touchStart.current === null) return;
+        const distance = touchStart.current - event.changedTouches[0].clientX;
+        touchStart.current = null;
+        if (distance > 50) goTo(currentIndex + 1);
+        else if (distance < -50) goTo(currentIndex - 1);
     };
 
-    const onTouchMove = (e: React.TouchEvent) => {
-        setTouchEnd(e.targetTouches[0].clientX);
-    };
+    if (!movies || count === 0) return null;
+    const movie = movies[currentIndex];
+    const mediaType = movie.media_type === 'tv' ? 'tv' : 'movie';
+    const date = movie.release_date || movie.first_air_date;
 
-    const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
-        const distance = touchStart - touchEnd;
-        const isLeftSwipe = distance > minSwipeDistance;
-        const isRightSwipe = distance < -minSwipeDistance;
-
-        if (isLeftSwipe) {
-            handleNext();
-        } else if (isRightSwipe) {
-            handlePrev();
-        }
-    };
-
-    if (!movies || movies.length === 0) return null;
-    const movie = currentMovie;
+    // The "up next" stack shows the slides after the current one, in order.
+    const upNext = Array.from({ length: Math.min(3, count - 1) }, (_, offset) => (currentIndex + 1 + offset) % count);
 
     return (
         <div
+            ref={heroRef}
             className={styles.hero}
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
             onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
         >
-            {/* Background Image - Keyed to trigger re-render animation or smooth transition if we had CSS transition */}
-            <div
-                key={movie.id} // Forces re-creation of div to restart bgZoom animation
-                className={`${styles['hero-bg']} ${isAnimating ? styles.fadeOut : styles.fadeIn}`}
-                style={{ backgroundImage: `url(${imageBaseUrl}${movie.backdrop_path})` }}
-            />
-            <div className={styles.overlay} />
+            {/* Backdrop: crossfades between slides, with a slow zoom on each. */}
+            <motion.div className={styles.backdropLayer} style={{ y: backdropY }}>
+                <AnimatePresence initial={false}>
+                    <motion.div
+                        key={movie.id}
+                        className={styles.backdrop}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.1, ease: 'easeInOut' }}
+                    >
+                        <div
+                            className={styles.backdropImage}
+                            style={{ backgroundImage: `url(${IMAGE_BASE}${movie.backdrop_path})` }}
+                        />
+                    </motion.div>
+                </AnimatePresence>
+            </motion.div>
+            <div className={styles.shade} />
 
-            <div className={styles.content}>
-                <div className={styles['text-wrapper']} key={`text-${movie.id}`}>
-                    {/* Animated Tags */}
-                    <div className={styles.title}>
+            <motion.div className={styles.content} style={{ y: contentY, opacity: contentOpacity }}>
+                <motion.div
+                    key={`copy-${movie.id}`}
+                    className={styles.copy}
+                    initial="hidden"
+                    animate="shown"
+                >
+                    <motion.div custom={0} variants={textVariants}>
+                        <span className={styles.eyebrow}>
+                            <span className={styles.liveDot} />
+                            Trending now
+                        </span>
+                    </motion.div>
+
+                    <motion.div custom={1} variants={textVariants} className={styles.title}>
                         {movie.logo_path ? (
-                            <div className={styles['hero-logo-container']}>
+                            <div className={styles.logoBox}>
                                 <Image
-                                    src={`${logoBaseUrl}${movie.logo_path}`}
+                                    src={`${LOGO_BASE}${movie.logo_path}`}
                                     alt={movie.title || movie.name || ''}
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className={styles['hero-logo']}
+                                    className={styles.logoImage}
+                                    priority
                                 />
                             </div>
                         ) : (
                             <span>{movie.title || movie.name}</span>
                         )}
-                    </div>
+                    </motion.div>
 
-                    {/* Animated Tags */}
-                    <div className={styles['meta-tags']}>
-                        <div className={styles['rating-item']}>
-                            {/* Star Icon */}
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                            </svg>
-                            <span className="text-white ml-2">{(movie.vote_average || 0).toFixed(1)}</span>
-                        </div>
-
-                        <span className={styles.separator}>•</span>
-                        <span>{(() => {
-                            const date = movie.release_date || movie.first_air_date;
-                            return date ? new Date(date).getFullYear() : 'N/A';
-                        })()}</span>
-
-                        <span className={styles.separator}>•</span>
-                        <span className={styles.badge}>{movie.media_type === 'tv' ? 'SERIES' : 'MOVIE'}</span>
-
+                    <motion.div custom={2} variants={textVariants} className={styles.meta}>
+                        <span className={styles.rating}>
+                            <Star size={15} fill="currentColor" />
+                            {(movie.vote_average || 0).toFixed(1)}
+                        </span>
+                        <span>{date ? new Date(date).getFullYear() : 'N/A'}</span>
+                        <span className={styles.typeChip}>{mediaType === 'tv' ? 'Series' : 'Movie'}</span>
                         {movie.genre_ids?.slice(0, 3).map((genreId) => (
-                            <div key={genreId} className="flex items-center">
-                                <span className={styles.separator}>•</span>
-                                <span>{GENRE_MAP[genreId] || 'Genre'}</span>
-                            </div>
+                            <span key={genreId} className={styles.genre}>{GENRE_MAP[genreId] || 'Genre'}</span>
                         ))}
-                    </div>
+                    </motion.div>
 
-                    <p className={styles.description}>
+                    <motion.p custom={3} variants={textVariants} className={styles.description}>
                         {movie.overview}
-                    </p>
+                    </motion.p>
 
                     {/* Wide enough for the action row to stay on one line even
-                        when Play is replaced by the (now much smaller) release
-                        countdown plus Watchlist and More Info. */}
-                    <div className="flex flex-col w-full max-w-xl">
+                        when Play is replaced by the release countdown. */}
+                    <motion.div custom={4} variants={textVariants} className="flex w-full max-w-xl flex-col">
                         <div className={styles.actions}>
                             <PlayButton
                                 id={movie.id}
-                                type={movie.media_type === 'tv' ? 'tv' : 'movie'}
-                                className={styles['btn-play']}
-                                releaseDate={movie.release_date || movie.first_air_date}
+                                type={mediaType}
+                                className={styles.playButton}
+                                releaseDate={date}
                             />
                             <InteractionButtons
                                 contentId={movie.id}
-                                mediaType={movie.media_type === 'tv' ? 'tv' : 'movie'}
+                                mediaType={mediaType}
                                 title={movie.title || movie.name}
                                 poster={movie.poster_path}
                                 showFavorite={false}
                             />
-                            <Link
-                                href={`/details?type=${movie.media_type === 'tv' ? 'series' : 'movie'}&id=${movie.id}`}
-                                className={styles['btn-secondary']}
+                            <Glass
+                                as={Link}
+                                preset="bar"
+                                href={`/details?type=${mediaType === 'tv' ? 'series' : 'movie'}&id=${movie.id}`}
+                                className={styles.infoButton}
+                                data-ripple
                             >
-                                <Info size={24} />
+                                <Info size={20} />
                                 <span>More Info</span>
-                            </Link>
+                            </Glass>
                         </div>
-                        <MediaProgressBar
-                            id={movie.id}
-                            type={movie.media_type === 'tv' ? 'tv' : 'movie'}
-                        />
-                    </div>
+                        <MediaProgressBar id={movie.id} type={mediaType} />
+                    </motion.div>
+                </motion.div>
+            </motion.div>
+
+            {/* Up next: the following slides as glass cards. */}
+            {count > 1 && (
+                <div className={styles.upNext}>
+                    <span className={styles.upNextLabel}>Up next</span>
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        {upNext.map((index) => {
+                            const item = movies[index];
+                            return (
+                                <motion.div
+                                    key={item.id}
+                                    layout
+                                    initial={{ opacity: 0, x: 50 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -30, scale: 0.92 }}
+                                    transition={{ duration: 0.55, ease: EASE }}
+                                >
+                                    <Glass
+                                        as="button"
+                                        preset="card"
+                                        type="button"
+                                        onClick={() => goTo(index)}
+                                        className={styles.upNextCard}
+                                    >
+                                        <span
+                                            className={styles.upNextThumb}
+                                            style={{ backgroundImage: `url(${THUMB_BASE}${item.backdrop_path})` }}
+                                        />
+                                        <span className={styles.upNextText}>
+                                            <span className={styles.upNextTitle}>{item.title || item.name}</span>
+                                            <span className={styles.upNextMeta}>
+                                                {item.media_type === 'tv' ? 'Series' : 'Movie'}
+                                                {' · '}
+                                                <Star size={11} fill="currentColor" className="inline -mt-0.5" /> {(item.vote_average || 0).toFixed(1)}
+                                            </span>
+                                        </span>
+                                    </Glass>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
                 </div>
-            </div>
+            )}
 
-            {/* Navigation Controls */}
-            <div className={`${styles['controls-desktop']} absolute bottom-10 right-10 flex gap-2 z-20`}>
-                <button onClick={handlePrev} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all">
-                    <ChevronLeft size={24} />
-                </button>
-                <button onClick={handleNext} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all">
-                    <ChevronRight size={24} />
-                </button>
-            </div>
-
-            {/* Indicators */}
-            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
-                {movies.map((_, idx) => (
-                    <button
-                        key={idx}
-                        onClick={() => setCurrentIndex(idx)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-8 bg-white' : 'w-2 bg-white/30 hover:bg-white/50'}`}
-                    />
-                ))}
-            </div>
+            {/* Slide controls: arrows and timed indicators. */}
+            {count > 1 && (
+                <div className={styles.controls}>
+                    <Glass as="button" preset="button" type="button" onClick={() => goTo(currentIndex - 1)} className={styles.arrow} aria-label="Previous title">
+                        <ChevronLeft size={20} />
+                    </Glass>
+                    <div className={styles.indicators}>
+                        {movies.map((item, index) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => goTo(index)}
+                                className={`${styles.indicator} ${index === currentIndex ? styles.indicatorActive : ''}`}
+                                aria-label={`Show ${item.title || item.name}`}
+                            >
+                                {index === currentIndex && (
+                                    <span
+                                        key={`${item.id}-${paused}`}
+                                        className={styles.indicatorFill}
+                                        style={{ animationDuration: `${SLIDE_SECONDS}s`, animationPlayState: paused ? 'paused' : 'running' }}
+                                    />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                    <Glass as="button" preset="button" type="button" onClick={() => goTo(currentIndex + 1)} className={styles.arrow} aria-label="Next title">
+                        <ChevronRight size={20} />
+                    </Glass>
+                </div>
+            )}
         </div>
     );
 }

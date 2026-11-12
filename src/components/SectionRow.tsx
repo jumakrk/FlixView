@@ -1,11 +1,13 @@
 'use client';
 
 import { memo } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import MovieCard from './MovieCard';
 import styles from './SectionRow.module.css';
 import { Movie } from '@/lib/tmdb';
+import Rail from './ui/Rail';
+import { Reveal, RevealGroup, RevealItem } from './ui/Reveal';
 
 interface SectionRowProps {
     title: string;
@@ -19,25 +21,24 @@ function SectionRow({ title, movies, viewAllHref = '/movies' }: SectionRowProps)
 
     return (
         <section className={styles.section}>
-            <div className={styles.header}>
-                <h2 className={styles.title}>
-                    {title}
-                </h2>
+            <Reveal className={styles.header}>
+                <h2 className={styles.title}>{title}</h2>
                 {viewAllHref !== null && (
-                    <Link
-                        href={viewAllHref}
-                        className={styles['view-all']}
-                    >
-                        View All <ChevronRight size={16} />
+                    <Link href={viewAllHref} className={styles['view-all']}>
+                        View all <ArrowRight size={15} />
                     </Link>
                 )}
-            </div>
+            </Reveal>
 
-            <div className={styles.rail}>
-                {movies.map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} className="flex-shrink-0" />
-                ))}
-            </div>
+            <RevealGroup>
+                <Rail className={styles.rail}>
+                    {movies.map((movie) => (
+                        <RevealItem key={movie.id} className="flex-shrink-0">
+                            <MovieCard movie={movie} />
+                        </RevealItem>
+                    ))}
+                </Rail>
+            </RevealGroup>
         </section>
     );
 }

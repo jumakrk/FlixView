@@ -26,7 +26,7 @@
 }
 
 .mobileNavLink:hover {
-    color: #fff;
+    color: var(--sand);
 }
 
 /* --- Mobile Responsiveness --- */

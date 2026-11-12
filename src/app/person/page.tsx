@@ -15,7 +15,7 @@ function PersonContent() {
 
 export default function PersonPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <Suspense fallback={<div className="min-h-screen" />}>
             <PersonContent />
         </Suspense>
     );

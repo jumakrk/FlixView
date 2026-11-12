@@ -1,45 +1,85 @@
 .filterBar {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    gap: 14px;
     margin-bottom: 32px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    padding: 14px 16px;
+    border-radius: 24px;
 }
 
-.selectWrapper {
-    flex: 1;
-    min-width: 150px;
+.topRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.yearPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 6px 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--primary-bright);
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s;
+}
+
+.yearPill:hover,
+.yearPill:focus-within {
+    border-color: rgba(221, 213, 193, 0.45);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .select {
-    width: 100%;
-    background: #111;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 10px 16px;
-    border-radius: 8px;
-    outline: none;
+    padding: 10px 30px 10px 0;
+    border: 0;
+    background-color: transparent;
+    color: var(--sand);
+    font: inherit;
     font-size: 14px;
+    font-weight: 600;
+    outline: none;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f0ede4'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
+    background-position: right 8px center;
+    background-size: 14px;
     cursor: pointer;
-    transition: border-color 0.2s;
 }
 
-.select:focus {
-    border-color: var(--primary);
+.select option {
+    background-color: #0b1715;
+    color: var(--sand);
 }
 
-@media (max-width: 768px) {
-    .filterBar {
-        flex-direction: column;
-    }
+.reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+}
+
+.reset:hover {
+    color: var(--sand);
+    border-color: rgba(248, 113, 113, 0.5);
+    background: rgba(248, 113, 113, 0.12);
 }

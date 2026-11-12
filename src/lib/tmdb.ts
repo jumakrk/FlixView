@@ -516,6 +516,7 @@ export interface PersonDetails {
     biography: string;
     profile_path: string | null;
     birthday: string | null;
+    deathday?: string | null;
     place_of_birth: string | null;
     known_for_department: string;
     also_known_as: string[];
@@ -523,6 +524,7 @@ export interface PersonDetails {
 
 export interface PersonCredits {
     cast: (Movie & { character: string })[];
+    crew?: (Movie & { job: string; department?: string })[];
 }
 
 export const fetchPersonDetails = async (id: string): Promise<PersonDetails | null> => {
@@ -574,6 +576,9 @@ export const fetchDiscover = async (
                 'Release Date Descending': type === 'movie' ? 'release_date.desc' : 'first_air_date.desc'
             };
             url += `&sort_by=${sortMap[sortBy] || 'popularity.desc'}`;
+            // Rating sorts need a vote floor, or obscure titles with a single 10/10
+            // vote crowd out everything else.
+            if (sortBy === 'Rating Descending') url += '&vote_count.gte=300';
         } else {
             url += `&sort_by=popularity.desc`;
         }
@@ -640,10 +645,18 @@ export const fetchBrandContent = async (
             url += `&with_genres=${genreId}`;
         }
 
-        if (sortBy) {
-            url += `&sort_by=${sortBy}`;
+        const sort = sortBy || 'popularity.desc';
+        if (sort === 'primary_release_date.desc') {
+            // "Newest": TV uses first_air_date, and titles dated in the future
+            // are left out so it lists what has actually come out.
+            const field = mediaType === 'tv' ? 'first_air_date' : 'primary_release_date';
+            const today = new Date().toISOString().slice(0, 10);
+            url += `&sort_by=${field}.desc&${field}.lte=${today}`;
         } else {
-            url += `&sort_by=popularity.desc`;
+            url += `&sort_by=${sort}`;
+            // Rating sorts need a vote floor, or obscure titles with a single
+            // 10/10 vote crowd out everything else.
+            if (sort.startsWith('vote_average')) url += '&vote_count.gte=150';
         }
 
         const res = await fetch(url, { next: { revalidate: 3600 } });

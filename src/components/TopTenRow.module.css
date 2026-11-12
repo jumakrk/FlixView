@@ -1,16 +1,7 @@
 .section {
-    padding: 40px 0;
+    padding: 20px 0 6px;
     position: relative;
     z-index: 10;
-}
-
-.title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-left: 4%;
-    margin-bottom: 30px;
-    color: #fff;
-    letter-spacing: 0.5px;
 }
 
 .rail {
@@ -20,7 +11,7 @@
     overflow-y: hidden;
     /* Top padding prevents clipping. The left edge matches every other row
        (4%) so the first poster lines up with the rows and brands around it. */
-    padding: 60px 4% 40px 4%;
+    padding: 46px 4% 44px 4%;
     scroll-behavior: smooth;
     /* Lets .rank size its offset to this rail's left padding (cqw units). */
     container-type: inline-size;
@@ -55,7 +46,7 @@
 
 .item:hover .rank {
     -webkit-text-stroke: 2px var(--primary);
-    color: rgba(124, 58, 237, 0.15);
+    color: rgba(31, 128, 115, 0.15);
     transform: scale(1.1) translate(5px, -5px);
     filter: drop-shadow(0 0 20px var(--primary-glow));
 }
@@ -66,11 +57,6 @@
 }
 
 @media (max-width: 768px) {
-    .title {
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
-
     .rank {
         font-size: 100px;
         bottom: -15px;

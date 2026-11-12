@@ -74,10 +74,48 @@ function VideoPlayer({
         frame.contentWindow?.focus();
     }, []);
 
+    // Chromium sends mouse input to the player (a cross-origin iframe, so a
+    // separate process) using a hit-test map of where the frame sits. Leaving
+    // fullscreen can leave that map at fullscreen size: every click anywhere
+    // in the app then lands in the player (toggling play/pause) and its own
+    // controls get the wrong coordinates. Resizing the frame by a pixel for
+    // two frames forces a fresh map.
+    const refreshFrameHitTest = useCallback(() => {
+        const frame = iframeRef.current;
+        if (!frame) return;
+        frame.style.width = 'calc(100% - 1px)';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            frame.style.width = '';
+        }));
+    }, []);
+
     const sendFullscreenState = useCallback(() => {
         const on = !!containerRef.current && document.fullscreenElement === containerRef.current;
         postToPlayer({ type: 'vidrift:fullscreen-state', on });
     }, [postToPlayer]);
+
+    // On every fullscreen change, and again as the window settles back to its
+    // size (Electron restores the maximised window after the event fires).
+    const settleUntil = useRef(0);
+    const onFullscreenChange = useCallback(() => {
+        sendFullscreenState();
+        refreshFrameHitTest();
+        settleUntil.current = performance.now() + 1500;
+    }, [sendFullscreenState, refreshFrameHitTest]);
+
+    useEffect(() => {
+        let timer = 0;
+        const onResize = () => {
+            if (performance.now() > settleUntil.current) return;
+            window.clearTimeout(timer);
+            timer = window.setTimeout(refreshFrameHitTest, 120);
+        };
+        window.addEventListener('resize', onResize);
+        return () => {
+            window.removeEventListener('resize', onResize);
+            window.clearTimeout(timer);
+        };
+    }, [refreshFrameHitTest]);
 
     const handleLoad = useCallback(() => {
         focusPlayer();
@@ -140,12 +178,12 @@ function VideoPlayer({
             }
         };
         window.addEventListener('message', handleMessage);
-        document.addEventListener('fullscreenchange', sendFullscreenState);
+        document.addEventListener('fullscreenchange', onFullscreenChange);
         return () => {
             window.removeEventListener('message', handleMessage);
-            document.removeEventListener('fullscreenchange', sendFullscreenState);
+            document.removeEventListener('fullscreenchange', onFullscreenChange);
         };
-    }, [isReady, sendFullscreenState]);
+    }, [isReady, onFullscreenChange]);
 
     useEffect(() => {
         let isMounted = true;

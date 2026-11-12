@@ -1,396 +1,357 @@
-/* Full Screen Immersive Hero */
 .hero {
     position: relative;
-    height: 100vh;
-    /* Fallback */
-    height: 100dvh;
-    /* Dynamic Viewport Height */
-    width: 100%;
+    height: min(92vh, 980px);
+    min-height: 620px;
+    /* Runs up under the title bar so the backdrop fills the top of the window. */
+    margin-top: calc(var(--titlebar-height) * -1);
     overflow: hidden;
-    /* Ensure clean sans-serif inheritance */
+    isolation: isolate;
 }
 
-@media (max-width: 1024px) {
-    .controls-desktop {
-        display: none !important;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero {
-        height: 100dvh;
-    }
-
-    .title {
-        font-size: 1.6rem;
-        text-align: center;
-        width: 100%;
-        justify-content: center;
-        min-height: auto;
-    }
-
-    .hero-logo-container {
-        margin: 0 auto 1.5rem auto;
-        /* Center container */
-        max-width: 100%;
-        /* Ensure it fits screen width if needed */
-    }
-
-    .hero-logo {
-        object-position: center bottom;
-        /* Center image */
-    }
-
-    .meta-tags {
-        justify-content: center;
-        font-size: 11px;
-        gap: 6px;
-    }
-
-    .description {
-        font-size: 0.85rem;
-        text-align: center;
-        max-width: 100%;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        /* Even shorter for mobile */
-        margin-bottom: 15px;
-    }
-
-    .content {
-        padding: 0 5%;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        width: 100%;
-        max-width: 400px;
-        /* Prevent overly wide buttons on larger phones */
-    }
-
-    .btn-play {
-        grid-column: span 2;
-        width: 100%;
-        padding: 14px;
-        font-size: 16px;
-        justify-content: center;
-    }
-
-    .btn-wishlist,
-    .btn-secondary {
-        width: 100%;
-        padding: 12px;
-        font-size: 14px;
-        justify-content: center;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-play svg,
-    .btn-wishlist svg,
-    .btn-secondary svg {
-        width: 20px !important;
-        height: 20px !important;
-    }
-}
-
-/* Small Laptop / Tablet refinements */
-@media (min-width: 769px) and (max-width: 1280px) {
-    .title {
-        font-size: 2.5rem;
-        /* Slightly smaller for tablets */
-    }
-
-    .description {
-        font-size: 0.95rem;
-        max-width: 450px;
-    }
-}
-
-.hero-bg {
+/* --- Backdrop --- */
+.backdropLayer {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center top;
-    /* Focus on faces usually at top */
-    animation: fadeIn 0.8s ease-out forwards;
+    inset: -4% 0;
+    z-index: -2;
+    will-change: transform;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-/* Vignette & Gradients - Adjusted for the "Dark Left/Bottom" look */
-.overlay {
+.backdrop {
     position: absolute;
     inset: 0;
-    background:
-        linear-gradient(to right, var(--background) 0%, rgba(10, 8, 20, 0.8) 20%, rgba(10, 8, 20, 0.4) 40%, transparent 100%),
-        linear-gradient(to top, 
-            var(--background) 0%, 
-            var(--background) 5%,
-            rgba(10, 8, 20, 0.95) 15%,
-            rgba(10, 8, 20, 0.8) 30%,
-            rgba(10, 8, 20, 0) 60%
-        );
+    overflow: hidden;
 }
 
-/* Content Container */
+.backdropImage {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center 20%;
+    animation: kenburns 18s ease-out forwards;
+    will-change: transform;
+}
+
+.shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(90deg, rgba(4, 11, 10, 0.94) 0%, rgba(4, 11, 10, 0.72) 30%, rgba(4, 11, 10, 0.18) 62%, rgba(4, 11, 10, 0.35) 100%),
+        linear-gradient(0deg, var(--background) 0%, rgba(4, 11, 10, 0.55) 18%, transparent 44%),
+        linear-gradient(180deg, rgba(4, 11, 10, 0.6) 0%, transparent 16%);
+}
+
+/* --- Copy --- */
 .content {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 4%;
+}
+
+.copy {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    /* Center vertically */
-    padding-left: 5%;
-    padding-right: 50%;
-    /* Leave space for the character on the right */
-    z-index: 10;
+    gap: 18px;
+    width: min(620px, 56%);
+    padding-top: 40px;
 }
 
-@media (max-width: 1024px) {
-    .content {
-        padding-right: 5%;
-        justify-content: center;
-        padding-bottom: 0;
-    }
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 13px;
+    border: 1px solid rgba(221, 213, 193, 0.35);
+    border-radius: 999px;
+    background: rgba(31, 128, 115, 0.18);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f0ede4;
 }
 
-.text-wrapper {
-    max-width: 700px;
-    animation: fadeInUp 0.8s ease-out forwards;
+.liveDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ddd5c1;
+    animation: pulse-ring 1.8s ease-out infinite;
 }
 
 .title {
-    /* If text */
-    font-size: clamp(3rem, 5vw, 6rem);
-    font-weight: 900;
-    text-transform: uppercase;
-    line-height: 0.9;
-    margin-bottom: 1.5rem;
-    /* More space below title/logo */
-    color: #fff;
-    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
-    letter-spacing: -1px;
-
-    /* Ensure image logo fits well */
-    display: flex;
-    align-items: flex-end;
-    min-height: 15vh;
-    /* Reserve height for logo */
+    font-size: clamp(2.4rem, 4.6vw, 4.4rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--sand);
+    text-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
 }
 
-.hero-logo-container {
+.logoBox {
     position: relative;
-    width: 100%;
-    max-width: 500px;
-    height: 150px;
-    margin-bottom: 1.5rem;
+    width: min(460px, 100%);
+    height: clamp(110px, 17vh, 180px);
 }
 
-.hero-logo {
+.logoImage {
     object-fit: contain;
-    /* Ensures the image scales down without cropping */
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
+    object-position: left bottom;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.65));
 }
 
-/* Metadata Row */
-.meta-tags {
+.meta {
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #e5e5e5;
-    font-weight: 500;
-    opacity: 0;
-    animation: fadeInUp 0.8s ease-out 0.2s forwards;
-}
-
-.rating-item {
-    display: flex;
     align-items: center;
-    gap: 4px;
-    color: #fbbf24;
-    /* Amber star color */
+    gap: 10px 14px;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-weight: 700;
+    color: #fbbf24;
 }
 
-.separator {
-    color: #666;
-}
-
-.badge {
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    padding: 2px 6px;
-    border-radius: 4px;
+.typeChip {
+    padding: 2px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
     font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background: rgba(0, 0, 0, 0.3);
+}
+
+.genre {
+    padding: 3px 11px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.09);
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .description {
-    font-size: 1.1rem;
+    margin: 0;
+    max-width: 560px;
+    font-size: 16.5px;
     line-height: 1.6;
-    color: #d1d5db;
-    margin-bottom: 25px;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    color: rgba(255, 255, 255, 0.78);
     display: -webkit-box;
     -webkit-line-clamp: 3;
     line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    opacity: 0;
-    animation: fadeInUp 0.8s ease-out 0.3s forwards;
-    width: 100%;
-    max-width: 600px;
 }
 
-/* Actions */
 .actions {
     display: flex;
-    /* Wrap instead of squashing: a flex item that runs out of room must move to
-       the next line, never deform its background/padding. */
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 16px;
-    opacity: 0;
-    animation: fadeInUp 0.8s ease-out 0.4s forwards;
-}
-
-.btn-play {
-    background: #fff;
-    color: #000;
-    padding: 10px 28px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 18px;
-    border: none;
-    cursor: pointer;
-    display: flex;
     align-items: center;
     gap: 12px;
-    transition: all 0.2s;
-    white-space: nowrap;
-    /* Keep the button (or the upcoming-release countdown that replaces it) at
-       its natural size so the row can never squeeze it out of shape. */
-    flex: 0 0 auto;
+    margin-top: 6px;
 }
 
-.btn-play:hover {
-    background: rgba(255, 255, 255, 0.8);
-    transform: scale(1.05);
+.playButton {
+    background: var(--sand);
+    color: #00332e;
+    box-shadow: 0 10px 34px rgba(255, 255, 255, 0.22);
+    transition: transform 0.35s var(--ease-spring), box-shadow 0.3s;
 }
 
-.btn-wishlist,
-.btn-secondary {
-    background: rgba(109, 109, 110, 0.4);
-    backdrop-filter: blur(10px);
-    color: #fff;
-    padding: 10px 28px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 18px;
-    border: none;
-    cursor: pointer;
-    display: flex;
+.playButton:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 14px 44px rgba(255, 255, 255, 0.34);
+}
+
+.playButton:active {
+    transform: scale(0.97);
+}
+
+.infoButton {
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    transition: all 0.2s;
+    gap: 9px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    font-weight: 700;
+    color: var(--sand);
     text-decoration: none;
     white-space: nowrap;
-    flex: 0 0 auto;
+    transition: transform 0.35s var(--ease-spring);
 }
 
-.btn-wishlist:hover,
-.btn-secondary:hover {
-    background: rgba(109, 109, 110, 0.6);
-    transform: scale(1.05);
+.infoButton:hover {
+    transform: translateY(-2px) scale(1.03);
 }
 
-/* Navigation Controls - Side Arrows */
-.nav-btn {
+/* --- Up next stack --- */
+.upNext {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
+    right: 4%;
+    bottom: 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 300px;
+}
+
+.upNextLabel {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.upNextCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    border-radius: 18px;
+    color: var(--sand);
+    font: inherit;
+    text-align: left;
     cursor: pointer;
-    padding: 20px;
-    z-index: 20;
-    transition: color 0.3s, transform 0.2s;
+    transition: transform 0.4s var(--ease-spring);
 }
 
-.nav-btn:hover {
-    color: #fff;
-    transform: translateY(-50%) scale(1.2);
+.upNextCard:hover {
+    transform: translateX(-8px) scale(1.02);
 }
 
-.prev {
-    left: 10px;
+.upNextThumb {
+    width: 112px;
+    aspect-ratio: 16 / 9;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.08);
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
 
-.next {
-    right: 10px;
+.upNextText {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.upNextTitle {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-/* Tablet & Mobile: Icon-only buttons or when space is tight.
-   Raised from 1350px to 1440px because an upcoming title replaces Play with the
-   (wider) release countdown, which would otherwise push the labelled More Info
-   button onto a second line between 1350px and 1440px. */
-@media (max-width: 1440px) {
+.upNextMeta {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+}
 
-    .btn-wishlist span,
-    .btn-secondary span {
+/* --- Slide controls --- */
+.controls {
+    position: absolute;
+    right: 4%;
+    bottom: 34px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    color: var(--sand);
+    cursor: pointer;
+    transition: transform 0.35s var(--ease-spring);
+}
+
+.arrow:hover {
+    transform: scale(1.12);
+}
+
+.indicators {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.indicator {
+    position: relative;
+    width: 10px;
+    height: 4px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+    overflow: hidden;
+    cursor: pointer;
+    transition: width 0.5s var(--ease-out), background 0.3s;
+}
+
+.indicator:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.indicatorActive {
+    width: 46px;
+}
+
+.indicatorFill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--sand);
+    transform-origin: left;
+    animation: indicator-fill linear forwards;
+}
+
+@keyframes indicator-fill {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@media (max-width: 1180px) {
+    .upNext {
         display: none;
     }
 
-    .btn-wishlist,
-    .btn-secondary {
-        /* Square icon button: fixed box so it stays symmetrical now that the
-           label is gone. */
-        padding: 0;
-        width: 48px;
-        height: 48px;
-        gap: 0;
-        justify-content: center;
+    .copy {
+        width: min(620px, 80%);
+    }
+}
+
+@media (max-width: 640px) {
+    .hero {
+        min-height: 540px;
+    }
+
+    .copy {
+        width: 100%;
+    }
+
+    .description {
+        font-size: 15px;
     }
 }

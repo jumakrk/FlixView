@@ -3,6 +3,7 @@ import SectionRow from '@/components/SectionRow';
 import DiscoverFilters from '@/components/DiscoverFilters';
 import ContentGrid from '@/components/ContentGrid';
 import { Suspense } from 'react';
+import PageHeader from '@/components/ui/PageHeader';
 
 export default async function MoviesPage() {
     const popular = await fetchPopularMovies();
@@ -10,10 +11,8 @@ export default async function MoviesPage() {
     const upcoming = await fetchUpcoming();
 
     return (
-        <div className="min-h-screen pt-24 pb-20 bg-black">
-            <div className="px-[4%]">
-                <h1 className="text-4xl font-bold mb-10 text-white">Movies</h1>
-            </div>
+        <div className="min-h-screen pb-20">
+            <PageHeader eyebrow="Browse" title="Movies" subtitle="Now playing, coming soon, and the whole catalogue to explore." />
 
             {/* Curated Sections */}
             <div className="space-y-4 mb-16">
@@ -23,7 +22,7 @@ export default async function MoviesPage() {
 
             {/* Discover Section */}
             <div className="px-[4%] mt-20">
-                <h2 className="text-2xl font-bold mb-6 text-white">Discover Movies</h2>
+                <h2 className="text-3xl font-bold mb-6 text-gradient">Discover Movies</h2>
                 <Suspense fallback={<div className="h-12 w-full animate-pulse bg-white/5 rounded-lg mb-8" />}>
                     <DiscoverFilters />
                 </Suspense>

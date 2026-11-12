@@ -11,6 +11,9 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import styles from './ExpandableDescription.module.css';
+import { AnimatePresence, motion } from 'framer-motion';
+import OriginPop from './ui/OriginPop';
+import { useScrollLock } from '@/lib/useScrollLock';
 
 interface ExpandableDescriptionProps {
     /** Plain text description (HTML should already be stripped). */
@@ -96,12 +99,11 @@ export default function ExpandableDescription({
         };
     }, [cleanText, lines]);
 
-    // Lock background scrolling and wire Escape / focus while the modal is open.
+    useScrollLock(isOpen);
+
+    // Wire Escape / focus while the modal is open.
     useEffect(() => {
         if (!isOpen) return;
-
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -118,7 +120,6 @@ export default function ExpandableDescription({
         const trigger = triggerRef.current;
 
         return () => {
-            document.body.style.overflow = previousOverflow;
             document.removeEventListener('keydown', handleKeyDown);
             window.clearTimeout(focusTimer);
             if (trigger?.isConnected) trigger.focus();
@@ -150,13 +151,20 @@ export default function ExpandableDescription({
                 )}
             </div>
 
-            {isOpen && typeof document !== 'undefined' && createPortal(
-                <div
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                {isOpen && (
+                <motion.div
                     className={styles.overlay}
+                    data-lenis-prevent
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, transition: { duration: 0.24 } }}
                     onMouseDown={(event) => {
                         if (event.target === event.currentTarget) setIsOpen(false);
                     }}
                 >
+                    <OriginPop className={styles.pop}>
                     <div
                         className={styles.modal}
                         role="dialog"
@@ -188,7 +196,10 @@ export default function ExpandableDescription({
                             <p>{cleanText}</p>
                         </div>
                     </div>
-                </div>,
+                    </OriginPop>
+                </motion.div>
+                )}
+                </AnimatePresence>,
                 document.body
             )}
         </>

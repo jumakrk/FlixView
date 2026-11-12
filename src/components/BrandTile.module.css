@@ -1,0 +1,131 @@
+.tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    aspect-ratio: 16 / 9;
+    flex-shrink: 0;
+    border-radius: 22px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--sand);
+    background:
+        radial-gradient(120% 90% at 50% 120%, var(--brand-faint), transparent 70%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
+        #0a1513;
+    box-shadow:
+        0 10px 26px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    /* Set by useTilt. */
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --glare-x: 50%;
+    --glare-y: 0%;
+    transform: perspective(800px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
+}
+
+.tile:hover {
+    transform: perspective(800px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-8px);
+    transition-duration: 0.12s, 0.45s;
+    box-shadow:
+        0 24px 50px rgba(0, 0, 0, 0.5),
+        0 14px 50px var(--brand-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 0 0 1px var(--brand-soft);
+}
+
+/* Colour that floods up from the bottom on hover, plus a pointer glare. */
+.glow {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at var(--glare-x) var(--glare-y), rgba(255, 255, 255, 0.16), transparent 45%),
+        radial-gradient(130% 100% at 50% 110%, var(--brand-soft), transparent 65%);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+}
+
+.tile:hover .glow {
+    opacity: 1;
+}
+
+.logo {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    transition: transform 0.5s var(--ease-out);
+}
+
+/* The logo is fitted inside a fixed box, whatever its own proportions
+   (BrandLogo sets inline width/height, hence !important). */
+.logo img {
+    position: absolute;
+    inset: 20px 30px 6px;
+    width: calc(100% - 60px) !important;
+    height: calc(100% - 26px) !important;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+}
+
+.tile:hover .logo {
+    transform: scale(1.08) translateY(-4px);
+}
+
+.footer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 14px 11px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.name {
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.3s;
+}
+
+.tile:hover .name {
+    color: var(--sand);
+}
+
+.explore {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    color: var(--sand);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.3s, transform 0.4s var(--ease-out);
+}
+
+.tile:hover .explore {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.small {
+    width: 190px;
+    border-radius: 18px;
+}
+
+.small .logo img {
+    inset: 14px 22px 4px;
+    width: calc(100% - 44px) !important;
+    height: calc(100% - 18px) !important;
+}
+
+@media (max-width: 768px) {
+    .tile {
+        width: 190px;
+    }
+}

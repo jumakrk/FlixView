@@ -1,4 +1,4 @@
-const { ipcMain, dialog, session } = require('electron');
+const { ipcMain, dialog, session, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const {
@@ -88,6 +88,8 @@ function registerStorageIpc({ getMainWindow }) {
 
     // Where the user's data actually lives on disk (shown in Settings).
     ipcMain.handle('get-data-path', () => DATA_ROOT);
+    // Fixed path from the main process; the renderer cannot pass its own.
+    ipcMain.handle('open-data-folder', () => shell.openPath(DATA_ROOT));
 
     // --- Export / Import ---
 

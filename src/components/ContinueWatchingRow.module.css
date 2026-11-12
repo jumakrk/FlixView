@@ -1,56 +1,21 @@
 .section {
-    padding: 10px 0;
+    padding: 14px 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
     position: relative;
     z-index: 10;
-}
-
-.header {
-    padding: 0 4%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.title {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.title::before {
-    content: '';
-    display: block;
-    width: 4px;
-    height: 24px;
-    background: var(--primary);
-    box-shadow: 0 0 15px var(--primary-glow);
-    border-radius: 4px;
 }
 
 .rail {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 16px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 10px 4% 25px 4%;
-    /* Bottom padding allows for hover scale/glow without clipping */
+    /* Vertical padding leaves room for the cards' hover lift and glow. */
+    padding: 22px 4% 34px;
     scroll-behavior: smooth;
-    min-height: 340px;
-    /* Stable height for 200x300 posters + padding */
-}
-
-/* Add empty space at end to allow last item to be fully seen */
-.rail::after {
-    content: '';
-    min-width: 4%;
-    height: 1px;
 }
 
 .item {
@@ -58,15 +23,4 @@
     flex-direction: column;
     position: relative;
     flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-    .title {
-        font-size: 20px;
-    }
-
-    .rail {
-        gap: 12px;
-        padding-bottom: 30px;
-    }
 }

@@ -196,6 +196,9 @@ export interface AnimePageOptions {
     seasonYear?: number;
     status?: string;
     search?: string;
+    genre?: string;
+    /** Leave out titles with this status (e.g. NOT_YET_RELEASED). */
+    statusNot?: string;
 }
 
 export async function fetchAnimePage(options: AnimePageOptions = {}): Promise<AniListPage> {
@@ -209,6 +212,8 @@ export async function fetchAnimePage(options: AnimePageOptions = {}): Promise<An
         seasonYear,
         status,
         search,
+        genre,
+        statusNot,
     } = options;
 
     const variableDefs = ['$page: Int', '$perPage: Int', '$sort: [MediaSort]'];
@@ -247,6 +252,18 @@ export async function fetchAnimePage(options: AnimePageOptions = {}): Promise<An
         variableDefs.push('$status: MediaStatus');
         args.push('status: $status');
         variables.status = status;
+    }
+
+    if (statusNot) {
+        variableDefs.push('$statusNot: MediaStatus');
+        args.push('status_not: $statusNot');
+        variables.statusNot = statusNot;
+    }
+
+    if (genre) {
+        variableDefs.push('$genre: String');
+        args.push('genre: $genre');
+        variables.genre = genre;
     }
 
     if (search) {

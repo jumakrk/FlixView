@@ -56,3 +56,6 @@ trending.gz
 
 # AI coding tool project state
 .freebuff/
+
+# Local Claude Code preview config
+.claude/

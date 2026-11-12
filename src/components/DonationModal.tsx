@@ -3,6 +3,10 @@
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
+import Glass from './ui/Glass';
+import OriginPop from './ui/OriginPop';
+import { useScrollLock } from '@/lib/useScrollLock';
 
 interface DonationModalProps {
     isOpen: boolean;
@@ -10,8 +14,9 @@ interface DonationModalProps {
 }
 
 export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
+    useScrollLock(isOpen);
     // The portal needs a live document; static-export prerendering has none.
-    if (!isOpen || typeof document === 'undefined') return null;
+    if (typeof document === 'undefined') return null;
 
     return createPortal(
         <>
@@ -24,8 +29,18 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
                 }
             `}</style>
-            <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="relative bg-[#1a1a1a] border border-white/10 p-8 rounded-2xl max-w-md w-full mx-4 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+            <AnimatePresence>
+            {isOpen && (
+            <motion.div
+                data-lenis-prevent
+                className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/55"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.24 } }}
+                onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
+            >
+                <OriginPop className="max-w-md w-full mx-4">
+                <Glass preset="panel" className="p-8 rounded-[28px] w-full">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
@@ -72,8 +87,11 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
                             />
                         </Link>
                     </div>
-                </div>
-            </div>
+                </Glass>
+                </OriginPop>
+            </motion.div>
+            )}
+            </AnimatePresence>
         </>,
         document.body
     );

@@ -14,7 +14,7 @@
 .title {
     font-size: 24px;
     font-weight: 700;
-    color: #fff;
+    color: var(--sand);
 }
 
 .selectWrapper {
@@ -28,7 +28,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    color: #fff;
+    color: var(--sand);
     padding: 12px 40px 12px 20px;
     font-size: 15px;
     font-weight: 500;
@@ -43,8 +43,8 @@
 }
 
 .select option {
-    background-color: #1e1b2e;
-    color: #fff;
+    background-color: #0f1d1b;
+    color: var(--sand);
 }
 
 .selectIcon {
@@ -110,7 +110,7 @@
 
 .episodeCard:hover {
     background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(124, 58, 237, 0.3);
+    border-color: rgba(31, 128, 115, 0.3);
     transform: translateX(10px);
 }
 
@@ -136,7 +136,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--sand);
 }
 
 .episodeOverlay {
@@ -198,7 +198,7 @@
 .episodeName {
     font-size: 18px;
     font-weight: 700;
-    color: #fff;
+    color: var(--sand);
 }
 
 .episodeOverview {

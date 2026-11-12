@@ -24,6 +24,7 @@ import MediaProgressBar from '@/components/MediaProgressBar';
 import AnimeEpisodeList from '@/components/AnimeEpisodeList';
 import SectionRow from '@/components/SectionRow';
 import ExpandableDescription from '@/components/ExpandableDescription';
+import { Reveal } from '@/components/ui/Reveal';
 
 export default function AnimeDetailsClient({ id }: { id: string }) {
     const [media, setMedia] = useState<AniListMedia | null>(null);
@@ -88,7 +89,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
     if (notFound || !media) {
         return (
-            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+            <div className="min-h-screen text-white flex flex-col items-center justify-center gap-4">
                 <h1 className="text-2xl font-bold">Anime not found</h1>
                 <p className="text-gray-400">AniList could not find an anime with ID {id}.</p>
                 <Link href="/anime" className="px-5 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 font-semibold transition-colors">
@@ -209,7 +210,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                 )}
 
                 {/* Details Grid */}
-                <section>
+                <Reveal>
                     <h2 className={styles.sectionTitle}>Details</h2>
                     <div className={styles.detailsGrid}>
                         <div>
@@ -251,7 +252,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                             </span>
                         </div>
                     </div>
-                </section>
+                </Reveal>
 
                 {/* Recommendations from AniList */}
                 {recommendations.length > 0 && (

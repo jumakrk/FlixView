@@ -82,7 +82,7 @@
 }
 
 .nav-link:hover {
-    color: #fff;
+    color: var(--sand);
     transform: translateY(-2px);
 }
 
@@ -113,7 +113,7 @@
 .icon-btn {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
+    color: var(--sand);
     cursor: pointer;
     padding: 10px;
     border-radius: 50%;
@@ -146,7 +146,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 100px;
-    color: #fff;
+    color: var(--sand);
     padding: 8px 16px;
     outline: none;
     width: 200px;
@@ -189,7 +189,7 @@
 }
 
 .mobile-nav-link:hover {
-    color: #fff;
+    color: var(--sand);
 }
 
 /* --- Tablet Responsiveness (Icons only in top bar) --- */

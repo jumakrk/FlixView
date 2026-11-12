@@ -13,6 +13,7 @@ import MediaProgressBar from '@/components/MediaProgressBar';
 import Image from 'next/image';
 import InteractionButtons from '@/components/InteractionButtons';
 import ExpandableDescription from '@/components/ExpandableDescription';
+import { Reveal } from '@/components/ui/Reveal';
 
 export default function DetailsClient({ id, type }: { id: string; type: string }) {
     const mediaType = (type === 'series' || type === 'tv') ? 'tv' : 'movie';
@@ -97,7 +98,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
         );
     }
 
-    const imageBaseUrl = 'https://image.tmdb.org/t/p/original';
+    const imageBaseUrl = 'https://image.tmdb.org/t/p/w1280';
     const profileBaseUrl = 'https://image.tmdb.org/t/p/w185';
     const logoBaseUrl = 'https://image.tmdb.org/t/p/w500';
 
@@ -204,7 +205,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
             <div className={styles.mainContent}>
                 {/* Cast Section */}
                 {credits && credits.length > 0 && (
-                    <section>
+                    <Reveal>
                         <h2 className={styles.sectionTitle}>Top Cast</h2>
                         <div className={styles.castRail}>
                             {credits.map((person) => (
@@ -223,7 +224,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                                 </Link>
                             ))}
                         </div>
-                    </section>
+                    </Reveal>
                 )}
 
                 {/* Series Seasons & Episodes */}
@@ -235,7 +236,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                 )}
 
                 {/* More Details Grid */}
-                <section>
+                <Reveal>
                     <h2 className={styles.sectionTitle}>Details</h2>
                     <div className={styles.detailsGrid}>
                         <div>
@@ -255,7 +256,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                             </div>
                         )}
                     </div>
-                </section>
+                </Reveal>
 
                 {/* Similar Content */}
                 {similar && similar.length > 0 && (

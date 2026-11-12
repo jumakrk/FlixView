@@ -95,6 +95,7 @@ declare global {
             exportData: () => Promise<{ success: boolean; path?: string; canceled?: boolean; error?: string }>;
             importData: () => Promise<{ success: boolean; canceled?: boolean; error?: string }>;
             getDataPath: () => Promise<string>;
+            openDataFolder?: () => Promise<string>;
 
 
             // Auto Updater

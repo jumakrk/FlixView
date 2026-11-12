@@ -70,12 +70,14 @@ function createWindow() {
             contextIsolation: true,
             preload: path.join(__dirname, '..', 'preload.js'),
         },
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#040b0a',
         show: false,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: '#0a0a0a',
-            symbolColor: '#ffffff',
+            // Fully transparent, so the minimize / maximize / close buttons sit
+            // directly on the app (hero art, aurora) instead of a black box.
+            color: '#00000000',
+            symbolColor: '#f0ede4',
             height: TITLE_BAR_HEIGHT,
         },
     });

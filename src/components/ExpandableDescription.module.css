@@ -22,11 +22,11 @@
     border-radius: 0 0 4px 0;
     background: linear-gradient(
         90deg,
-        rgba(8, 8, 12, 0) 0%,
-        rgba(8, 8, 12, 0.82) 24%,
-        rgba(8, 8, 12, 0.96) 100%
+        rgba(5, 11, 10, 0) 0%,
+        rgba(5, 11, 10, 0.82) 24%,
+        rgba(5, 11, 10, 0.96) 100%
     );
-    color: #c4b5fd;
+    color: #f0ede4;
     font: inherit;
     font-size: 0.82em;
     font-weight: 700;
@@ -40,11 +40,11 @@
 
 .readMore:hover,
 .readMore:focus-visible {
-    color: #ffffff;
+    color: var(--sand);
 }
 
 .readMore:focus-visible {
-    outline: 2px solid #a78bfa;
+    outline: 2px solid #ddd5c1;
     outline-offset: 2px;
 }
 
@@ -62,27 +62,30 @@
     align-items: center;
     justify-content: center;
     padding: clamp(16px, 4vw, 40px);
-    background: rgba(4, 4, 8, 0.74);
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
-    backdrop-filter: blur(14px) saturate(120%);
-    animation: overlayIn 0.18s ease-out both;
+    background: rgba(2, 6, 5, 0.72);
+}
+
+/* Origin-aware wrapper (OriginPop) around the panel. */
+.pop {
+    display: flex;
+    width: min(680px, 100%);
 }
 
 .modal {
-    position: relative;
     display: flex;
     flex-direction: column;
-    width: min(680px, 100%);
+    width: 100%;
     max-height: min(78vh, 760px);
     overflow: hidden;
-    border: 1px solid rgba(139, 92, 246, 0.28);
-    border-radius: 24px;
-    background: linear-gradient(160deg, rgba(24, 20, 38, 0.985), rgba(9, 8, 14, 0.985));
-    box-shadow:
-        0 30px 80px rgba(0, 0, 0, 0.65),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
-        0 0 60px rgba(124, 58, 237, 0.12);
-    animation: modalIn 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    position: relative;
+    /* Solid panel, not liquid glass: a refracting backdrop filter is redrawn on
+       every frame while the text inside scrolls, which made scrolling lag. */
+    border: 1px solid rgba(240, 237, 228, 0.09);
+    border-radius: 28px;
+    background:
+        linear-gradient(180deg, rgba(240, 237, 228, 0.04), rgba(240, 237, 228, 0) 40%),
+        rgba(9, 19, 17, 0.97);
+    box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(240, 237, 228, 0.06);
 }
 
 .modal::before {
@@ -92,7 +95,7 @@
     right: 0;
     left: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.7), transparent);
+    background: linear-gradient(90deg, transparent, rgba(240, 237, 228, 0.7), transparent);
     opacity: 0.7;
     z-index: 1;
 }
@@ -103,9 +106,8 @@
     right: -80px;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(124, 58, 237, 0.3), transparent 70%);
+    background: radial-gradient(circle, rgba(31, 128, 115, 0.3), transparent 70%);
     pointer-events: none;
-    filter: blur(10px);
 }
 
 .header {
@@ -124,7 +126,7 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
-    color: #a78bfa;
+    color: #ddd5c1;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.18em;
@@ -136,13 +138,13 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #7c3aed;
-    box-shadow: 0 0 12px #7c3aed;
+    background: #004741;
+    box-shadow: 0 0 12px #004741;
 }
 
 .modalTitle {
     margin: 0;
-    color: #ffffff;
+    color: var(--sand);
     font-size: clamp(1.25rem, 2.6vw, 1.65rem);
     font-weight: 800;
     line-height: 1.2;
@@ -170,14 +172,14 @@
 
 .close:hover,
 .close:focus-visible {
-    border-color: rgba(196, 181, 253, 0.5);
-    background: rgba(124, 58, 237, 0.22);
-    color: #ffffff;
+    border-color: rgba(240, 237, 228, 0.5);
+    background: rgba(31, 128, 115, 0.22);
+    color: var(--sand);
     transform: rotate(6deg);
 }
 
 .close:focus-visible {
-    outline: 2px solid #a78bfa;
+    outline: 2px solid #ddd5c1;
     outline-offset: 2px;
 }
 
@@ -186,6 +188,8 @@
     z-index: 1;
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* Keeps scrolling the text from repainting the rest of the panel. */
+    contain: content;
     padding: 22px clamp(20px, 3.6vw, 34px) clamp(26px, 3.6vw, 34px);
 }
 
@@ -207,11 +211,11 @@
 
 .body::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: rgba(167, 139, 250, 0.3);
+    background: rgba(221, 213, 193, 0.3);
 }
 
 .body::-webkit-scrollbar-thumb:hover {
-    background: rgba(167, 139, 250, 0.5);
+    background: rgba(221, 213, 193, 0.5);
 }
 
 @keyframes overlayIn {

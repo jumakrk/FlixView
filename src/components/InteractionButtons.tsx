@@ -43,6 +43,7 @@ export default function InteractionButtons({ contentId, mediaType, title = 'Unkn
     return (
         <div className={`flex items-center gap-3 ${className || ''}`}>
             <button
+                data-ripple
                 onClick={() => handleInteraction('watchlist')}
                 className={`flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold transition-all transform active:scale-95 border shrink-0 ${inWatchlist ? 'bg-white text-black border-white hover:bg-gray-200' : 'bg-white/10 text-white border-white/10 hover:bg-white/20 hover:border-white/20 backdrop-blur-md'}`}
             >
@@ -52,8 +53,9 @@ export default function InteractionButtons({ contentId, mediaType, title = 'Unkn
 
             {showFavorite && (
                 <button
+                    data-ripple
                     onClick={() => handleInteraction('favorite')}
-                    className={`p-3.5 rounded-xl border transition-all transform active:scale-95 shrink-0 ${isFav ? 'bg-[#7c3aed] text-white border-[#7c3aed] shadow-lg shadow-purple-900/40' : 'bg-white/10 text-white border-white/10 hover:bg-white/20 hover:border-white/20 backdrop-blur-md'}`}
+                    className={`p-3.5 rounded-xl border transition-all transform active:scale-95 shrink-0 ${isFav ? 'bg-[#004741] text-white border-[#004741] shadow-lg shadow-purple-900/40' : 'bg-white/10 text-white border-white/10 hover:bg-white/20 hover:border-white/20 backdrop-blur-md'}`}
                     title={isFav ? 'Remove from Favorites' : 'Add to Favorites'}
                 >
                     {toggling === 'favorite' ? <Loader2 size={20} className="animate-spin" /> : <Heart size={20} className={isFav ? 'fill-current' : ''} />}

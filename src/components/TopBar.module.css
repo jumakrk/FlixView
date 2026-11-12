@@ -1,38 +1,18 @@
+/* Window drag region across the content area (the native window buttons are
+   drawn over its right end by the title bar overlay). */
 .topBar {
     position: fixed;
     top: 0;
     right: 0;
-    left: 260px;
+    left: var(--sidebar-w);
     height: var(--titlebar-height);
-    /* Just the height of the drag region now */
     z-index: 1100;
-    /* Above sidebar to ensure dragging works across width */
-    display: flex;
-    flex-direction: column;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: left 0.4s var(--ease-out);
 }
 
 .dragRegion {
-    height: var(--titlebar-height);
+    height: 100%;
     width: 100%;
-    background: rgba(0, 0, 0, 0.4);
+    background: linear-gradient(180deg, rgba(4, 11, 10, 0.75), rgba(4, 11, 10, 0));
     -webkit-app-region: drag;
-    backdrop-filter: blur(10px);
-}
-
-.content {
-    display: none;
-}
-
-/* --- Mobile / Tablet Adaptations --- */
-@media (max-width: 1024px) {
-    .topBar {
-        left: 80px;
-    }
-}
-
-@media (max-width: 768px) {
-    .topBar {
-        display: none;
-    }
 }

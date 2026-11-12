@@ -79,7 +79,7 @@ export default function SeasonSelector({ seriesId, seasons, initialSeasonNumber 
                     <div className={styles.skeleton} />
                 </div>
             ) : (
-                <div className={cn(styles.episodeList, listClassName)}>
+                <div className={cn(styles.episodeList, listClassName)} data-lenis-prevent={listClassName ? '' : undefined}>
                     {seasonData?.episodes.map((episode) => {
                         const isComingSoon = !episode.air_date || new Date(episode.air_date) > new Date();
 
@@ -165,7 +165,7 @@ export default function SeasonSelector({ seriesId, seasons, initialSeasonNumber 
                                         <div className="mt-4 flex items-center gap-3">
                                             <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                                                 <div 
-                                                    className="h-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.8)] rounded-full" 
+                                                    className="h-full bg-violet-500 shadow-[0_0_8px_rgba(47,138,127,0.8)] rounded-full" 
                                                     style={{ width: `${percentWatched}%` }}
                                                 />
                                             </div>

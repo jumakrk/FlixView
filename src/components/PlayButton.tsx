@@ -86,6 +86,7 @@ export default function PlayButton({
 
     return (
         <button
+            data-ripple
             onClick={() => openPlayer(id.toString(), type, targetSeason, targetEpisode)}
             className={cn(
                 "relative flex items-center gap-2 rounded-xl font-bold transition-all group whitespace-nowrap",

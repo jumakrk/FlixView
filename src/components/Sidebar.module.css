@@ -1,260 +1,305 @@
+/* Floating frosted rail. Width comes from --sidebar-w (set by AppShell), with
+   a 10px gutter around the panel so the aurora shows through its edges. */
 .sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 260px;
-    height: 100vh;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border-right: 1px solid var(--glass-border);
+    top: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: calc(var(--sidebar-w) - 20px);
     display: flex;
     flex-direction: column;
     z-index: 1000;
-    padding: 20px 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--glass-shadow);
+    padding: 18px 12px 14px;
+    border-radius: var(--radius-lg);
+    transition: width 0.4s var(--ease-out);
+    overflow: hidden;
 }
 
 .logoSection {
-    padding: 20px 30px;
-    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 6px 18px 8px;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 11px;
     text-decoration: none;
+    min-width: 0;
 }
 
 .logoIcon {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    border-radius: 50%;
+    flex-shrink: 0;
+    /* Brand mark: a Cyprus tile with a Sand play symbol (same as the app icon). */
+    background: linear-gradient(150deg, #0a6157 0%, var(--cyprus) 55%, var(--cyprus-deep) 100%);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
-    padding-left: 2px;
-    /* Visual center for play icon */
-    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    color: var(--sand);
+    padding-left: 1px;
+    box-shadow:
+        0 6px 20px rgba(0, 71, 65, 0.6),
+        inset 0 1px 0 rgba(240, 237, 228, 0.35),
+        inset 0 0 0 1px rgba(240, 237, 228, 0.16);
 }
 
 .logoText {
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.5px;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--sand);
+    white-space: nowrap;
+}
+
+.collapseBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+
+.collapseBtn:hover {
+    color: var(--sand);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.searchBtn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.55);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.searchBtn:hover {
+    color: var(--sand);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(221, 213, 193, 0.4);
+}
+
+.kbd {
+    margin-left: auto;
+    padding: 2px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
 }
 
 .nav {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 0 15px;
+    gap: 3px;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.groupLabel {
+    padding: 14px 12px 6px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.28);
+    white-space: nowrap;
 }
 
 .navLink {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 12px 20px;
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    text-decoration: none;
-    font-size: 15px;
+    gap: 13px;
+    width: 100%;
+    padding: 11px 12px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.58);
+    font: inherit;
+    font-size: 14.5px;
     font-weight: 500;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.25s;
 }
 
 .navLink:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateX(5px);
+    color: var(--sand);
 }
 
-.searchSection {
-    margin-bottom: 20px;
+/* Hover wash, behind the label. */
+.navLink::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    transform: scale(0.94);
+    transition: opacity 0.25s, transform 0.35s var(--ease-out);
 }
 
-.searchForm {
-    width: 100%;
-}
-
-.searchInput {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: #fff;
-    padding: 10px 15px;
-    outline: none;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-.searchInput:focus {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #7c3aed;
-    box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
-}
-
-.actionBtn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px 20px;
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.actionBtn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.bottomSection {
-    padding: 0 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding-top: 20px;
-}
-
-.userProfile {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px 20px;
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: all 0.2s;
-    width: 100%;
-    background: transparent;
-    border: none;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.userProfile:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-}
-
-.avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0;
+.navLink:hover::before {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .navLink.active {
-    color: #fff;
-    background: rgba(124, 58, 237, 0.15);
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
-    border: 1px solid rgba(124, 58, 237, 0.3);
+    color: var(--sand);
+    font-weight: 600;
+}
+
+.navLink.active::before {
+    display: none;
+}
+
+.activePill {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+}
+
+.activeGlass {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+}
+
+.icon,
+.label {
+    position: relative;
+    z-index: 1;
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    flex-shrink: 0;
+    transition: transform 0.35s var(--ease-spring);
+}
+
+.navLink:hover .icon {
+    transform: scale(1.14);
 }
 
 .label {
     white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.2s;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.versionSection {
-    margin-top: 20px;
-    padding: 0 4px;
+.bottomSection {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 3px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .versionInfo {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 12px;
+    padding: 10px 12px 0;
 }
 
 .versionLabel {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.28);
+    white-space: nowrap;
 }
 
 .downloadProgress {
     font-size: 11px;
     font-weight: 700;
-    color: var(--primary);
+    color: var(--primary-bright);
 }
 
-/* --- Mobile Responsiveness --- */
+/* --- Collapsed rail (toggle, or automatically on narrow windows) --- */
+.collapsed .logoText,
+.collapsed .label,
+.collapsed .kbd,
+.collapsed .groupLabel,
+.collapsed .versionInfo {
+    display: none;
+}
 
-@media (max-width: 768px) {
-    .sidebar {
-        width: 80px;
-        /* Collapsed width */
-        padding: 20px 0;
+.collapsed .logoSection {
+    flex-direction: column;
+    padding: 4px 0 14px;
+}
+
+.collapsed .navLink,
+.collapsed .searchBtn {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.collapsed .nav {
+    gap: 6px;
+    padding-top: 8px;
+}
+
+@media (max-width: 1024px) {
+    .logoText,
+    .label,
+    .kbd,
+    .groupLabel,
+    .versionInfo,
+    .collapseBtn {
+        display: none;
     }
 
     .logoSection {
-        padding: 20px 0;
-        display: flex;
         justify-content: center;
-    }
-
-    .logoText {
-        display: none;
-        /* Hide logo text */
-    }
-
-    .nav,
-    .bottomSection {
-        padding: 0 10px;
-        /* Adjust padding for collapsed state */
+        padding: 4px 0 14px;
     }
 
     .navLink,
-    .actionBtn,
-    .userProfile {
+    .searchBtn {
         justify-content: center;
-        /* Center icons */
-        gap: 0;
-        padding: 12px 0;
+        padding-left: 0;
+        padding-right: 0;
     }
 
-    .label {
-        display: none;
-        /* Hide labels */
-    }
-
-    .navLink:hover {
-        transform: none;
-        /* Remove transform on hover for collapsed state */
-    }
-
-    .navLink.active {
-        background: linear-gradient(90deg, rgba(124, 58, 237, 0.2) 0%, transparent 100%);
-        border-left: 3px solid #7c3aed;
+    .nav {
+        gap: 6px;
+        padding-top: 8px;
     }
 }

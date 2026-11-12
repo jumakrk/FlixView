@@ -2,98 +2,86 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, Clapperboard, Film, Flame, Loader2, MonitorPlay, Sparkles, Star, Tv } from 'lucide-react';
 import { Movie, fetchBrandContent } from '@/lib/tmdb';
+import { BRANDS, brandColor, findBrand } from '@/lib/brands';
 import MovieCard from '@/components/MovieCard';
 import BrandLogo from '@/components/BrandLogo';
+import BrandTile from '@/components/BrandTile';
 import InfiniteScroll from '@/components/InfiniteScroll';
-import { ChevronLeft, Loader2, ArrowUpDown } from 'lucide-react';
+import Glass from '@/components/ui/Glass';
+import Rail from '@/components/ui/Rail';
+import SegmentedControl from '@/components/ui/SegmentedControl';
+import ChipRail from '@/components/ui/ChipRail';
+import { Reveal } from '@/components/ui/Reveal';
+import rowStyles from '@/components/SectionRow.module.css';
 
 const MOVIE_GENRES = [
-    { id: 28, name: 'Action' },
-    { id: 12, name: 'Adventure' },
-    { id: 16, name: 'Animation' },
-    { id: 35, name: 'Comedy' },
-    { id: 80, name: 'Crime' },
-    { id: 99, name: 'Documentary' },
-    { id: 18, name: 'Drama' },
-    { id: 10751, name: 'Family' },
-    { id: 14, name: 'Fantasy' },
-    { id: 36, name: 'History' },
-    { id: 27, name: 'Horror' },
-    { id: 10402, name: 'Music' },
-    { id: 9648, name: 'Mystery' },
-    { id: 10749, name: 'Romance' },
-    { id: 878, name: 'Science Fiction' },
-    { id: 53, name: 'Thriller' },
-    { id: 10752, name: 'War' },
-    { id: 37, name: 'Western' }
+    { value: 28, label: 'Action' },
+    { value: 12, label: 'Adventure' },
+    { value: 16, label: 'Animation' },
+    { value: 35, label: 'Comedy' },
+    { value: 80, label: 'Crime' },
+    { value: 99, label: 'Documentary' },
+    { value: 18, label: 'Drama' },
+    { value: 10751, label: 'Family' },
+    { value: 14, label: 'Fantasy' },
+    { value: 36, label: 'History' },
+    { value: 27, label: 'Horror' },
+    { value: 10402, label: 'Music' },
+    { value: 9648, label: 'Mystery' },
+    { value: 10749, label: 'Romance' },
+    { value: 878, label: 'Science Fiction' },
+    { value: 53, label: 'Thriller' },
+    { value: 10752, label: 'War' },
+    { value: 37, label: 'Western' }
 ];
 
 const TV_GENRES = [
-    { id: 10759, name: 'Action & Adventure' },
-    { id: 16, name: 'Animation' },
-    { id: 35, name: 'Comedy' },
-    { id: 80, name: 'Crime' },
-    { id: 99, name: 'Documentary' },
-    { id: 18, name: 'Drama' },
-    { id: 10751, name: 'Family' },
-    { id: 10762, name: 'Kids' },
-    { id: 9648, name: 'Mystery' },
-    { id: 10763, name: 'News' },
-    { id: 10764, name: 'Reality' },
-    { id: 10765, name: 'Sci-Fi & Fantasy' },
-    { id: 10766, name: 'Soap' },
-    { id: 10767, name: 'Talk' },
-    { id: 10768, name: 'War & Politics' },
-    { id: 37, name: 'Western' }
+    { value: 10759, label: 'Action & Adventure' },
+    { value: 16, label: 'Animation' },
+    { value: 35, label: 'Comedy' },
+    { value: 80, label: 'Crime' },
+    { value: 99, label: 'Documentary' },
+    { value: 18, label: 'Drama' },
+    { value: 10751, label: 'Family' },
+    { value: 10762, label: 'Kids' },
+    { value: 9648, label: 'Mystery' },
+    { value: 10763, label: 'News' },
+    { value: 10764, label: 'Reality' },
+    { value: 10765, label: 'Sci-Fi & Fantasy' },
+    { value: 10766, label: 'Soap' },
+    { value: 10767, label: 'Talk' },
+    { value: 10768, label: 'War & Politics' },
+    { value: 37, label: 'Western' }
 ];
 
-const SORT_OPTIONS = [
-    { value: 'popularity.desc', label: 'Most Popular' },
-    { value: 'vote_average.desc', label: 'Top Rated' },
-    { value: 'primary_release_date.desc', label: 'Newest' },
-    { value: 'popularity.asc', label: 'Least Popular' }
+type SortValue = 'popularity.desc' | 'vote_average.desc' | 'primary_release_date.desc';
+
+const SORTS = [
+    { value: 'popularity.desc' as const, label: 'Popular', icon: <Flame size={15} /> },
+    { value: 'vote_average.desc' as const, label: 'Top rated', icon: <Star size={15} /> },
+    { value: 'primary_release_date.desc' as const, label: 'Newest', icon: <Sparkles size={15} /> },
 ];
 
-// Brand-specific glow mappings
-const getBrandGlow = (id: string) => {
-    switch (id) {
-        case 'netflix': return 'rgba(229, 9, 20, 0.5)';
-        case 'disney': return 'rgba(0, 210, 255, 0.5)';
-        case 'apple-tv': return 'rgba(255, 255, 255, 0.3)';
-        case 'prime-video': return 'rgba(0, 168, 225, 0.5)';
-        case 'hulu': return 'rgba(28, 231, 131, 0.5)';
-        case 'hbo': return 'rgba(167, 139, 250, 0.5)';
-        case 'paramount-plus': return 'rgba(0, 100, 255, 0.5)';
-        case 'marvel': return 'rgba(229, 9, 20, 0.5)';
-        case 'dc': return 'rgba(0, 75, 255, 0.5)';
-        case 'warner-bros': return 'rgba(255, 215, 0, 0.4)';
-        case 'pixar': return 'rgba(59, 130, 246, 0.4)';
-        case 'disney-pictures': return 'rgba(255, 255, 255, 0.25)';
-        case 'universal': return 'rgba(255, 255, 255, 0.25)';
-        case 'sony-pictures': return 'rgba(212, 175, 55, 0.4)';
-        case 'columbia': return 'rgba(255, 215, 0, 0.4)';
-        case 'dreamworks': return 'rgba(255, 255, 255, 0.25)';
-        case 'mgm': return 'rgba(212, 175, 55, 0.4)';
-        case 'lionsgate': return 'rgba(200, 160, 40, 0.4)';
-        case 'crunchyroll': return 'rgba(244, 117, 33, 0.5)';
-        case 'a24': return 'rgba(255, 255, 255, 0.25)';
-        case 'new-line': return 'rgba(180, 180, 255, 0.4)';
-        case 'lucasfilm': return 'rgba(0, 255, 100, 0.35)';
-        case 'searchlight': return 'rgba(255, 215, 0, 0.4)';
-        default: return 'rgba(124, 58, 237, 0.4)';
-    }
-};
+const MEDIA = [
+    { value: 'movie' as const, label: 'Movies', icon: <Film size={15} /> },
+    { value: 'tv' as const, label: 'Series', icon: <Tv size={15} /> },
+];
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 function StudioDiscoveryContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    
+
     const brandId = Number(searchParams.get('id'));
     const brandType = searchParams.get('type') as 'company' | 'network' | 'provider';
     const brandName = searchParams.get('name') || '';
     const logoId = searchParams.get('logoId') || '';
     const providerId = Number(searchParams.get('providerId')) || undefined;
+    const brand = findBrand(logoId);
 
     const queryId = brandType === 'network' && providerId ? providerId : brandId;
 
@@ -103,14 +91,14 @@ function StudioDiscoveryContent() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const [selectedGenre, setSelectedGenre] = useState<number | undefined>(undefined);
-    const [sortBy, setSortBy] = useState<string>('popularity.desc');
+    const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
+    const [sortBy, setSortBy] = useState<SortValue>('popularity.desc');
 
     const genres = mediaType === 'movie' ? MOVIE_GENRES : TV_GENRES;
 
     const loadContent = useCallback(async (pageNum: number, isNewFetch: boolean) => {
         if (!queryId || !brandType) return;
-        
+
         if (isNewFetch) {
             setLoading(true);
         } else {
@@ -124,15 +112,18 @@ function StudioDiscoveryContent() {
                     ? (mediaType === 'tv' ? brandId : (providerId || brandId))
                     : brandId;
 
-            const results = await fetchBrandContent(brandType, targetId, mediaType, pageNum, selectedGenre, sortBy);
-            
+            const results = await fetchBrandContent(brandType, targetId, mediaType, pageNum, selectedGenre ?? undefined, sortBy);
+
             if (isNewFetch) {
                 setContent(results);
-                setHasMore(results.length > 0);
             } else {
-                setContent(prev => [...prev, ...results]);
-                setHasMore(results.length > 0);
+                // Pages can overlap when popularity shifts between requests.
+                setContent(prev => {
+                    const seen = new Set(prev.map(item => item.id));
+                    return [...prev, ...results.filter(item => !seen.has(item.id))];
+                });
             }
+            setHasMore(results.length > 0);
         } catch (error) {
             console.error('Error fetching studio content:', error);
         } finally {
@@ -153,197 +144,160 @@ function StudioDiscoveryContent() {
         loadContent(nextPage, false);
     };
 
+    const accent = brandColor(logoId);
+    const accentSoft = brandColor(logoId, 0.35);
+    const spotlight = content.find(item => item.backdrop_path)?.backdrop_path;
+    const isStreaming = brand ? brand.group === 'streaming' : brandType !== 'company';
+    const others = BRANDS.filter(other => other.id !== logoId && other.group === (isStreaming ? 'streaming' : 'studio'));
+
     return (
-        <div 
-            className="min-h-screen pb-24 text-white font-sans antialiased bg-[#0a0814] transition-all duration-700"
-            style={{
-                backgroundImage: `radial-gradient(circle at 5% 15%, ${getBrandGlow(logoId)} 0%, transparent 35%)`
-            }}
-        >
-            <div className="max-w-[1600px] mx-auto px-6 md:px-12 pt-8">
-                
-                {/* BACK BUTTON ROW */}
-                <div className="flex items-center justify-between mb-8">
-                    <button 
-                        onClick={() => router.back()}
-                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full text-xs font-black tracking-wider uppercase transition-all duration-300 active:scale-95 group shadow-md"
-                    >
-                        <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform text-violet-400" />
-                        <span>Back</span>
-                    </button>
-                    
-                    <span className="text-xs font-bold text-gray-500 tracking-[0.2em] uppercase select-none">
-                        Brand Discovery
-                    </span>
+        <div className="min-h-screen pb-24 text-white" style={{ '--brand': accent, '--brand-soft': accentSoft } as React.CSSProperties}>
+            {/* ---- Cinematic banner ---- */}
+            <section className="relative -mt-[var(--titlebar-height)] overflow-hidden">
+                <div className="absolute inset-0">
+                    <AnimatePresence initial={false}>
+                        {spotlight && (
+                            <motion.div
+                                key={spotlight}
+                                className="absolute inset-0 bg-cover bg-[center_25%]"
+                                style={{ backgroundImage: `url(https://image.tmdb.org/t/p/w1280${spotlight})` }}
+                                initial={{ opacity: 0, scale: 1.08 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1.2, ease: EASE }}
+                            />
+                        )}
+                    </AnimatePresence>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-[rgba(4,11,10,0.82)] to-[rgba(4,11,10,0.35)]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-transparent to-[rgba(4,11,10,0.5)]" />
+                    <div
+                        className="absolute -left-40 top-0 h-[520px] w-[720px] rounded-full opacity-60"
+                        style={{ background: `radial-gradient(circle, ${accentSoft} 0%, transparent 65%)` }}
+                    />
                 </div>
 
-                {/* TWO-COLUMN SIDEBAR INTERFACE */}
-                <div className="flex flex-col lg:flex-row gap-10 items-start">
-                    
-                    {/* LEFT STICKY CONTROL SIDEBAR */}
-                    <aside className="w-full lg:w-[360px] shrink-0 lg:sticky lg:top-8 flex flex-col gap-6">
-                        
-                        {/* BRAND SHOWCASE CONTAINER */}
-                        <div className="bg-white/[0.03] border border-white/10 backdrop-blur-xl rounded-3xl p-6.5 shadow-2xl relative overflow-hidden">
-                            {/* Inner ambient glow splash */}
-                            <div 
-                                className="absolute -right-16 -top-16 w-36 h-36 rounded-full blur-[40px] opacity-[0.25] pointer-events-none"
-                                style={{ backgroundColor: getBrandGlow(logoId) }}
-                            />
-                            
-                            <div className="flex items-center gap-5.5">
-                                {/* Glassmorphic brand logo box */}
-                                <div 
-                                    className="w-22 h-22 rounded-2xl bg-gradient-to-br from-white/10 to-white/2 border border-white/10 flex items-center justify-center p-3.5 backdrop-blur-md shadow-lg"
-                                    style={{ boxShadow: `0 10px 30px -8px ${getBrandGlow(logoId)}` }}
-                                >
-                                    <BrandLogo brandId={logoId} className="w-full h-full object-contain select-none" />
-                                </div>
-                                
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] uppercase tracking-[0.22em] font-extrabold text-violet-400 mb-1 select-none">
-                                        {brandType === 'company' ? 'Production Studio' : 'Streaming Network'}
-                                    </span>
-                                    <h1 
-                                        className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white leading-none"
-                                        style={{ textShadow: `0 0 25px ${getBrandGlow(logoId)}` }}
-                                    >
-                                        {brandName}
-                                    </h1>
-                                </div>
-                            </div>
-                            
-                            <p className="text-gray-400 text-xs md:text-sm leading-relaxed mt-5 font-medium border-t border-white/5 pt-4.5">
-                                Explore a curated library of high-fidelity releases produced, distributed, or hosted by {brandName}. Use the controls below to navigate.
+                <div className="relative px-[4%] pb-14 pt-[calc(var(--titlebar-height)+28px)]">
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        className="group mb-12 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm font-semibold text-white/80 transition-colors hover:border-white/25 hover:text-white"
+                    >
+                        <ChevronLeft size={17} className="transition-transform group-hover:-translate-x-0.5" />
+                        Back
+                    </button>
+
+                    <div className="flex flex-wrap items-end gap-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 24, scale: 0.92 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.8, ease: EASE }}
+                        >
+                            <Glass
+                                preset="card"
+                                className="flex h-40 w-[17rem] items-center justify-center rounded-[30px] p-8"
+                                style={{ boxShadow: `0 24px 70px ${accentSoft}, inset 0 1px 1px rgba(255,255,255,0.4), inset 0 0 0 1px rgba(255,255,255,0.14)` }}
+                            >
+                                <BrandLogo brandId={logoId} />
+                            </Glass>
+                        </motion.div>
+
+                        <motion.div
+                            className="min-w-0 max-w-2xl pb-2"
+                            initial={{ opacity: 0, y: 24 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, ease: EASE, delay: 0.08 }}
+                        >
+                            <span
+                                className="mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
+                                style={{ borderColor: accentSoft, background: brandColor(logoId, 0.16), color: '#fff' }}
+                            >
+                                {isStreaming ? <MonitorPlay size={13} /> : <Clapperboard size={13} />}
+                                {isStreaming ? 'Streaming service' : 'Production studio'}
+                            </span>
+                            <h1 className="text-5xl font-extrabold tracking-tight md:text-6xl">{brandName}</h1>
+                            <p className="mt-4 text-[15.5px] leading-relaxed text-white/65">
+                                {isStreaming
+                                    ? `Everything streaming on ${brandName}, from the biggest hits to hidden gems.`
+                                    : `Films and series from ${brandName}, from classics to the latest releases.`}
                             </p>
-                        </div>
+                        </motion.div>
+                    </div>
+                </div>
+            </section>
 
-                        {/* DASHBOARD CONTROLS */}
-                        <div className="bg-white/[0.03] border border-white/10 backdrop-blur-xl rounded-3xl p-6.5 shadow-2xl flex flex-col gap-6">
-                            
-                            {/* MEDIA TYPE SWITCHER */}
-                            <div className="flex flex-col gap-2.5">
-                                <label className="text-[10px] uppercase tracking-wider font-extrabold text-gray-400 select-none">Catalog Category</label>
-                                <div className="grid grid-cols-2 bg-white/5 p-1 rounded-xl border border-white/10 shadow-inner">
-                                    <button
-                                        onClick={() => {
-                                            setMediaType('movie');
-                                            setSelectedGenre(undefined);
-                                        }}
-                                        className={`py-3.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 ${mediaType === 'movie' ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/20' : 'text-gray-400 hover:text-white'}`}
-                                    >
-                                        Movies
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setMediaType('tv');
-                                            setSelectedGenre(undefined);
-                                        }}
-                                        className={`py-3.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 ${mediaType === 'tv' ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/20' : 'text-gray-400 hover:text-white'}`}
-                                    >
-                                        Series
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* SORT SELECTOR */}
-                            <div className="flex flex-col gap-2.5">
-                                <label className="text-[10px] uppercase tracking-wider font-extrabold text-gray-400 select-none">Sort Order</label>
-                                <div className="flex items-center gap-3.5 bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-xl px-4 py-3.5 transition-all duration-300 focus-within:border-violet-500/50">
-                                    <ArrowUpDown size={15} className="text-violet-400 shrink-0" />
-                                    <select
-                                        value={sortBy}
-                                        onChange={(e) => setSortBy(e.target.value)}
-                                        className="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer pr-4 hover:text-violet-300 transition-colors w-full"
-                                    >
-                                        {SORT_OPTIONS.map(opt => (
-                                            <option key={opt.value} value={opt.value} className="bg-[#0a0814] text-white">
-                                                {opt.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* GENRE GRID DOCK (TABS) */}
-                            <div className="flex flex-col gap-2.5">
-                                <label className="text-[10px] uppercase tracking-wider font-extrabold text-gray-400 select-none">Filter by Genre</label>
-                                <div className="flex flex-wrap gap-2 max-h-[220px] lg:max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                                    <button
-                                        onClick={() => setSelectedGenre(undefined)}
-                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${selectedGenre === undefined ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20 border border-violet-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/5'}`}
-                                    >
-                                        All Genres
-                                    </button>
-                                    {genres.map(genre => (
-                                        <button
-                                            key={genre.id}
-                                            onClick={() => setSelectedGenre(genre.id)}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${selectedGenre === genre.id ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20 border border-violet-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/5'}`}
-                                        >
-                                            {genre.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                        </div>
-                    </aside>
-
-                    {/* RIGHT MAIN CATALOG VIEW */}
-                    <main className="flex-1 w-full">
-                        
-                        {/* CATALOG DESCRIPTION BAR */}
-                        <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
-                            <h2 className="text-lg font-black uppercase tracking-wider flex items-center gap-2">
-                                <span>{mediaType === 'movie' ? 'Movies' : 'TV Series'}</span>
-                                <span className="text-xs text-gray-500 font-bold bg-white/5 px-2.5 py-1 rounded-full">
-                                    {selectedGenre ? genres.find(g => g.id === selectedGenre)?.name : 'All Library'}
-                                </span>
-                            </h2>
-                            
-                            {!loading && content.length > 0 && (
-                                <span className="text-xs text-gray-400 font-extrabold tracking-wide">
-                                    {content.length}+ Matches
-                                </span>
-                            )}
-                        </div>
-
-                        {/* CONTENT GRID */}
-                        {loading ? (
-                            <div className="flex flex-col items-center justify-center py-44 gap-5">
-                                <Loader2 className="animate-spin text-violet-500" size={44} />
-                                <p className="text-gray-400 text-sm font-black animate-pulse tracking-wide uppercase">Cataloging brand releases...</p>
-                            </div>
-                        ) : content.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-44 text-center">
-                                <span className="text-5xl mb-5 filter drop-shadow-md">🔍</span>
-                                <h3 className="text-xl font-black text-white mb-2 uppercase tracking-wide">Empty Selection</h3>
-                                <p className="text-gray-400 text-sm max-w-sm font-medium leading-relaxed">
-                                    No {mediaType === 'movie' ? 'movies' : 'series'} match the filter criteria under this brand.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 xxl:grid-cols-5 gap-6 w-full">
-                                    {content.map((item) => (
-                                        <MovieCard key={`${item.id}-${Math.random()}`} movie={item} fullWidth className="transition-transform duration-300 hover:scale-[1.03]" />
-                                    ))}
-                                </div>
-
-                                {/* Loads the next page as the user scrolls */}
-                                <InfiniteScroll
-                                    onLoadMore={handleLoadMore}
-                                    hasMore={hasMore}
-                                    loading={loading || loadingMore}
-                                    className="mt-6 w-full"
-                                />
-                            </div>
-                        )}
-                    </main>
-
+            {/* ---- Sticky filter bar ---- */}
+            <div className="sticky z-40 px-[4%] pb-6" style={{ top: 'calc(var(--titlebar-height) + 10px)' }}>
+                {/* Near-opaque: posters scroll underneath, and a live blur here would be
+                    recomputed on every scroll frame. */}
+                <div className="glass-panel flex flex-col gap-3 rounded-3xl px-4 py-3" style={{ background: 'rgba(7, 17, 15, 0.97)' }}>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <SegmentedControl
+                            id="brand-media"
+                            options={MEDIA}
+                            value={mediaType}
+                            onChange={(value) => {
+                                setMediaType(value);
+                                setSelectedGenre(null);
+                            }}
+                        />
+                        <SegmentedControl id="brand-sort" size="sm" options={SORTS} value={sortBy} onChange={setSortBy} />
+                    </div>
+                    <ChipRail
+                        id="brand-genre"
+                        chips={genres}
+                        value={selectedGenre}
+                        onChange={setSelectedGenre}
+                        allLabel="All genres"
+                    />
                 </div>
             </div>
+
+            {/* ---- Catalogue ---- */}
+            <div className="px-[4%]">
+                {loading ? (
+                    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                        {Array.from({ length: 12 }).map((_, index) => (
+                            <div key={index} className="skeleton aspect-[2/3] rounded-2xl" />
+                        ))}
+                    </div>
+                ) : content.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-32 text-center">
+                        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                            {mediaType === 'movie' ? <Film size={28} className="text-white/50" /> : <Tv size={28} className="text-white/50" />}
+                        </div>
+                        <h3 className="mb-2 text-xl font-bold">Nothing here yet</h3>
+                        <p className="max-w-sm text-sm leading-relaxed text-white/55">
+                            No {mediaType === 'movie' ? 'movies' : 'series'} from {brandName} match these filters. Try another genre or sort.
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                            {content.map((item) => (
+                                <MovieCard key={`${item.media_type}-${item.id}`} movie={item} fullWidth />
+                            ))}
+                        </div>
+                        <InfiniteScroll
+                            onLoadMore={handleLoadMore}
+                            hasMore={hasMore}
+                            loading={loading || loadingMore}
+                            className="mt-6 w-full"
+                        />
+                    </>
+                )}
+            </div>
+
+            {/* ---- Other brands ---- */}
+            {others.length > 0 && (
+                <section className="mt-16">
+                    <Reveal className={rowStyles.header}>
+                        <h2 className={rowStyles.title}>More to explore</h2>
+                    </Reveal>
+                    <Rail className="flex gap-4 overflow-x-auto px-[4%] pb-8 pt-5">
+                        {others.map(other => <BrandTile key={other.id} brand={other} size="sm" />)}
+                    </Rail>
+                </section>
+            )}
         </div>
     );
 }
@@ -351,7 +305,7 @@ function StudioDiscoveryContent() {
 export default function StudioDiscoveryPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#0a0814] flex items-center justify-center">
+            <div className="flex min-h-screen items-center justify-center">
                 <Loader2 className="animate-spin text-violet-500" size={40} />
             </div>
         }>

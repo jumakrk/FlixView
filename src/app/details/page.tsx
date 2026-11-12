@@ -23,7 +23,7 @@ function DetailsContent() {
 
 export default function DetailsPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <Suspense fallback={<div className="min-h-screen" />}>
             <DetailsContent />
         </Suspense>
     );

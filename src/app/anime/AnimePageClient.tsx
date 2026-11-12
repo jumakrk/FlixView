@@ -1,7 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { CalendarDays, Film, Flame, LayoutGrid, Radio, RotateCcw, Sparkles, Star, TrendingUp, Tv } from 'lucide-react';
 import InfiniteScroll from '@/components/InfiniteScroll';
+import SegmentedControl from '@/components/ui/SegmentedControl';
+import ChipRail from '@/components/ui/ChipRail';
+import filterStyles from '@/components/DiscoverFilters.module.css';
+import PageHeader from '@/components/ui/PageHeader';
 import AnimeIcon from '@/components/AnimeIcon';
 import SectionRow from '@/components/SectionRow';
 import MovieCard from '@/components/MovieCard';
@@ -32,11 +37,46 @@ const EMPTY_SECTIONS: AnimeSections = {
     movies: [],
 };
 
-const FORMAT_FILTERS: { id: FormatFilter; label: string }[] = [
-    { id: 'all', label: 'All' },
-    { id: 'tv', label: 'TV Shows' },
-    { id: 'movie', label: 'Movies' },
+const FORMAT_FILTERS = [
+    { value: 'all' as const, label: 'All', icon: <LayoutGrid size={14} /> },
+    { value: 'tv' as const, label: 'TV Shows', icon: <Tv size={14} /> },
+    { value: 'movie' as const, label: 'Movies', icon: <Film size={14} /> },
 ];
+
+type SortFilter = 'POPULARITY_DESC' | 'TRENDING_DESC' | 'SCORE_DESC' | 'START_DATE_DESC';
+
+const SORT_FILTERS = [
+    { value: 'POPULARITY_DESC' as const, label: 'Popular', icon: <Flame size={14} /> },
+    { value: 'TRENDING_DESC' as const, label: 'Trending', icon: <TrendingUp size={14} /> },
+    { value: 'SCORE_DESC' as const, label: 'Top rated', icon: <Star size={14} /> },
+    { value: 'START_DATE_DESC' as const, label: 'Newest', icon: <Sparkles size={14} /> },
+];
+
+// AniList's genre list (adult-only genres left out).
+const ANIME_GENRES = [
+    'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mahou Shoujo', 'Mecha',
+    'Music', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports',
+    'Supernatural', 'Thriller',
+].map(genre => ({ value: genre, label: genre }));
+
+const STATUS_FILTERS = [
+    { value: '', label: 'Any status' },
+    { value: 'RELEASING', label: 'Airing now' },
+    { value: 'FINISHED', label: 'Finished' },
+    { value: 'NOT_YET_RELEASED', label: 'Upcoming' },
+];
+
+const ANIME_YEARS = Array.from({ length: 50 }, (_, i) => String(new Date().getFullYear() + 1 - i));
+
+interface BrowseFilters {
+    format: FormatFilter;
+    sort: SortFilter;
+    genre: string | null;
+    year: string;
+    status: string;
+}
+
+const DEFAULT_FILTERS: BrowseFilters = { format: 'all', sort: 'POPULARITY_DESC', genre: null, year: '', status: '' };
 
 function formatFilterValue(filter: FormatFilter): AnimeFormat[] | undefined {
     if (filter === 'movie') return ['MOVIE'];
@@ -49,11 +89,17 @@ export default function AnimePageClient() {
     const [sectionsLoading, setSectionsLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
 
-    const [formatFilter, setFormatFilter] = useState<FormatFilter>('all');
+    const [filters, setFilters] = useState<BrowseFilters>(DEFAULT_FILTERS);
+    const setFilter = <K extends keyof BrowseFilters>(key: K, value: BrowseFilters[K]) =>
+        setFilters(prev => ({ ...prev, [key]: value }));
+    const filtered = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
+    // Ignores responses for filters that have since changed.
+    const requestId = useRef(0);
     const [browse, setBrowse] = useState<AniListMedia[]>([]);
     const [browsePage, setBrowsePage] = useState(1);
     const [browseHasMore, setBrowseHasMore] = useState(true);
     const [browseLoading, setBrowseLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     // Curated rails.
     useEffect(() => {
@@ -105,42 +151,53 @@ export default function AnimePageClient() {
         return () => { cancelled = true; };
     }, []);
 
-    // Paginated browse grid (also follows the All / TV / Movies filter).
+    // Paginated browse grid, following the filter bar.
     const loadBrowse = useCallback(async (page: number, replace: boolean) => {
+        const request = ++requestId.current;
         setBrowseLoading(true);
+        setRefreshing(replace);
         try {
             const result = await fetchAnimePage({
-                sort: 'POPULARITY_DESC',
+                sort: filters.sort,
                 perPage: 24,
                 page,
-                formatIn: formatFilterValue(formatFilter),
+                formatIn: formatFilterValue(filters.format),
+                genre: filters.genre ?? undefined,
+                seasonYear: filters.year ? Number(filters.year) : undefined,
+                status: filters.status || undefined,
+                // "Newest" would otherwise lead with unannounced future titles.
+                statusNot: filters.sort === 'START_DATE_DESC' && !filters.status ? 'NOT_YET_RELEASED' : undefined,
             });
+            if (request !== requestId.current) return;
 
             setBrowse(prev => replace ? result.media : [...prev, ...result.media]);
             setBrowsePage(page);
             setBrowseHasMore(result.pageInfo.hasNextPage);
         } catch (error) {
+            if (request !== requestId.current) return;
             console.error('Failed to load anime browse page:', error);
             if (replace) setBrowse([]);
             setBrowseHasMore(false);
         } finally {
-            setBrowseLoading(false);
+            if (request === requestId.current) {
+                setBrowseLoading(false);
+                setRefreshing(false);
+            }
         }
-    }, [formatFilter]);
+    }, [filters]);
 
     useEffect(() => {
         loadBrowse(1, true);
     }, [loadBrowse]);
 
     return (
-        <div className="min-h-screen pt-24 pb-20 bg-black">
-            <div className="px-[4%]">
-                <h1 className="text-4xl font-bold mb-3 text-white flex items-center gap-3">
-                    Anime
-                    <AnimeIcon className="text-violet-500" size={30} strokeWidth={2.25} />
-                </h1>
-                <p className="text-gray-400 mb-10">Series and movies, powered by AniList.</p>
-            </div>
+        <div className="min-h-screen pb-20">
+            <PageHeader
+                eyebrow="Powered by AniList"
+                title="Anime"
+                subtitle="Trending series, this season's hits and the all-time greats."
+                icon={<AnimeIcon size={30} strokeWidth={2.25} />}
+            />
 
             {loadError && (
                 <div className="px-[4%] mb-8">
@@ -176,23 +233,65 @@ export default function AnimePageClient() {
 
             {/* Browse */}
             <div className="px-[4%] mt-20">
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-                    <h2 className="text-2xl font-bold text-white">Browse Anime</h2>
-                    <div className="flex items-center gap-2 rounded-xl bg-white/5 p-1 border border-white/10">
-                        {FORMAT_FILTERS.map((filter) => (
-                            <button
-                                key={filter.id}
-                                onClick={() => setFormatFilter(filter.id)}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-                                    formatFilter === filter.id
-                                        ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/20'
-                                        : 'text-gray-400 hover:text-white'
-                                }`}
-                            >
-                                {filter.label}
-                            </button>
-                        ))}
+                <h2 className="text-3xl font-bold mb-6 text-gradient">Browse Anime</h2>
+
+                <div className={`${filterStyles.filterBar} glass-panel`}>
+                    <div className={filterStyles.topRow}>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            <SegmentedControl
+                                id="anime-format"
+                                size="sm"
+                                options={FORMAT_FILTERS}
+                                value={filters.format}
+                                onChange={value => setFilter('format', value)}
+                            />
+                            <SegmentedControl
+                                id="anime-sort"
+                                size="sm"
+                                options={SORT_FILTERS}
+                                value={filters.sort}
+                                onChange={value => setFilter('sort', value)}
+                            />
+                        </div>
+                        <div className={filterStyles.right}>
+                            <label className={filterStyles.yearPill}>
+                                <Radio size={15} />
+                                <select
+                                    className={filterStyles.select}
+                                    value={filters.status}
+                                    onChange={event => setFilter('status', event.target.value)}
+                                    aria-label="Airing status"
+                                >
+                                    {STATUS_FILTERS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                </select>
+                            </label>
+                            <label className={filterStyles.yearPill}>
+                                <CalendarDays size={15} />
+                                <select
+                                    className={filterStyles.select}
+                                    value={filters.year}
+                                    onChange={event => setFilter('year', event.target.value)}
+                                    aria-label="Release year"
+                                >
+                                    <option value="">Any year</option>
+                                    {ANIME_YEARS.map(year => <option key={year} value={year}>{year}</option>)}
+                                </select>
+                            </label>
+                            {filtered && (
+                                <button type="button" className={filterStyles.reset} data-ripple onClick={() => setFilters(DEFAULT_FILTERS)}>
+                                    <RotateCcw size={14} />
+                                    Reset
+                                </button>
+                            )}
+                        </div>
                     </div>
+                    <ChipRail
+                        id="anime-genre"
+                        chips={ANIME_GENRES}
+                        value={filters.genre}
+                        onChange={value => setFilter('genre', value)}
+                        allLabel="All genres"
+                    />
                 </div>
 
                 {browseLoading && browse.length === 0 ? (
@@ -202,11 +301,15 @@ export default function AnimePageClient() {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                    <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 transition-opacity duration-300 ${refreshing ? 'opacity-50' : ''}`}>
                         {browse.map((media) => (
                             <MovieCard key={media.id} movie={animeToMovie(media)} fullWidth />
                         ))}
                     </div>
+                )}
+
+                {!browseLoading && browse.length === 0 && (
+                    <p className="py-16 text-center text-white/45">No anime match these filters.</p>
                 )}
 
                 {/* Loads the next page as the user scrolls */}

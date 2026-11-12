@@ -3,6 +3,9 @@
 import { useData } from '@/context/DataContext';
 import ContinueWatchingCard from './ContinueWatchingCard';
 import styles from './ContinueWatchingRow.module.css';
+import rowStyles from './SectionRow.module.css';
+import Rail from './ui/Rail';
+import { Reveal, RevealGroup, RevealItem } from './ui/Reveal';
 
 export default function ContinueWatchingRow() {
     const { progress } = useData();
@@ -19,16 +22,18 @@ export default function ContinueWatchingRow() {
 
     return (
         <section className={styles.section}>
-            <div className={styles.header}>
-                <h2 className={styles.title}>Continue Watching</h2>
-            </div>
-            <div className={styles.rail}>
-                {continueWatchingList.map((record) => (
-                    <div key={`${record.media_type}-${record.media_id}`} className={styles.item}>
-                        <ContinueWatchingCard record={record} />
-                    </div>
-                ))}
-            </div>
+            <Reveal className={rowStyles.header}>
+                <h2 className={rowStyles.title}>Continue Watching</h2>
+            </Reveal>
+            <RevealGroup>
+                <Rail className={styles.rail}>
+                    {continueWatchingList.map((record) => (
+                        <RevealItem key={`${record.media_type}-${record.media_id}`} className={styles.item}>
+                            <ContinueWatchingCard record={record} />
+                        </RevealItem>
+                    ))}
+                </Rail>
+            </RevealGroup>
         </section>
     );
 }

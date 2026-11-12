@@ -3,6 +3,10 @@
 import { X, Download, ArrowUpCircle, RefreshCw, AlertCircle } from 'lucide-react';
 import type { UpdateStatus } from '@/context/UpdateContext';
 import styles from './UpdateModal.module.css';
+import { AnimatePresence, motion } from 'framer-motion';
+import Glass from './ui/Glass';
+import OriginPop from './ui/OriginPop';
+import { useScrollLock } from '@/lib/useScrollLock';
 
 interface UpdateModalProps {
     isOpen: boolean;
@@ -25,13 +29,24 @@ export default function UpdateModal({
     onUpdate,
     onCancel,
 }: UpdateModalProps) {
-    if (!isOpen) return null;
-
+    useScrollLock(isOpen);
     const isBusy = status === 'downloading' || status === 'downloaded';
 
     return (
-        <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="update-modal-title">
-            <div className={styles.modal}>
+        <AnimatePresence>
+        {isOpen && (
+        <motion.div
+            className={styles.overlay}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="update-modal-title"
+            data-lenis-prevent
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.24 } }}
+        >
+            <OriginPop className={styles.pop}>
+            <Glass preset="panel" className={styles.modal}>
                 <button onClick={onCancel} className={styles.closeBtn} disabled={isBusy} aria-label="Close">
                     <X size={20} />
                 </button>
@@ -96,7 +111,10 @@ export default function UpdateModal({
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+            </Glass>
+            </OriginPop>
+        </motion.div>
+        )}
+        </AnimatePresence>
     );
 }

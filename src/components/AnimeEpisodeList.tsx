@@ -120,7 +120,7 @@ export default function AnimeEpisodeList({
                 )}
             </div>
 
-            <div className={cn(styles.episodeList, listClassName)}>
+            <div className={cn(styles.episodeList, listClassName)} data-lenis-prevent={listClassName ? '' : undefined}>
                 {episodes.map((episodeNumber) => {
                     const episodeMeta = meta[episodeNumber];
                     const image = episodeMeta?.thumbnail || fallback;
@@ -176,7 +176,7 @@ export default function AnimeEpisodeList({
                                     <div className="mt-1 flex items-center gap-3">
                                         <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.8)] rounded-full"
+                                                className="h-full bg-violet-500 shadow-[0_0_8px_rgba(47,138,127,0.8)] rounded-full"
                                                 style={{ width: `${percentWatched}%` }}
                                             />
                                         </div>

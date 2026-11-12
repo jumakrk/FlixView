@@ -21,7 +21,7 @@ function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) 
 
     // Supports both TMDB relative paths and absolute AniList poster URLs.
     const imagePath = mediaData.poster_path || mediaData.posterPath || mediaData.backdrop_path;
-    const imageUrl = resolveImageUrl(imagePath, 'w500');
+    const imageUrl = imagePath ? resolveImageUrl(imagePath, 'w342') : null;
 
     // Older builds stored TV shows as 'series'.
     const mediaType: MediaType = (record.media_type as string) === 'series' ? 'tv' : record.media_type;
@@ -64,16 +64,25 @@ function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) 
     };
 
     return (
-        <div className={`${styles.card} ${className || ''} group relative`}>
+        <div className={`${styles.card} ${className || ''} group relative overflow-hidden rounded-2xl shadow-[0_8px_22px_rgba(0,0,0,0.35)] ring-1 ring-white/[0.07] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 hover:ring-violet-300/40`}>
             {/* Main Resume Link */}
             <Link href={resumeLink} className={styles.link}>
-                <div
-                    className={styles.image}
-                    style={{ backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                />
-                <div className={styles.overlay} />
+                {imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={imageUrl}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                        className={styles.image}
+                    />
+                ) : (
+                    <span className={styles.noImage}>{title}</span>
+                )}
+                <div className={`${styles.overlay} opacity-100!`} />
 
-                <div className={styles.content}>
+                <div className={`${styles.content} opacity-100! [transform:none]!`}>
                     <h3 className={styles.title}>{title}</h3>
                     {episodic && (
                         <p className="text-xs text-white/70 mt-1">
@@ -85,7 +94,7 @@ function ContinueWatchingCard({ record, className }: ContinueWatchingCardProps) 
                 {/* Progress Bar */}
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
                     <div
-                        className="h-full bg-violet-600 shadow-[0_0_10px_rgba(124,58,237,0.5)]"
+                        className="h-full bg-violet-600 shadow-[0_0_10px_rgba(31,128,115,0.5)]"
                         style={{ width: `${pct}%` }}
                     />
                 </div>

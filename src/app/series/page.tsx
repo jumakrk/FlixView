@@ -3,6 +3,7 @@ import SectionRow from '@/components/SectionRow';
 import DiscoverFilters from '@/components/DiscoverFilters';
 import ContentGrid from '@/components/ContentGrid';
 import { Suspense } from 'react';
+import PageHeader from '@/components/ui/PageHeader';
 
 export default async function SeriesPage() {
     const popular = await fetchPopularSeries();
@@ -10,10 +11,8 @@ export default async function SeriesPage() {
     const onTheAir = await fetchOnTheAirSeries();
 
     return (
-        <div className="min-h-screen pt-24 pb-20 bg-black">
-            <div className="px-[4%]">
-                <h1 className="text-4xl font-bold mb-10 text-white">Series</h1>
-            </div>
+        <div className="min-h-screen pb-20">
+            <PageHeader eyebrow="Browse" title="Series" subtitle="On the air now, coming soon, and every show worth a binge." />
 
             {/* Curated Sections */}
             <div className="space-y-4 mb-16">
@@ -23,7 +22,7 @@ export default async function SeriesPage() {
 
             {/* Discover Section */}
             <div className="px-[4%] mt-20">
-                <h2 className="text-2xl font-bold mb-6 text-white">Discover Series</h2>
+                <h2 className="text-3xl font-bold mb-6 text-gradient">Discover Series</h2>
                 <Suspense fallback={<div className="h-12 w-full animate-pulse bg-white/5 rounded-lg mb-8" />}>
                     <DiscoverFilters type="tv" />
                 </Suspense>
