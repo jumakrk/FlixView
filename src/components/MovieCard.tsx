@@ -1,7 +1,6 @@
 'use client';
 
 import { memo } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Check, Play, Plus, Star } from 'lucide-react';
 import { Movie } from '@/lib/tmdb';
@@ -13,6 +12,7 @@ import { getLastWatchedEpisode, MediaType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import styles from './MovieCard.module.css';
 import Countdown from './Countdown';
+import { useReveal } from './ui/Reveal';
 
 interface MovieCardProps {
     movie: Movie;
@@ -24,6 +24,9 @@ function MovieCard({ movie, className, fullWidth = false }: MovieCardProps) {
     const { isInWatchlist, addToWatchlist, removeFromWatchlist, getProgress } = useData();
     const { openPlayer } = usePlayer();
     const { onPointerMove, onPointerLeave } = useTilt<HTMLDivElement>(8);
+    // Grid cards (fullWidth) fade up the first time they scroll into view;
+    // cards in rails are revealed by their row instead.
+    const revealRef = useReveal<HTMLDivElement>(fullWidth);
 
     // Supports both TMDB relative paths and absolute AniList poster URLs.
     const imagePath = movie.poster_path || movie.backdrop_path;
@@ -55,8 +58,10 @@ function MovieCard({ movie, className, fullWidth = false }: MovieCardProps) {
         openPlayer(idStr, mediaType, resume.season, resume.episode);
     };
 
-    const card = (
+    return (
         <div
+            ref={fullWidth ? revealRef : undefined}
+            data-reveal={fullWidth ? 'card' : undefined}
             onPointerMove={onPointerMove}
             onPointerLeave={onPointerLeave}
             className={cn(styles.card, fullWidth && styles.fullWidth, className)}
@@ -129,21 +134,6 @@ function MovieCard({ movie, className, fullWidth = false }: MovieCardProps) {
                 </div>
             </div>
         </div>
-    );
-
-    // In grids (fullWidth) each card fades up as it scrolls into view. Cards
-    // in rails are revealed by the row instead.
-    if (!fullWidth) return card;
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 26, scale: 0.96 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: '0px 0px -5% 0px' }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-            {card}
-        </motion.div>
     );
 }
 

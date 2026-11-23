@@ -1,5 +1,6 @@
 const { app, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
+const { installMacUpdate } = require('./mac-install');
 
 // electron-updater picks the right artifact per platform. The renderer
 // (src/context/UpdateContext.tsx) asks for a check on every launch and prompts
@@ -17,6 +18,9 @@ function send(getMainWindow, channel, payload) {
 }
 
 function setupAutoUpdater(getMainWindow) {
+    // Where electron-updater saved the latest download (the zip on macOS).
+    let downloadedFile = null;
+
     // --- Renderer-invoked channels (registered once, on every platform) ---
 
     ipcMain.handle('get-app-version', () => app.getVersion());
@@ -46,6 +50,14 @@ function setupAutoUpdater(getMainWindow) {
 
     ipcMain.handle('quit-and-install', () => {
         if (!app.isPackaged) return;
+        if (process.platform === 'darwin') {
+            // The unsigned macOS build cannot go through Squirrel.Mac; see mac-install.js.
+            installMacUpdate(downloadedFile).catch(error => {
+                console.error('[updater] macOS install failed:', error);
+                send(getMainWindow, 'update-error', error.message || String(error));
+            });
+            return;
+        }
         autoUpdater.quitAndInstall(false, true);
     });
 
@@ -60,7 +72,10 @@ function setupAutoUpdater(getMainWindow) {
     autoUpdater.on('update-available', info => send(getMainWindow, 'update-available', info));
     autoUpdater.on('update-not-available', () => send(getMainWindow, 'update-not-available'));
     autoUpdater.on('download-progress', progress => send(getMainWindow, 'download-progress', progress));
-    autoUpdater.on('update-downloaded', info => send(getMainWindow, 'update-downloaded', info));
+    autoUpdater.on('update-downloaded', info => {
+        downloadedFile = info?.downloadedFile || null;
+        send(getMainWindow, 'update-downloaded', info);
+    });
     autoUpdater.on('error', error => {
         console.error('[updater] error:', error);
         send(getMainWindow, 'update-error', error?.message || String(error));

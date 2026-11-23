@@ -71,8 +71,10 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
             manualCheck.current = false;
             setError(message);
             // Silent background failures (offline, feed hiccup) should not
-            // interrupt the user; only surface errors they can act on.
-            setStatus((current) => (wasManual || current === 'downloading' ? 'error' : current));
+            // interrupt the user; only surface errors they can act on. That
+            // includes a failed install after the download (macOS), so the
+            // prompt never sits on "Restarting" with nothing happening.
+            setStatus((current) => (wasManual || current === 'downloading' || current === 'downloaded' ? 'error' : current));
         });
 
         electron.onDownloadProgress((progress) => {

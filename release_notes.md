@@ -1,5 +1,32 @@
 # FlixView Release Notes
 
+User-facing notes, as published on each GitHub release. The developer's
+account of what changed and how is in [devlogs/](devlogs/README.md).
+
+## v0.1.20
+Smoother scrolling everywhere, a new Trending page, better filters and a fix for Mac updates.
+
+### ⚡ Smoother Scrolling
+* Fixed lag when scrolling through pages and through content rows and grids
+* Rows, filter chips, episode lists, search results and the sidebar now glide smoothly too
+
+### 🔥 A New Trending Page
+* The No. 1 title gets a big spotlight, followed by the runners-up and the full chart
+* See which titles are climbing or falling compared with this week's chart
+* Bolder rank numbers, here and on the home page's Top 10 row
+
+### 🎛️ Better Filtering
+* The filter bar now stays at the top while you scroll on the Movies, Series, Anime, Studios and Streaming pages
+* Changing a filter takes you straight back to the first row of results
+
+### 🐞 Fixes
+* Fixed the Anime page opening part-way down instead of at the top
+* Fixed letters like g and y being cut off at the bottom of headings
+* Fixed Mac updates getting stuck on "Restarting to update"
+
+### 🍎 Mac users
+Updating from v0.1.19 needs one last manual step: download **FlixView-0.1.20-arm64.dmg** from the release and drag FlixView into your Applications folder. From v0.1.20 on, updates install and restart by themselves.
+
 ## v0.1.12
 ### 🚀 New Features & Enhancements
 * **New Player Integration:** Switched the embedded video player to Peachify for a significantly more stable and robust viewing experience!

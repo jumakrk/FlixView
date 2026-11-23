@@ -12,7 +12,6 @@
     /* Top padding prevents clipping. The left edge matches every other row
        (4%) so the first poster lines up with the rows and brands around it. */
     padding: 46px 4% 44px 4%;
-    scroll-behavior: smooth;
     /* Lets .rank size its offset to this rail's left padding (cqw units). */
     container-type: inline-size;
 }
@@ -32,23 +31,29 @@
        windows it overlaps the poster's corner instead. */
     left: max(-58px, calc(4px - 4cqw));
     font-size: 155px;
-    font-weight: 950;
+    /* Archivo Black (loaded in app/layout.tsx): heavy, with clean single-
+       shape digits for the outline. (This used to name Satoshi, which the app
+       never loaded, so it fell back to a thin system font.) The trending
+       page's ranks share this look. */
+    font-family: var(--font-rank), sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
     line-height: 0.8;
     color: transparent;
-    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.6);
+    -webkit-text-stroke: 1.5px rgba(240, 237, 228, 0.6);
     user-select: none;
     z-index: 20;
     pointer-events: none;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    font-family: 'Satoshi', sans-serif;
     transform-origin: bottom left;
 }
 
+/* Lights up in Sand, the app's warm white. */
 .item:hover .rank {
-    -webkit-text-stroke: 2px var(--primary);
-    color: rgba(31, 128, 115, 0.15);
+    -webkit-text-stroke: 2px var(--sand);
+    color: rgba(240, 237, 228, 0.16);
     transform: scale(1.1) translate(5px, -5px);
-    filter: drop-shadow(0 0 20px var(--primary-glow));
+    filter: drop-shadow(0 0 20px rgba(240, 237, 228, 0.35));
 }
 
 .cardWrapper {

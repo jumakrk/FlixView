@@ -14,6 +14,7 @@ import Glass from '@/components/ui/Glass';
 import Rail from '@/components/ui/Rail';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import ChipRail from '@/components/ui/ChipRail';
+import FilterDock, { useFilterDock } from '@/components/ui/FilterDock';
 import { Reveal } from '@/components/ui/Reveal';
 import rowStyles from '@/components/SectionRow.module.css';
 
@@ -93,6 +94,7 @@ function StudioDiscoveryContent() {
     const [hasMore, setHasMore] = useState(true);
     const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
     const [sortBy, setSortBy] = useState<SortValue>('popularity.desc');
+    const { anchor, dock, toResults } = useFilterDock();
 
     const genres = mediaType === 'movie' ? MOVIE_GENRES : TV_GENRES;
 
@@ -226,7 +228,7 @@ function StudioDiscoveryContent() {
             </section>
 
             {/* ---- Sticky filter bar ---- */}
-            <div className="sticky z-40 px-[4%] pb-6" style={{ top: 'calc(var(--titlebar-height) + 10px)' }}>
+            <FilterDock anchor={anchor} dock={dock} className="px-[4%] pb-6">
                 {/* Near-opaque: posters scroll underneath, and a live blur here would be
                     recomputed on every scroll frame. */}
                 <div className="glass-panel flex flex-col gap-3 rounded-3xl px-4 py-3" style={{ background: 'rgba(7, 17, 15, 0.97)' }}>
@@ -238,19 +240,20 @@ function StudioDiscoveryContent() {
                             onChange={(value) => {
                                 setMediaType(value);
                                 setSelectedGenre(null);
+                                toResults();
                             }}
                         />
-                        <SegmentedControl id="brand-sort" size="sm" options={SORTS} value={sortBy} onChange={setSortBy} />
+                        <SegmentedControl id="brand-sort" size="sm" options={SORTS} value={sortBy} onChange={value => { setSortBy(value); toResults(); }} />
                     </div>
                     <ChipRail
                         id="brand-genre"
                         chips={genres}
                         value={selectedGenre}
-                        onChange={setSelectedGenre}
+                        onChange={value => { setSelectedGenre(value); toResults(); }}
                         allLabel="All genres"
                     />
                 </div>
-            </div>
+            </FilterDock>
 
             {/* ---- Catalogue ---- */}
             <div className="px-[4%]">

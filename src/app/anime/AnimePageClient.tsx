@@ -5,6 +5,7 @@ import { CalendarDays, Film, Flame, LayoutGrid, Radio, RotateCcw, Sparkles, Star
 import InfiniteScroll from '@/components/InfiniteScroll';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import ChipRail from '@/components/ui/ChipRail';
+import FilterDock, { useFilterDock } from '@/components/ui/FilterDock';
 import filterStyles from '@/components/DiscoverFilters.module.css';
 import PageHeader from '@/components/ui/PageHeader';
 import AnimeIcon from '@/components/AnimeIcon';
@@ -90,8 +91,11 @@ export default function AnimePageClient() {
     const [loadError, setLoadError] = useState(false);
 
     const [filters, setFilters] = useState<BrowseFilters>(DEFAULT_FILTERS);
-    const setFilter = <K extends keyof BrowseFilters>(key: K, value: BrowseFilters[K]) =>
+    const { anchor, dock, toResults } = useFilterDock();
+    const setFilter = <K extends keyof BrowseFilters>(key: K, value: BrowseFilters[K]) => {
         setFilters(prev => ({ ...prev, [key]: value }));
+        toResults();
+    };
     const filtered = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
     // Ignores responses for filters that have since changed.
     const requestId = useRef(0);
@@ -235,6 +239,7 @@ export default function AnimePageClient() {
             <div className="px-[4%] mt-20">
                 <h2 className="text-3xl font-bold mb-6 text-gradient">Browse Anime</h2>
 
+                <FilterDock anchor={anchor} dock={dock}>
                 <div className={`${filterStyles.filterBar} glass-panel`}>
                     <div className={filterStyles.topRow}>
                         <div className="flex flex-wrap items-center gap-2.5">
@@ -278,7 +283,7 @@ export default function AnimePageClient() {
                                 </select>
                             </label>
                             {filtered && (
-                                <button type="button" className={filterStyles.reset} data-ripple onClick={() => setFilters(DEFAULT_FILTERS)}>
+                                <button type="button" className={filterStyles.reset} data-ripple onClick={() => { setFilters(DEFAULT_FILTERS); toResults(); }}>
                                     <RotateCcw size={14} />
                                     Reset
                                 </button>
@@ -293,6 +298,7 @@ export default function AnimePageClient() {
                         allLabel="All genres"
                     />
                 </div>
+                </FilterDock>
 
                 {browseLoading && browse.length === 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">

@@ -120,7 +120,7 @@ export default function AnimeEpisodeList({
                 )}
             </div>
 
-            <div className={cn(styles.episodeList, listClassName)} data-lenis-prevent={listClassName ? '' : undefined}>
+            <div className={cn(styles.episodeList, listClassName)} data-smooth={listClassName ? 'y' : undefined}>
                 {episodes.map((episodeNumber) => {
                     const episodeMeta = meta[episodeNumber];
                     const image = episodeMeta?.thumbnail || fallback;

@@ -2,17 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'framer-motion';
-import { CalendarDays, Clock3, Film, Flame, Info, LayoutGrid, Star, Tv } from 'lucide-react';
+import { ArrowDown, ArrowUp, CalendarDays, ChevronRight, Clock3, Film, Flame, Info, LayoutGrid, Minus, Star, Tv } from 'lucide-react';
 import { fetchTrending, Movie } from '@/lib/tmdb';
-import MovieCard from '@/components/MovieCard';
 import PlayButton from '@/components/PlayButton';
 import PageHeader from '@/components/ui/PageHeader';
 import SegmentedControl from '@/components/ui/SegmentedControl';
-import { Reveal } from '@/components/ui/Reveal';
+import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal';
 import { cn } from '@/lib/utils';
+import styles from './Trending.module.css';
 
-type Window = 'day' | 'week';
+type ChartWindow = 'day' | 'week';
 type Kind = 'all' | 'movie' | 'tv';
 
 const WINDOWS = [
@@ -26,174 +25,246 @@ const KINDS = [
     { value: 'tv' as const, label: 'Series', icon: <Tv size={15} /> },
 ];
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-const BACKDROP = 'https://image.tmdb.org/t/p/w1280';
+const IMG = 'https://image.tmdb.org/t/p/';
+
+function art(item: Movie, size: string): string | null {
+    const path = item.backdrop_path || item.poster_path;
+    return path ? `${IMG}${size}${path}` : null;
+}
 
 function year(item: Movie): string {
     const date = item.release_date || item.first_air_date;
     return date ? String(new Date(date).getFullYear()) : '';
 }
 
+function itemKey(item: Movie): string {
+    return `${item.media_type}-${item.id}`;
+}
+
 function detailsHref(item: Movie): string {
     return `/details?type=${item.media_type === 'tv' ? 'series' : 'movie'}&id=${item.id}`;
 }
 
-/** Large backdrop card for the top three. */
-function SpotlightCard({ item, rank, large }: { item: Movie; rank: number; large?: boolean }) {
-    const type = item.media_type === 'tv' ? 'tv' : 'movie';
+/**
+ * Change since the other chart: positive climbed, negative fell, null is a
+ * new entry, undefined means there is nothing to compare with.
+ */
+type Movement = number | null | undefined;
+
+function MovementBadge({ movement, className }: { movement: Movement; className?: string }) {
+    if (movement === undefined) return null;
+    if (movement === null) {
+        return <span className={cn(styles.move, styles.moveNew, className)}>New</span>;
+    }
+    if (movement === 0) {
+        return <span className={cn(styles.move, styles.moveSame, className)} title="Same place as this week"><Minus size={13} /></span>;
+    }
+    const up = movement > 0;
     return (
-        <div className={cn(
-            'group relative overflow-hidden rounded-[28px] ring-1 ring-white/[0.08]',
-            large ? 'min-h-[440px]' : 'min-h-[208px]'
-        )}>
-            <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
-                style={{ backgroundImage: `url(${BACKDROP}${item.backdrop_path})` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[rgba(4,11,10,0.97)] via-[rgba(4,11,10,0.45)] to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[rgba(4,11,10,0.7)] to-transparent" />
+        <span
+            className={cn(styles.move, up ? styles.moveUp : styles.moveDown, className)}
+            title={`${up ? 'Up' : 'Down'} ${Math.abs(movement)} on this week's chart`}
+        >
+            {up ? <ArrowUp size={13} strokeWidth={2.6} /> : <ArrowDown size={13} strokeWidth={2.6} />}
+            {Math.abs(movement)}
+        </span>
+    );
+}
 
-            <span
-                className={cn(
-                    'absolute right-5 top-2 font-extrabold leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.55)]',
-                    large ? 'text-[150px]' : 'text-[84px]'
-                )}
-            >
-                {rank}
-            </span>
-
-            <div className={cn('absolute inset-x-0 bottom-0 flex flex-col gap-3', large ? 'p-8' : 'p-5')}>
-                <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] shadow-[0_6px_20px_rgba(31,128,115,0.45)]">
-                    <Flame size={12} /> #{rank} trending
-                </span>
-                <Link href={detailsHref(item)} className={cn('font-extrabold leading-tight tracking-tight hover:text-violet-200', large ? 'text-4xl' : 'text-xl')}>
-                    {item.title || item.name}
-                </Link>
-                <div className="flex items-center gap-3 text-sm font-medium text-white/70">
-                    <span className="flex items-center gap-1 font-bold text-amber-300">
-                        <Star size={14} fill="currentColor" /> {(item.vote_average || 0).toFixed(1)}
-                    </span>
-                    <span>{year(item)}</span>
-                    <span className="rounded-md border border-white/25 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider">
-                        {type === 'tv' ? 'Series' : 'Movie'}
-                    </span>
-                </div>
-                {large && (
-                    <>
-                        <p className="line-clamp-2 max-w-xl text-[15px] leading-relaxed text-white/70">{item.overview}</p>
-                        <div className="mt-1 flex items-center gap-3">
-                            <PlayButton
-                                id={item.id}
-                                type={type}
-                                className="bg-white text-[#00332e] shadow-[0_10px_34px_rgba(255,255,255,0.22)] transition-transform hover:-translate-y-0.5 hover:scale-[1.03]"
-                                releaseDate={item.release_date || item.first_air_date}
-                            />
-                            <Link
-                                href={detailsHref(item)}
-                                className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 font-bold transition-colors hover:bg-white/20"
-                            >
-                                <Info size={19} /> More Info
-                            </Link>
-                        </div>
-                    </>
-                )}
-            </div>
+function Meta({ item, movement }: { item: Movie; movement: Movement }) {
+    return (
+        <div className={styles.meta}>
+            {item.vote_average > 0 && (
+                <span className={styles.rating}><Star size={13} fill="currentColor" /> {item.vote_average.toFixed(1)}</span>
+            )}
+            {year(item) && <span>{year(item)}</span>}
+            <span className={styles.kind}>{item.media_type === 'tv' ? 'Series' : 'Movie'}</span>
+            <MovementBadge movement={movement} />
         </div>
     );
 }
 
+/** No. 1: a full-width cinematic banner. */
+function Spotlight({ item, movement, windowLabel }: { item: Movie; movement: Movement; windowLabel: string }) {
+    const image = art(item, 'w1280');
+    const type = item.media_type === 'tv' ? 'tv' : 'movie';
+    return (
+        <section className={styles.spotlight}>
+            {image && <div className={styles.spotlightArt} style={{ backgroundImage: `url(${image})` }} />}
+            <div className={styles.spotlightShade} />
+            <span className={styles.spotlightRank} aria-hidden="true">1</span>
+
+            <div className={styles.spotlightCopy}>
+                <span className={styles.badge}><Flame size={13} /> No. 1 {windowLabel}</span>
+                <Link href={detailsHref(item)} className={styles.spotlightTitle}>{item.title || item.name}</Link>
+                <Meta item={item} movement={movement} />
+                {item.overview && <p className={styles.spotlightText}>{item.overview}</p>}
+                <div className={styles.actions}>
+                    <PlayButton
+                        id={item.id}
+                        type={type}
+                        className="bg-white text-[#00332e] shadow-[0_10px_34px_rgba(255,255,255,0.22)] transition-transform hover:-translate-y-0.5"
+                        releaseDate={item.release_date || item.first_air_date}
+                    />
+                    <Link href={detailsHref(item)} className={styles.ghost}>
+                        <Info size={18} /> More info
+                    </Link>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/** Nos. 2 to 4: wide artwork cards with the rank set large in the corner. */
+function RunnerUp({ item, rank, movement }: { item: Movie; rank: number; movement: Movement }) {
+    const image = art(item, 'w780');
+    return (
+        <Link href={detailsHref(item)} className={styles.runner}>
+            <div className={styles.runnerArt}>
+                {image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={image} alt="" loading="lazy" decoding="async" draggable={false} />
+                )}
+            </div>
+            <div className={styles.runnerShade} />
+            <span className={styles.runnerRank} aria-hidden="true">{rank}</span>
+            <div className={styles.runnerCopy}>
+                <h3 className={styles.runnerTitle}>{item.title || item.name}</h3>
+                <Meta item={item} movement={movement} />
+            </div>
+        </Link>
+    );
+}
+
+/** No. 5 onwards: one row of the chart. */
+function ChartRow({ item, rank, movement }: { item: Movie; rank: number; movement: Movement }) {
+    const image = art(item, 'w300');
+    return (
+        <Link href={detailsHref(item)} className={styles.row}>
+            <span className={styles.rowRank}>{rank}</span>
+            <div className={styles.rowArt}>
+                {image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={image} alt="" loading="lazy" decoding="async" draggable={false} />
+                )}
+            </div>
+            <div className={styles.rowCopy}>
+                <h3 className={styles.rowTitle}>{item.title || item.name}</h3>
+                <div className={styles.meta}>
+                    {item.vote_average > 0 && (
+                        <span className={styles.rating}><Star size={12} fill="currentColor" /> {item.vote_average.toFixed(1)}</span>
+                    )}
+                    {year(item) && <span>{year(item)}</span>}
+                    <span className={styles.kind}>{item.media_type === 'tv' ? 'Series' : 'Movie'}</span>
+                </div>
+            </div>
+            <MovementBadge movement={movement} className={styles.rowMove} />
+            <ChevronRight size={18} className={styles.rowChevron} />
+        </Link>
+    );
+}
+
 export default function TrendingClient({ initialDay }: { initialDay: Movie[] }) {
-    const [window, setWindow] = useState<Window>('day');
+    const [chart, setChart] = useState<ChartWindow>('day');
     const [kind, setKind] = useState<Kind>('all');
-    const [lists, setLists] = useState<Partial<Record<Window, Movie[]>>>({ day: initialDay });
+    const [lists, setLists] = useState<Partial<Record<ChartWindow, Movie[]>>>({ day: initialDay });
 
-    // "This week" is fetched the first time it is picked, then cached.
+    // This week's chart loads in the background: it is the selectable second
+    // chart and also what today's movement arrows compare against.
     useEffect(() => {
-        if (lists[window]) return;
+        if (lists.week) return;
         let cancelled = false;
-        fetchTrending(window)
-            .then(items => { if (!cancelled) setLists(previous => ({ ...previous, [window]: items })); })
-            .catch(() => { if (!cancelled) setLists(previous => ({ ...previous, [window]: [] })); });
+        fetchTrending('week')
+            .then(items => { if (!cancelled) setLists(previous => ({ ...previous, week: items })); })
+            .catch(() => { if (!cancelled) setLists(previous => ({ ...previous, week: [] })); });
         return () => { cancelled = true; };
-    }, [window, lists]);
+    }, [lists.week]);
 
-    // A window is loading until its list has arrived.
-    const loading = !lists[window];
+    const loading = !lists[chart];
 
-    const items = useMemo(() => (lists[window] ?? [])
+    const filter = useMemo(() => (list: Movie[] | undefined) => (list ?? [])
         .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
-        .filter(item => kind === 'all' || item.media_type === kind), [lists, window, kind]);
+        .filter(item => kind === 'all' || item.media_type === kind), [kind]);
 
-    const [first, second, third, ...rest] = items;
-    const viewKey = `${window}-${kind}`;
+    const items = useMemo(() => filter(lists[chart]), [filter, lists, chart]);
+
+    // Places on this week's chart (same filter), for today's movement arrows.
+    const weekRanks = useMemo(() => {
+        if (chart !== 'day' || !lists.week?.length) return null;
+        return new Map(filter(lists.week).map((item, index) => [itemKey(item), index + 1]));
+    }, [chart, filter, lists.week]);
+
+    const movementOf = (item: Movie, rank: number): Movement => {
+        if (!weekRanks) return undefined;
+        const weekRank = weekRanks.get(itemKey(item));
+        return weekRank === undefined ? null : weekRank - rank;
+    };
+
+    const [first, ...others] = items;
+    const runners = others.slice(0, 3);
+    const rest = others.slice(3);
+    const viewKey = `${chart}-${kind}`;
+    const windowLabel = chart === 'day' ? 'today' : 'this week';
 
     return (
-        <div className="min-h-screen pb-20">
+        <div className="min-h-screen pb-24">
             <PageHeader
                 eyebrow="Live chart"
                 title="Trending Now"
-                subtitle="What everyone is watching right now. Switch between today and this week, or focus on movies or series."
+                subtitle="What everyone is watching right now, ranked. Switch between today and this week, or focus on movies or series."
             >
-                <div className="flex flex-wrap items-center gap-3">
-                    <SegmentedControl id="trend-window" options={WINDOWS} value={window} onChange={setWindow} />
+                <div className={styles.controls}>
+                    <SegmentedControl id="trend-window" options={WINDOWS} value={chart} onChange={setChart} />
                     <SegmentedControl id="trend-kind" size="sm" options={KINDS} value={kind} onChange={setKind} />
                 </div>
             </PageHeader>
 
             <div className="px-[4%]">
                 {loading && items.length === 0 ? (
-                    <div className="grid gap-5 lg:grid-cols-3">
-                        <div className="skeleton min-h-[440px] rounded-[28px] lg:col-span-2" />
-                        <div className="grid gap-5">
-                            <div className="skeleton min-h-[208px] rounded-[28px]" />
-                            <div className="skeleton min-h-[208px] rounded-[28px]" />
+                    <div className="flex flex-col gap-5">
+                        <div className="skeleton h-[min(62vh,560px)] rounded-[32px]" />
+                        <div className="grid gap-5 md:grid-cols-3">
+                            {[0, 1, 2].map(index => <div key={index} className="skeleton aspect-[16/10] rounded-[26px]" />)}
                         </div>
                     </div>
+                ) : items.length === 0 ? (
+                    <p className="py-24 text-center text-white/50">Nothing trending here right now.</p>
                 ) : (
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={viewKey}
-                            initial={{ opacity: 0, y: 18 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.45, ease: EASE }}
-                        >
-                            {first && (
-                                <div className="grid gap-5 lg:grid-cols-3">
-                                    <div className="lg:col-span-2">
-                                        <SpotlightCard item={first} rank={1} large />
-                                    </div>
-                                    <div className="grid gap-5">
-                                        {second && <SpotlightCard item={second} rank={2} />}
-                                        {third && <SpotlightCard item={third} rank={3} />}
-                                    </div>
-                                </div>
-                            )}
+                    // Keyed by the view, so switching charts plays the entrance again.
+                    <div key={viewKey} className={styles.view}>
+                        {first && <Spotlight item={first} movement={movementOf(first, 1)} windowLabel={windowLabel} />}
 
-                            {rest.length > 0 && (
-                                <>
-                                    <Reveal className="mb-6 mt-14 flex items-end justify-between">
-                                        <h2 className="text-3xl font-bold text-gradient">The rest of the chart</h2>
-                                        <span className="text-sm font-semibold text-white/45">{items.length} titles</span>
-                                    </Reveal>
-                                    <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-                                        {rest.map((item, index) => (
-                                            <div key={`${item.media_type}-${item.id}`} className="relative pl-7">
-                                                <span className="pointer-events-none absolute -bottom-3 left-0 z-20 text-[76px] font-extrabold leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.5)]">
-                                                    {index + 4}
-                                                </span>
-                                                <MovieCard movie={item} fullWidth />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
+                        {runners.length > 0 && (
+                            <div className={styles.runners}>
+                                {runners.map((item, index) => (
+                                    <RunnerUp key={itemKey(item)} item={item} rank={index + 2} movement={movementOf(item, index + 2)} />
+                                ))}
+                            </div>
+                        )}
 
-                            {items.length === 0 && !loading && (
-                                <p className="py-24 text-center text-white/50">Nothing trending here right now.</p>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
+                        {rest.length > 0 && (
+                            <>
+                                <Reveal className={styles.chartHead}>
+                                    <div>
+                                        <h2 className="text-3xl font-bold text-gradient">The full chart</h2>
+                                        <p className="mt-2 text-sm text-white/50">
+                                            {weekRanks
+                                                ? 'Arrows show each title\'s move against this week\'s chart.'
+                                                : `${items.length} titles trending ${windowLabel}.`}
+                                        </p>
+                                    </div>
+                                    <span className={styles.count}>{items.length} titles</span>
+                                </Reveal>
+                                <RevealGroup className={styles.chart}>
+                                    {rest.map((item, index) => (
+                                        <RevealItem key={itemKey(item)}>
+                                            <ChartRow item={item} rank={index + 5} movement={movementOf(item, index + 5)} />
+                                        </RevealItem>
+                                    ))}
+                                </RevealGroup>
+                            </>
+                        )}
+                    </div>
                 )}
             </div>
         </div>

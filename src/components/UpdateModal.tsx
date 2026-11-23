@@ -62,7 +62,7 @@ export default function UpdateModal({
                     </h2>
                     <p className={styles.subtitle}>
                         {status === 'error'
-                            ? 'The update could not be downloaded. Check your connection and try again.'
+                            ? 'The update did not finish. Try again in a moment.'
                             : <>
                                 FlixView {version ? <strong className="text-white">v{version}</strong> : 'a new version'} is ready
                                 {currentVersion ? <> (you have v{currentVersion})</> : null}. Update now to get the latest features and fixes.

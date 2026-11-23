@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { getSmoothScroller } from './SmoothScroll';
 
 export interface Chip<T extends string | number> {
     value: T;
@@ -22,8 +23,8 @@ interface ChipRailProps<T extends string | number> {
 
 /**
  * One-line, horizontally scrolling chip picker (genres). The active chip has
- * a sliding highlight and is scrolled into view when selected. Mouse wheels
- * scroll it sideways.
+ * a sliding highlight and is brought into view when selected. Mouse wheels
+ * glide it sideways (data-smooth="chips", see SmoothScroll).
  */
 export default function ChipRail<T extends string | number>({
     id,
@@ -34,25 +35,24 @@ export default function ChipRail<T extends string | number>({
     className,
 }: ChipRailProps<T>) {
     const scroller = useRef<HTMLDivElement>(null);
+    const mounted = useRef(false);
 
-    // Vertical wheel movement scrolls the strip sideways instead of the page.
+    // Centre the selected chip inside the strip. Only the strip moves:
+    // scrollIntoView would also scroll the page to the filter bar, which is
+    // what opened the Anime page part-way down. Nothing moves on first render.
     useEffect(() => {
+        const first = !mounted.current;
+        mounted.current = true;
+        if (first) return;
         const el = scroller.current;
-        if (!el) return;
-        const onWheel = (event: WheelEvent) => {
-            if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-            if (el.scrollWidth <= el.clientWidth) return;
-            event.preventDefault();
-            el.scrollBy({ left: event.deltaY });
-        };
-        el.addEventListener('wheel', onWheel, { passive: false });
-        return () => el.removeEventListener('wheel', onWheel);
-    }, []);
-
-    useEffect(() => {
-        scroller.current
-            ?.querySelector<HTMLElement>('[aria-pressed="true"]')
-            ?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+        const chip = el?.querySelector<HTMLElement>('[aria-pressed="true"]');
+        if (!el || !chip) return;
+        const max = el.scrollWidth - el.clientWidth;
+        if (max <= 0) return;
+        const target = Math.min(max, Math.max(0, chip.offsetLeft - (el.clientWidth - chip.offsetWidth) / 2));
+        const smooth = getSmoothScroller(el);
+        if (smooth) smooth.scrollTo(target, { duration: 0.6 });
+        else el.scrollTo({ left: target, behavior: 'smooth' });
     }, [value]);
 
     const all: { value: T | null; label: string }[] = [{ value: null, label: allLabel }, ...chips];
@@ -60,8 +60,8 @@ export default function ChipRail<T extends string | number>({
     return (
         <div
             ref={scroller}
-            data-lenis-prevent
-            className={cn('flex items-center gap-2 overflow-x-auto py-1', className)}
+            data-smooth="chips"
+            className={cn('relative flex items-center gap-2 overflow-x-auto py-1', className)}
         >
             {all.map(chip => {
                 const active = chip.value === value;

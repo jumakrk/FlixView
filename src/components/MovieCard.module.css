@@ -4,7 +4,6 @@
     flex-shrink: 0;
     aspect-ratio: 2 / 3;
     z-index: 1;
-    perspective: 900px;
     /* Set by useTilt on pointer move. */
     --tilt-x: 0deg;
     --tilt-y: 0deg;
@@ -24,14 +23,16 @@
     overflow: hidden;
     background: rgba(255, 255, 255, 0.04);
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-    transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
-    transform-style: preserve-3d;
+    /* Flat at rest. A 3D transform here, even rotateX(0deg), puts every card
+       on its own GPU layer, and hundreds of layers is what made long grids
+       and rails stutter. The tilt exists only while a card is hovered. */
+    transform: none;
     transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
 }
 
 .card:hover .inner {
     will-change: transform;
-    transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-8px) scale(1.045);
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-8px) scale(1.045);
     /* Follows the pointer tightly while hovering, eases back on leave. */
     transition-duration: 0.12s, 0.45s;
     box-shadow:

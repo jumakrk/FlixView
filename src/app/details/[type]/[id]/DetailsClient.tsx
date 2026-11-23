@@ -207,7 +207,7 @@ export default function DetailsClient({ id, type }: { id: string; type: string }
                 {credits && credits.length > 0 && (
                     <Reveal>
                         <h2 className={styles.sectionTitle}>Top Cast</h2>
-                        <div className={styles.castRail}>
+                        <div className={styles.castRail} data-smooth="x">
                             {credits.map((person) => (
                                 <Link key={person.id} href={`/person?id=${person.id}`} className={styles.castCard}>
                                     <div className={styles.castImageContainer}>

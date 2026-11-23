@@ -22,7 +22,8 @@
     --tilt-y: 0deg;
     --glare-x: 50%;
     --glare-y: 0%;
-    transform: perspective(800px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    /* Flat at rest: a resting 3D transform gives every tile its own GPU layer. */
+    transform: none;
     transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
 }
 

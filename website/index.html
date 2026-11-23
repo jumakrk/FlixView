@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FlixView · Every story, one beautiful app</title>
+  <meta name="description" content="FlixView is a free, ad-free desktop app for movies, series and anime. Discover, watch and keep track, beautifully. For Windows, macOS and Linux.">
+  <meta name="theme-color" content="#040b0a">
+  <meta name="color-scheme" content="dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="FlixView · Every story, one beautiful app">
+  <meta property="og:description" content="A free, ad-free desktop app for movies, series and anime. Windows, macOS and Linux.">
+  <meta property="og:image" content="/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon-64.png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script>document.documentElement.classList.add('js');</script>
+  <script defer src="/js/vendor/lenis.min.js"></script>
+  <script defer src="/js/tmdb.js"></script>
+  <script defer src="/js/main.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span data-progress></span></div>
+
+  <!-- ================================================================ NAV -->
+  <header class="nav" data-nav>
+    <div class="nav__bar">
+      <a class="brand" href="#top" aria-label="FlixView home">
+        <img src="/assets/icon-192.png" alt="" width="32" height="32">
+        <span>FlixView</span>
+      </a>
+      <nav class="nav__links" aria-label="Main">
+        <a href="#app">The app</a>
+        <a href="#features">Features</a>
+        <a href="#download">Download</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav__end">
+        <a class="nav__icon" href="https://github.com/jumakrk/FlixView" target="_blank" rel="noopener" aria-label="FlixView on GitHub">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.56-.29-5.24-1.280-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+        </a>
+        <a class="btn btn--sand btn--sm nav__cta" href="#download">Download</a>
+        <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu" data-burger><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="menu" id="menu" data-menu hidden>
+    <nav aria-label="Menu">
+      <a href="#app">The app</a>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/jumakrk/FlixView" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+
+  <main id="main">
+    <!-- ================================================================ HERO -->
+    <section class="hero" id="top" data-hero>
+      <div class="hero__bg" aria-hidden="true">
+        <div class="hero__glow"></div>
+        <div class="hero__beam"></div>
+        <div class="hero__grid"></div>
+      </div>
+
+      <div class="hero__layout container">
+        <div class="hero__copy">
+          <p class="pill rise" style="--i:0"><span class="pill__dot"></span><span data-release-pill>Free for Windows, macOS and Linux</span></p>
+          <h1 class="hero__title" aria-label="Every story. One beautiful app.">
+            <span class="mask"><span class="rise-line" style="--i:1">Every story.</span></span>
+            <span class="mask"><span class="rise-line hero__title-soft" style="--i:2">One beautiful app.</span></span>
+          </h1>
+          <p class="hero__lede rise" style="--i:3">FlixView is a free desktop app for movies, series and anime. Calm, ad-free and private, with everything you watch in one place.</p>
+          <div class="hero__cta rise" style="--i:4">
+            <a class="btn btn--sand btn--lg" href="#download" data-primary-download>
+              <span class="btn__icon" data-os-icon aria-hidden="true"></span>
+              <span data-primary-label>Download free</span>
+            </a>
+            <a class="btn btn--ghost btn--lg" href="#app">See how it works</a>
+          </div>
+          <ul class="hero__points rise" style="--i:5">
+            <li><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>No ads</li>
+            <li><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/><path d="m3 3 18 18"/></svg>No account</li>
+            <li><svg class="i" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>Free forever</li>
+          </ul>
+          <p class="hero__meta rise" style="--i:6" data-primary-meta>Free and open source</p>
+        </div>
+
+        <div class="hero__stage rise" style="--i:3" aria-hidden="true">
+          <div class="stage" data-stage>
+            <div class="stage__win stage__win--back">
+              <div class="frame__bar" aria-hidden="true"><span class="frame__name"><img src="/assets/favicon-32.png" alt="" width="14" height="14">FlixView</span><span class="frame__ctrls"><i></i><i></i><i></i></span></div>
+              <img src="/assets/shots/home-2000.webp" srcset="/assets/shots/home-1000.webp 1000w, /assets/shots/home-2000.webp 2000w" sizes="(max-width: 1024px) 92vw, 760px" width="2000" height="1250" alt="" fetchpriority="high" decoding="async">
+            </div>
+            <div class="stage__win stage__win--front">
+              <div class="frame__bar" aria-hidden="true"><span class="frame__name"><img src="/assets/favicon-32.png" alt="" width="14" height="14">FlixView</span><span class="frame__ctrls"><i></i><i></i><i></i></span></div>
+              <img src="/assets/shots/search-1000.webp" srcset="/assets/shots/search-1000.webp 1000w, /assets/shots/search-2000.webp 2000w" sizes="(max-width: 1024px) 60vw, 460px" width="2000" height="1250" alt="" decoding="async">
+            </div>
+            <div class="chip chip--ads"><span class="chip__icon"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span><span><b>0 ads</b><small>shown, ever</small></span></div>
+            <div class="chip chip--resume"><span class="chip__play"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5-11-6.5Z" fill="currentColor"/></svg></span><span><b>Continue watching</b><small>Season 2 · Episode 5</small><i class="chip__bar"><i></i></i></span></div>
+            <div class="chip chip--key"><kbd>Ctrl</kbd><kbd>K</kbd><small>Search anywhere</small></div>
+            <div class="chip chip--update"><span class="chip__icon chip__icon--ok"><svg class="i" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></span><span><b>Up to date</b><small data-chip-version>Updates itself</small></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ TICKER -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker__track" data-ticker>
+        <span>No ads</span><i></i><span>No account</span><i></i><span>Continue watching</span><i></i><span>Anime in English dub</span><i></i><span>Search with Ctrl K</span><i></i><span>Windows</span><i></i><span>macOS</span><i></i><span>Linux</span><i></i><span>Updates itself</span><i></i><span>Your data stays on your computer</span><i></i>
+      </div>
+    </div>
+
+    <!-- ================================================================ POSTER WALL -->
+    <section class="wall" id="wall" aria-labelledby="wall-title">
+      <div class="container wall__head">
+        <p class="kicker reveal">The library</p>
+        <h2 class="title" data-split id="wall-title">Thousands of films, series and anime.<br><span class="title__soft">All in one place.</span></h2>
+      </div>
+      <div class="wall__stage" aria-hidden="true">
+        <div class="wall__plane" data-wall>
+          <div class="wall__row" data-row></div>
+          <div class="wall__row" data-row></div>
+          <div class="wall__row" data-row></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ HOW IT WORKS -->
+    <section class="how" id="app" aria-labelledby="how-title">
+      <div class="container how__head">
+        <p class="kicker reveal">How it works</p>
+        <h2 class="title" data-split id="how-title">Find it, play it,<br><span class="title__soft">pick it up later.</span></h2>
+      </div>
+
+      <div class="container how__layout" data-how>
+        <ol class="how__steps">
+          <li class="how__step is-on" data-step="0">
+            <span class="how__num">01</span>
+            <h3>Find anything in seconds</h3>
+            <p>Press Ctrl K on any screen and start typing. Movies, series and anime appear together as you type, and missing spaces are forgiven.</p>
+            <ul class="how__tags"><li>Ctrl K from anywhere</li><li>Movies, series and anime</li></ul>
+            <figure class="how__inline frame">
+              <div class="frame__bar" aria-hidden="true"><span class="frame__name"><img src="/assets/favicon-32.png" alt="" width="14" height="14">FlixView</span><span class="frame__ctrls"><i></i><i></i><i></i></span></div>
+              <img src="/assets/shots/search-1000.webp" srcset="/assets/shots/search-1000.webp 1000w, /assets/shots/search-2000.webp 2000w" sizes="(max-width: 1024px) 92vw, 720px" width="2000" height="1250" alt="The FlixView search box showing results for dune across movies, series and anime" loading="lazy" decoding="async">
+            </figure>
+          </li>
+          <li class="how__step" data-step="1">
+            <span class="how__num">02</span>
+            <h3>Everything about a title</h3>
+            <p>See the rating, seasons and episodes and who is in it, read the full story, then press Play. The player opens straight away, with sound.</p>
+            <ul class="how__tags"><li>Seasons and episodes</li><li>Cast pages</li></ul>
+            <figure class="how__inline frame">
+              <div class="frame__bar" aria-hidden="true"><span class="frame__name"><img src="/assets/favicon-32.png" alt="" width="14" height="14">FlixView</span><span class="frame__ctrls"><i></i><i></i><i></i></span></div>
+              <img src="/assets/shots/details-1000.webp" srcset="/assets/shots/details-1000.webp 1000w, /assets/shots/details-2000.webp 2000w" sizes="(max-width: 1024px) 92vw, 720px" width="2000" height="1250" alt="A FlixView title page with the series logo, rating, seasons, episodes and the cast" loading="lazy" decoding="async">
+            </figure>
+          </li>
+          <li class="how__step" data-step="2">
+            <span class="how__num">03</span>
+            <h3>Never lose your place</h3>
+            <p>FlixView remembers where you stopped. Continue Watching takes you back to the exact moment, and the next episode is ready when one ends.</p>
+            <ul class="how__tags"><li>Continue watching</li><li>Up next</li></ul>
+            <figure class="how__inline frame">
+              <div class="frame__bar" aria-hidden="true"><span class="frame__name"><img src="/assets/favicon-32.png" alt="" width="14" height="14">FlixView</span><span class="frame__ctrls"><i></i><i></i><i></i></span></div>
+              <img src="/assets/shots/home-1000.webp" srcset="/assets/shots/home-1000.webp 1000w, /assets/shots/home-2000.webp 2000w" sizes="(max-width: 1024px) 92vw, 720px" width="2000" height="1250" alt="The FlixView home screen with a featured title and an Up next list" loading="lazy" decoding="async">
+            </figure>
+          </li>
+        </ol>
+
+        <div class="how__stage" aria-hidden="true">
+          <div class="how__sticky">
+            <div class="frame how__frame">
+              <div class="frame__bar" aria-hidden="true"><span class="frame__name"><img src="/assets/favicon-32.png" alt="" width="14" height="14">FlixView</span><span class="frame__ctrls"><i></i><i></i><i></i></span></div>
+              <div class="how__screens">
+                <img class="how__shot is-on" data-how-shot="0" src="/assets/shots/search-2000.webp" srcset="/assets/shots/search-1000.webp 1000w, /assets/shots/search-2000.webp 2000w" sizes="720px" width="2000" height="1250" alt="" decoding="async">
+                <img class="how__shot" data-how-shot="1" src="/assets/shots/details-2000.webp" srcset="/assets/shots/details-1000.webp 1000w, /assets/shots/details-2000.webp 2000w" sizes="720px" width="2000" height="1250" alt="" decoding="async">
+                <img class="how__shot" data-how-shot="2" src="/assets/shots/home-2000.webp" srcset="/assets/shots/home-1000.webp 1000w, /assets/shots/home-2000.webp 2000w" sizes="720px" width="2000" height="1250" alt="" decoding="async">
+              </div>
+            </div>
+            <div class="how__dots"><span class="is-on"></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ FEATURES -->
+    <section class="features container" id="features" aria-labelledby="features-title">
+      <div class="features__head">
+        <p class="kicker reveal">Why FlixView</p>
+        <h2 class="title" data-split id="features-title">Everything you need.<br><span class="title__soft">Nothing you don't.</span></h2>
+      </div>
+
+      <div class="bento">
+        <article class="tile tile--ads reveal" data-tile>
+          <div class="tile__demo ads" aria-hidden="true">
+            <div class="ads__count">
+              <span class="ads__zero">0</span>
+              <span class="ads__label">ads on your screen</span>
+              <span class="ads__shield"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Blocker on</span>
+            </div>
+            <div class="ads__log">
+              <ul>
+                <li><i></i><span>Pop-up redirect</span><b>Blocked</b></li>
+                <li><i></i><span>Tracking pixel</span><b>Blocked</b></li>
+                <li><i></i><span>Banner ad</span><b>Blocked</b></li>
+                <li><i></i><span>Fake download button</span><b>Blocked</b></li>
+                <li><i></i><span>Video pre-roll ad</span><b>Blocked</b></li>
+                <li><i></i><span>Analytics beacon</span><b>Blocked</b></li>
+                <li><i></i><span>Pop-up redirect</span><b>Blocked</b></li>
+                <li><i></i><span>Tracking pixel</span><b>Blocked</b></li>
+                <li><i></i><span>Banner ad</span><b>Blocked</b></li>
+                <li><i></i><span>Fake download button</span><b>Blocked</b></li>
+                <li><i></i><span>Video pre-roll ad</span><b>Blocked</b></li>
+                <li><i></i><span>Analytics beacon</span><b>Blocked</b></li>
+              </ul>
+            </div>
+          </div>
+          <div class="tile__copy">
+            <h3>Ads stay out</h3>
+            <p>A built-in blocker filters ads, trackers and sneaky redirects at the network level. Only your show is on screen.</p>
+          </div>
+        </article>
+
+        <article class="tile tile--find reveal" data-tile>
+          <div class="tile__demo find" aria-hidden="true">
+            <div class="find__bar">
+              <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <span class="find__text" data-type="strangerthings">strangerthings</span><span class="find__caret"></span>
+            </div>
+            <div class="find__result">
+              <span class="find__thumb"></span>
+              <span class="find__meta"><b>Stranger Things</b><small>Series · 2016</small></span>
+            </div>
+            <div class="find__keys"><kbd>Ctrl</kbd><kbd>K</kbd><span>from any screen</span></div>
+          </div>
+          <div class="tile__copy">
+            <h3>Search anywhere</h3>
+            <p>Movies, series and anime at once. Missing spaces are forgiven.</p>
+          </div>
+        </article>
+
+        <article class="tile tile--resume reveal" data-tile>
+          <div class="tile__demo resume" aria-hidden="true">
+            <div class="resume__card">
+              <span class="resume__art" data-resume-art></span>
+              <span class="resume__play"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+              <div class="resume__meta">
+                <small>Continue watching</small>
+                <b data-resume-title>Your series</b>
+                <span>Season 1 · Episode 4</span>
+              </div>
+              <div class="resume__bar"><span></span></div>
+            </div>
+          </div>
+          <div class="tile__copy">
+            <h3>Pick up where you left off</h3>
+            <p>Progress saves every few seconds, down to the exact moment.</p>
+          </div>
+        </article>
+
+        <article class="tile tile--binge reveal" data-tile>
+          <div class="tile__demo binge" aria-hidden="true">
+            <div class="binge__screen" data-binge-art>
+              <span class="binge__corner"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg> Fullscreen</span>
+              <span class="binge__skip">Skip intro <svg class="i" viewBox="0 0 24 24"><path d="m6 5 7 7-7 7M14 5v14"/></svg></span>
+              <div class="binge__next">
+                <svg class="binge__ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/><circle class="binge__ring-fill" cx="20" cy="20" r="17"/></svg>
+                <span><small>Up next</small><b>Episode 5</b></span>
+              </div>
+              <div class="binge__scrub"><span></span></div>
+            </div>
+          </div>
+          <div class="tile__copy">
+            <h3>Binge in fullscreen</h3>
+            <p>Skip Intro, Up Next and the next episode loading without leaving fullscreen. A whole season, uninterrupted.</p>
+          </div>
+        </article>
+
+        <article class="tile tile--anime reveal" data-tile>
+          <div class="tile__demo anime" aria-hidden="true">
+            <div class="anime__track">
+              <div class="anime__row" data-anime-row>
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="anime__pills">
+              <span class="is-on"><svg class="i" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg> English dub</span>
+              <span>This season</span>
+              <span>Action</span>
+              <span>Romance</span>
+            </div>
+          </div>
+          <div class="tile__copy">
+            <h3>Anime, done properly</h3>
+            <p>Powered by AniList, with English dub by default, this season's hits and filters for every genre.</p>
+          </div>
+        </article>
+
+        <article class="tile tile--vault reveal" data-tile>
+          <div class="tile__demo vault" aria-hidden="true">
+            <div class="vault__box">
+              <div class="vault__head"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg> This computer</div>
+              <ul>
+                <li><svg class="i" viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg> Watchlist</li>
+                <li><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg> Favourites</li>
+                <li><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Watch history</li>
+              </ul>
+            </div>
+            <div class="vault__lock"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+            <div class="vault__none">
+              <span><s>Account</s></span>
+              <span><s>Cloud</s></span>
+              <span><s>Tracking</s></span>
+            </div>
+          </div>
+          <div class="tile__copy">
+            <h3>Private by design</h3>
+            <p>No account and no cloud. Your lists and history stay on your computer, with one-click backup and restore.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================================================================ STATEMENT -->
+    <section class="statement" aria-label="Our promise">
+      <p class="statement__text" data-fill>No ads. No accounts. No subscriptions. Just you, a good story and the play button.</p>
+    </section>
+
+    <!-- ================================================================ DOWNLOAD -->
+    <section class="dl container" id="download" aria-labelledby="dl-title">
+      <div class="dl__head">
+        <p class="kicker reveal">Download</p>
+        <h2 class="title" data-split id="dl-title">Get FlixView.<br><span class="title__soft">Free, forever.</span></h2>
+        <p class="dl__release reveal" data-release-line>Always the latest release, straight from GitHub.</p>
+      </div>
+
+      <div class="dl__card reveal" data-dl>
+        <div class="dl__tabs" role="tablist" aria-label="Choose your system">
+          <button type="button" role="tab" id="os-windows" aria-controls="dl-windows" aria-selected="true" data-os-tab="windows">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5.1 10.4 4v7.2H3zm8.3-1.2L21 2.5v8.7h-9.7zM3 12.8h7.4V20L3 18.9zm8.3 0H21v8.7l-9.7-1.4z"/></svg>
+            <span>Windows</span>
+          </button>
+          <button type="button" role="tab" id="os-mac" aria-controls="dl-mac" aria-selected="false" data-os-tab="mac" tabindex="-1">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1ZM13.9 4.9c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.1.1 2.3-.6 3-1.5Z"/></svg>
+            <span>macOS</span>
+          </button>
+          <button type="button" role="tab" id="os-linux" aria-controls="dl-linux" aria-selected="false" data-os-tab="linux" tabindex="-1">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2c-2.2 0-3.6 1.8-3.6 4.4 0 1.4.2 2.4-.4 3.6-.9 1.6-2.6 3.5-3.1 5.9-.3 1.5.1 2.4.6 2.9-.6.5-1.7.7-2 1.3-.4.9.6 1.5 2.4 1.7 1.4.2 2.4.9 3.7.9 1 0 1.6-.6 2.4-.6s1.4.6 2.4.6c1.3 0 2.3-.7 3.7-.9 1.8-.2 2.8-.8 2.4-1.7-.3-.6-1.4-.8-2-1.3.5-.5.9-1.4.6-2.9-.5-2.4-2.2-4.3-3.1-5.9-.6-1.2-.4-2.2-.4-3.6C15.6 3.8 14.2 2 12 2Z"/></svg>
+            <span>Linux</span>
+          </button>
+          <span class="dl__ink" aria-hidden="true"></span>
+        </div>
+
+        <!-- Windows -->
+        <div class="dl__panel" role="tabpanel" id="dl-windows" aria-labelledby="os-windows" data-os-panel="windows">
+          <div class="dl__main">
+            <span class="dl__badge" data-recommended hidden>Recommended for your computer</span>
+            <h3 class="dl__name">FlixView for Windows</h3>
+            <p class="dl__req">Windows 10 and 11 · 64-bit installer</p>
+            <a class="btn btn--sand btn--lg dl__btn" href="https://github.com/jumakrk/FlixView/releases/download/v0.1.19/FlixView-Setup-0.1.19.exe" data-download="windows">
+              <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+              <span>Download for Windows</span>
+            </a>
+            <p class="dl__file" data-file="windows">FlixView-Setup-0.1.19.exe</p>
+          </div>
+          <ol class="steps">
+            <li><b>Open the installer</b> once it has downloaded.</li>
+            <li><b>If Windows says "Windows protected your PC"</b>, choose More info, then Run anyway. FlixView is not code-signed yet, so Windows does not recognise it.</li>
+            <li><b>Follow the installer.</b> FlixView opens when it finishes and keeps itself up to date.</li>
+          </ol>
+        </div>
+
+        <!-- macOS -->
+        <div class="dl__panel" role="tabpanel" id="dl-mac" aria-labelledby="os-mac" data-os-panel="mac" hidden>
+          <div class="dl__main">
+            <span class="dl__badge" data-recommended hidden>Recommended for your computer</span>
+            <h3 class="dl__name">FlixView for macOS</h3>
+            <p class="dl__req">Apple Silicon (M1 and newer) · disk image</p>
+            <a class="btn btn--sand btn--lg dl__btn" href="https://github.com/jumakrk/FlixView/releases/download/v0.1.19/FlixView-0.1.19-arm64.dmg" data-download="mac">
+              <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+              <span>Download for macOS</span>
+            </a>
+            <p class="dl__file" data-file="mac">FlixView-0.1.19-arm64.dmg</p>
+          </div>
+          <ol class="steps">
+            <li><b>Open the disk image</b> and drag FlixView into Applications.</li>
+            <li><b>If macOS says FlixView "is damaged" or "cannot be opened"</b>, it is because FlixView is not notarised by Apple yet. Open Terminal and run:
+              <span class="code"><code data-copy-src>xattr -cr /Applications/<wbr>FlixView.app</code><button type="button" class="copy" data-copy>Copy</button></span>
+            </li>
+            <li><b>Open FlixView</b> from Applications. You only need to do this once.</li>
+          </ol>
+        </div>
+
+        <!-- Linux -->
+        <div class="dl__panel" role="tabpanel" id="dl-linux" aria-labelledby="os-linux" data-os-panel="linux" hidden>
+          <div class="dl__main">
+            <span class="dl__badge" data-recommended hidden>Recommended for your computer</span>
+            <h3 class="dl__name">FlixView for Linux</h3>
+            <p class="dl__req">AppImage · most 64-bit distributions</p>
+            <a class="btn btn--sand btn--lg dl__btn" href="https://github.com/jumakrk/FlixView/releases/download/v0.1.19/FlixView-0.1.19.AppImage" data-download="linux">
+              <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+              <span>Download for Linux</span>
+            </a>
+            <p class="dl__file" data-file="linux">FlixView-0.1.19.AppImage</p>
+          </div>
+          <ol class="steps">
+            <li><b>Make it executable.</b> Right-click it, open Properties and allow it to run as a program, or run:
+              <span class="code"><code data-copy-src>chmod +x FlixView-*.AppImage</code><button type="button" class="copy" data-copy>Copy</button></span>
+            </li>
+            <li><b>Double-click it</b> to launch. No installation needed.</li>
+            <li><b>Not starting on a newer distribution?</b> Install libfuse2 (on Ubuntu 22.04 and later: <code>sudo apt install libfuse2</code>).</li>
+          </ol>
+        </div>
+      </div>
+
+      <p class="dl__all reveal">Older versions and release notes are on <a href="https://github.com/jumakrk/FlixView/releases" target="_blank" rel="noopener">GitHub</a>.</p>
+    </section>
+
+    <!-- ================================================================ FAQ -->
+    <section class="faq container" id="faq" aria-labelledby="faq-title">
+      <div class="faq__head">
+        <p class="kicker reveal">Questions</p>
+        <h2 class="title" data-split id="faq-title">Good to know.</h2>
+        <p class="faq__note reveal">Something else? <a href="https://github.com/jumakrk/FlixView/issues" target="_blank" rel="noopener">Ask on GitHub</a>.</p>
+      </div>
+      <div class="faq__list">
+        <details class="faq__item">
+          <summary>Is FlixView really free?<span class="faq__plus" aria-hidden="true"></span></summary>
+          <div class="faq__body"><p>Yes. FlixView is free and open source under the MIT licence, with no subscriptions, accounts or in-app purchases. You can support the project if you enjoy it, but you never have to.</p></div>
+        </details>
+        <details class="faq__item">
+          <summary>How do updates work?<span class="faq__plus" aria-hidden="true"></span></summary>
+          <div class="faq__body"><p>FlixView checks for a new version every time it starts and every 30 minutes while it is open, then asks before installing. Updating never touches your watchlist, favourites or history.</p></div>
+        </details>
+        <details class="faq__item">
+          <summary>Where is my data stored?<span class="faq__plus" aria-hidden="true"></span></summary>
+          <div class="faq__body"><p>On your own computer, in FlixView's app data folder. Nothing goes to an account or a cloud server. Settings has buttons to open that folder and to export or import a backup.</p></div>
+        </details>
+        <details class="faq__item">
+          <summary>Does it work on Intel Macs?<span class="faq__plus" aria-hidden="true"></span></summary>
+          <div class="faq__body"><p>The macOS version is built for Apple Silicon (M1 and newer). There is no Intel build at the moment.</p></div>
+        </details>
+        <details class="faq__item">
+          <summary>Why does my computer warn me when I install it?<span class="faq__plus" aria-hidden="true"></span></summary>
+          <div class="faq__body"><p>FlixView does not have a code-signing certificate yet, so Windows SmartScreen and macOS Gatekeeper do not recognise the publisher. The source code is public on GitHub, and every installer is built there automatically. The download section shows how to open it.</p></div>
+        </details>
+        <details class="faq__item">
+          <summary>Is there a phone or TV app?<span class="faq__plus" aria-hidden="true"></span></summary>
+          <div class="faq__body"><p>Not yet. FlixView is a desktop app for Windows, macOS and Linux.</p></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================================================================ FINALE -->
+    <section class="finale" aria-labelledby="finale-title">
+      <div class="finale__mosaic" data-mosaic aria-hidden="true"></div>
+      <div class="finale__veil" aria-hidden="true"></div>
+      <div class="finale__inner">
+        <img class="finale__icon" src="/assets/icon-512.png" alt="" width="120" height="120" loading="lazy">
+        <h2 class="finale__title reveal" id="finale-title">Your next favourite<br>is one click away.</h2>
+        <a class="btn btn--sand btn--lg reveal" href="#download" data-primary-download>
+          <span class="btn__icon" data-os-icon aria-hidden="true"></span>
+          <span data-primary-label>Download free</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================================================================ FOOTER -->
+  <footer class="footer">
+    <div class="container footer__top">
+      <div class="footer__brand">
+        <a class="brand" href="#top"><img src="/assets/icon-192.png" alt="" width="28" height="28" loading="lazy"><span>FlixView</span></a>
+        <p>Every story. One beautiful app.</p>
+      </div>
+      <div class="footer__cols">
+        <div>
+          <h4>Product</h4>
+          <a href="#app">The app</a>
+          <a href="#features">Features</a>
+          <a href="#download">Download</a>
+          <a href="https://github.com/jumakrk/FlixView/releases" target="_blank" rel="noopener">Release notes</a>
+        </div>
+        <div>
+          <h4>Open source</h4>
+          <a href="https://github.com/jumakrk/FlixView" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/jumakrk/FlixView/issues" target="_blank" rel="noopener">Report an issue</a>
+          <a href="https://github.com/jumakrk/FlixView/blob/main/LICENSE.txt" target="_blank" rel="noopener">MIT licence</a>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <a href="/privacy">Privacy policy</a>
+          <a href="/terms">Terms and conditions</a>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <a href="https://buymeacoffee.com/flixview" target="_blank" rel="noopener">Buy me a coffee</a>
+          <a href="https://www.paypal.com/donate/?hosted_button_id=6YYPN9NCB4DC8" target="_blank" rel="noopener">Donate with PayPal</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__word" aria-hidden="true" data-wordmark>FlixView</div>
+    <div class="container footer__base">
+      <span>© <span data-year>2026</span> FlixView</span>
+      <span>FlixView does not host any content. Film and series data and artwork come from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>. This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+    </div>
+  </footer>
+</body>
+</html>

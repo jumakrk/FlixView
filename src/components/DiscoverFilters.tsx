@@ -5,6 +5,7 @@ import { CalendarDays, Flame, RotateCcw, Sparkles, Star } from 'lucide-react';
 import styles from './DiscoverFilters.module.css';
 import SegmentedControl from './ui/SegmentedControl';
 import ChipRail from './ui/ChipRail';
+import FilterDock, { useFilterDock } from './ui/FilterDock';
 
 interface DiscoverFiltersProps {
     type?: 'movie' | 'tv';
@@ -36,6 +37,7 @@ const YEARS = Array.from({ length: 60 }, (_, i) => String(new Date().getFullYear
 export default function DiscoverFilters({ type = 'movie' }: DiscoverFiltersProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { anchor, dock, toResults } = useFilterDock();
 
     const genre = searchParams.get('genre');
     const year = searchParams.get('year');
@@ -47,11 +49,13 @@ export default function DiscoverFilters({ type = 'movie' }: DiscoverFiltersProps
         if (value) params.set(key, value);
         else params.delete(key);
         router.push(`?${params.toString()}`, { scroll: false });
+        toResults();
     };
 
     const genres = (type === 'movie' ? MOVIE_GENRES : TV_GENRES).map(name => ({ value: name, label: name }));
 
     return (
+        <FilterDock anchor={anchor} dock={dock}>
         <div className={`${styles.filterBar} glass-panel`}>
             <div className={styles.topRow}>
                 <SegmentedControl
@@ -80,7 +84,7 @@ export default function DiscoverFilters({ type = 'movie' }: DiscoverFiltersProps
                             type="button"
                             className={styles.reset}
                             data-ripple
-                            onClick={() => router.push('?', { scroll: false })}
+                            onClick={() => { router.push('?', { scroll: false }); toResults(); }}
                         >
                             <RotateCcw size={14} />
                             Reset
@@ -97,5 +101,6 @@ export default function DiscoverFilters({ type = 'movie' }: DiscoverFiltersProps
                 allLabel="All genres"
             />
         </div>
+        </FilterDock>
     );
 }

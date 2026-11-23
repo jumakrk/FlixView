@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     // Kept as a separate package with its own toolchain (Cloudflare Worker);
     // not part of the app build.
     "backend/**",
+    // The download website: plain static files, deployed on its own.
+    "website/**",
   ]),
   {
     // Electron main-process files are CommonJS by design (Electron loads

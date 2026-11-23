@@ -192,7 +192,7 @@ export default function ExpandableDescription({
                             </button>
                         </header>
 
-                        <div id={bodyId} className={styles.body}>
+                        <div id={bodyId} className={styles.body} data-smooth="y">
                             <p>{cleanText}</p>
                         </div>
                     </div>

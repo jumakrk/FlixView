@@ -62,7 +62,7 @@ export default function MediaProgressBar({ id, type, className, season, episode 
 
     return (
         <div className={cn("flex items-center gap-3 w-full mt-3", className)}>
-            <div className="flex-1 h-1 bg-gray-700/50 rounded-full backdrop-blur-sm overflow-hidden">
+            <div className="flex-1 h-1 bg-gray-700/50 rounded-full overflow-hidden">
                 <div
                     className="h-full bg-violet-600 rounded-full transition-all duration-300"
                     style={{ width: `${progressPct}%` }}

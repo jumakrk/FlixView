@@ -14,5 +14,4 @@
     overflow-y: hidden;
     /* Vertical padding leaves room for the tiles' hover lift and glow. */
     padding: 24px 4% 40px;
-    scroll-behavior: smooth;
 }

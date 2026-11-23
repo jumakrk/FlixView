@@ -281,7 +281,7 @@ export default function CommandPalette() {
                                 <kbd className="shrink-0 rounded-md border border-white/15 bg-white/5 px-2 py-0.5 text-[11px] font-semibold text-white/50">Esc</kbd>
                             </div>
 
-                            <div ref={listRef} className="max-h-[52vh] overflow-y-auto overscroll-contain p-2 [contain:content]">
+                            <div ref={listRef} data-smooth="y" className="max-h-[52vh] overflow-y-auto overscroll-contain p-2 [contain:content]">
                                 {sections.map((section, sectionIndex) => (
                                     <div key={section.title} className="mb-1">
                                         <div className="px-3 pb-1 pt-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/35">

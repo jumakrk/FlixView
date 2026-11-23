@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getSmoothScroller } from './SmoothScroll';
 
 interface RailProps {
     /** Classes for the scrolling strip itself (gap, padding). */
@@ -16,7 +17,8 @@ interface RailProps {
 /**
  * Horizontal scroller shared by every row: edge fades, and frosted arrow
  * buttons that appear on hover whenever there is more to see in that
- * direction. Trackpads, touch and Shift+wheel still scroll it natively.
+ * direction. Sideways trackpad gestures and Shift+wheel glide it through its
+ * own Lenis instance (see SmoothScroll), with the same easing as the page.
  */
 export default function Rail({ className, fade = false, children }: RailProps) {
     const scroller = useRef<HTMLDivElement>(null);
@@ -69,14 +71,17 @@ export default function Rail({ className, fade = false, children }: RailProps) {
     const page = (direction: 1 | -1) => {
         const el = scroller.current;
         if (!el) return;
-        el.scrollBy({ left: direction * el.clientWidth * 0.82, behavior: 'smooth' });
+        const smooth = getSmoothScroller(el);
+        const distance = direction * el.clientWidth * 0.82;
+        if (smooth) smooth.scrollTo(smooth.targetScroll + distance, { duration: 0.9 });
+        else el.scrollBy({ left: distance, behavior: 'smooth' });
     };
 
     const arrow = 'glass-panel absolute top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-white opacity-0 transition-all duration-300 hover:scale-110 hover:border-violet-300/50 hover:bg-violet-500/40 group-hover/rail:opacity-100';
 
     return (
         <div className="group/rail relative">
-            <div ref={scroller} onScroll={onScroll} className={cn('rail-scroller', fade && 'mask-fade-x', className)}>
+            <div ref={scroller} onScroll={onScroll} data-smooth="x" className={cn('rail-scroller', fade && 'mask-fade-x', className)}>
                 {children}
             </div>
 

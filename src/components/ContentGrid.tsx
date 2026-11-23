@@ -53,7 +53,11 @@ export default function ContentGrid({ initialItems, type }: ContentGridProps) {
             if (newItems.length === 0) {
                 setHasMore(false);
             } else {
-                setItems(prev => [...prev, ...newItems]);
+                // Pages can overlap when popularity shifts between requests.
+                setItems(prev => {
+                    const seen = new Set(prev.map(item => item.id));
+                    return [...prev, ...newItems.filter(item => !seen.has(item.id))];
+                });
                 setPage(nextPage);
             }
         } catch (error) {
@@ -67,7 +71,9 @@ export default function ContentGrid({ initialItems, type }: ContentGridProps) {
         <div className="flex flex-col items-center">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 w-full">
                 {items.map((item) => (
-                    <MovieCard key={`${item.id}-${Math.random()}`} movie={item} fullWidth />
+                    // A stable key: a random one rebuilt every card (and re-decoded
+                    // every poster) each time the grid re-rendered.
+                    <MovieCard key={item.id} movie={item} fullWidth />
                 ))}
             </div>
 

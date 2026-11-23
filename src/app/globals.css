@@ -151,9 +151,11 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Aurora: the app's ambient background. Soft Cyprus and Sand light drifts
-   slowly behind everything. Transforms only, so it stays on the compositor
-   and never repaints while the page scrolls.
+   Aurora: the app's ambient background. Soft Cyprus and Sand light behind
+   everything. It is painted once, held still, and kept on its own GPU layer:
+   as a plain fixed element Chromium repainted the whole window behind the
+   content on every scroll frame, which halved the frame rate on every page
+   (measured: 30 fps while scrolling, 60 fps with the layer).
 --------------------------------------------------------------------------- */
 .aurora {
   position: fixed;
@@ -161,6 +163,9 @@ body {
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  will-change: transform;
+  transform: translateZ(0);
+  contain: strict;
   background:
     radial-gradient(120% 80% at 50% -10%, rgba(0, 71, 65, 0.42), transparent 60%),
     var(--background);
@@ -172,21 +177,18 @@ body {
   height: 70vmax;
   border-radius: 50%;
   opacity: 0.5;
-  will-change: transform;
 }
 
 .aurora span:nth-child(1) {
   top: -30vmax;
   left: -18vmax;
   background: radial-gradient(circle, rgba(13, 107, 97, 0.5) 0%, transparent 62%);
-  animation: aurora-a 34s ease-in-out infinite alternate;
 }
 
 .aurora span:nth-child(2) {
   bottom: -38vmax;
   right: -22vmax;
   background: radial-gradient(circle, rgba(0, 90, 82, 0.45) 0%, transparent 60%);
-  animation: aurora-b 42s ease-in-out infinite alternate;
 }
 
 .aurora span:nth-child(3) {
@@ -195,19 +197,6 @@ body {
   width: 48vmax;
   height: 48vmax;
   background: radial-gradient(circle, rgba(240, 237, 228, 0.06) 0%, transparent 60%);
-  animation: aurora-c 50s ease-in-out infinite alternate;
-}
-
-@keyframes aurora-a {
-  to { transform: translate3d(14vw, 10vh, 0) scale(1.15); }
-}
-
-@keyframes aurora-b {
-  to { transform: translate3d(-12vw, -14vh, 0) scale(1.1); }
-}
-
-@keyframes aurora-c {
-  to { transform: translate3d(-18vw, 8vh, 0) scale(1.25); }
 }
 
 /* ---------------------------------------------------------------------------
@@ -266,6 +255,23 @@ body {
   color: transparent;
 }
 
+/* Gradient text only paints inside its own box, and a tight line height ends
+   that box above the tails of g, j, p, q and y (and just short of the last
+   letter's right edge). Extra room on those sides, taken back with negative
+   margins, shows the whole glyph without moving anything. */
+@layer components {
+  /* In a layer, so spacing utilities on the same element (mb-6) still win. */
+  .text-gradient,
+  .bg-clip-text {
+    padding-bottom: 0.16em;
+    margin-bottom: -0.16em;
+    padding-right: 0.06em;
+    margin-right: -0.06em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+}
+
 /* Fades the two ends of a horizontal rail so cards dissolve at the edges. */
 .mask-fade-x {
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 3.5%, #000 96.5%, transparent 100%);
@@ -292,10 +298,45 @@ body {
   100% { box-shadow: 0 0 0 16px rgba(240, 237, 228, 0); }
 }
 
+/* ---------------------------------------------------------------------------
+   Scroll reveals (components/ui/Reveal.tsx). CSS transitions, so they run on
+   the compositor; 2D transforms only, so hidden items do not each get their
+   own GPU layer while they wait. Rows reveal as one piece.
+--------------------------------------------------------------------------- */
+[data-reveal],
+[data-reveal-group] {
+  opacity: 0;
+  transition:
+    opacity 0.6s var(--ease-out) var(--reveal-delay, 0s),
+    transform 0.6s var(--ease-out) var(--reveal-delay, 0s);
+}
+
+[data-reveal] {
+  transform: translateY(var(--reveal-y, 28px));
+  transition-duration: 0.7s;
+}
+
+[data-reveal="card"],
+[data-reveal-group] {
+  transform: translateY(26px);
+}
+
+[data-reveal].is-revealed,
+[data-reveal-group].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .aurora span,
   .skeleton {
     animation: none;
+  }
+
+  [data-reveal],
+  [data-reveal-group] {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
 

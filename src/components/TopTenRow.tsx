@@ -22,7 +22,7 @@ export default function TopTenRow({ title, movies }: TopTenRowProps) {
             <Reveal className={rowStyles.header}>
                 <h2 className={rowStyles.title}>{title}</h2>
             </Reveal>
-            <RevealGroup stagger={0.07}>
+            <RevealGroup>
                 <Rail className={styles.rail} fade={false}>
                     {topTen.map((movie, index) => (
                         <RevealItem key={movie.id} className={styles.item}>

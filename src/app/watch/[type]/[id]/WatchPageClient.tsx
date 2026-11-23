@@ -165,7 +165,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                         {credits && credits.length > 0 && (
                             <div className="space-y-4">
                                 <h3 className="text-xl font-bold flex items-center gap-2">Top Cast</h3>
-                                <div className="flex gap-4 overflow-x-auto pb-4 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                                <div data-smooth="x" className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                                     {credits.map((person) => (
                                         <Link key={person.id} href={`/person?id=${person.id}`} className="min-w-[120px] w-[120px] snap-start group flex flex-col items-center">
                                             <div className="relative w-full aspect-square rounded-full overflow-hidden mb-3 bg-white/5 border border-white/5 ring-2 ring-white/5 group-hover:ring-[#2f8a7f] transition-all">
@@ -189,7 +189,7 @@ export default function WatchPageClient({ id, type }: { id: string; type: string
                         {details.images && details.images.backdrops && details.images.backdrops.length > 0 && (
                             <div className="space-y-4">
                                 <h3 className="text-xl font-bold">Gallery</h3>
-                                <div className="flex gap-4 overflow-x-auto pb-4 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                                <div data-smooth="x" className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                                     {details.images.backdrops.slice(0, 10).map((image, index) => (
                                         <div key={index} className="min-w-[280px] w-[280px] md:min-w-[320px] md:w-[320px] aspect-video snap-start relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 shadow-lg group">
                                             <Image

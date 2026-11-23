@@ -54,7 +54,7 @@ export default function Countdown({ targetDate, className, compact }: CountdownP
 
     if (compact) {
         return (
-            <div className={`flex items-center gap-1 font-mono text-[11px] font-bold text-white/90 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 ${className || ''}`}>
+            <div className={`flex items-center gap-1 font-mono text-[11px] font-bold text-white/90 bg-black/75 px-2 py-0.5 rounded-md border border-white/10 ${className || ''}`}>
                 <span>{timeLeft.days}d</span>
                 <span className="opacity-40 text-[9px]">:</span>
                 <span>{timeLeft.hours}h</span>

@@ -15,7 +15,6 @@
     overflow-y: hidden;
     /* Vertical padding leaves room for the cards' hover lift and glow. */
     padding: 22px 4% 34px;
-    scroll-behavior: smooth;
 }
 
 .item {

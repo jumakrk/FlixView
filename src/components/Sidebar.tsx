@@ -107,7 +107,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                     <kbd className={styles.kbd}>Ctrl K</kbd>
                 </button>
 
-                <nav className={styles.nav} data-lenis-prevent>
+                <nav className={styles.nav} data-lenis-prevent data-smooth="y">
                     <span className={styles.groupLabel}>Browse</span>
                     {NAV_LINKS.map(renderLink)}
                     <span className={styles.groupLabel}>Library</span>

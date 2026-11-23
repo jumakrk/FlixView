@@ -79,7 +79,7 @@ export default function SeasonSelector({ seriesId, seasons, initialSeasonNumber 
                     <div className={styles.skeleton} />
                 </div>
             ) : (
-                <div className={cn(styles.episodeList, listClassName)} data-lenis-prevent={listClassName ? '' : undefined}>
+                <div className={cn(styles.episodeList, listClassName)} data-smooth={listClassName ? 'y' : undefined}>
                     {seasonData?.episodes.map((episode) => {
                         const isComingSoon = !episode.air_date || new Date(episode.air_date) > new Date();
 

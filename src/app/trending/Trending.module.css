@@ -1,0 +1,437 @@
+/* Trending: a live chart. No. 1 as a cinematic banner, Nos. 2-4 as wide
+   artwork cards, then the ranked list with movement against this week. */
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: view-in 0.55s var(--ease-out);
+}
+
+@keyframes view-in {
+    from { opacity: 0; transform: translateY(16px); }
+}
+
+/* --- Shared bits --- */
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #f5c25b;
+    font-weight: 700;
+}
+
+.kind {
+    padding: 2px 8px;
+    border: 1px solid rgba(240, 237, 228, 0.22);
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    padding: 6px 12px;
+    border: 1px solid rgba(240, 237, 228, 0.18);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(0, 90, 82, 0.75), rgba(0, 53, 47, 0.85));
+    color: var(--sand);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 8px 24px rgba(0, 40, 36, 0.5), inset 0 1px 0 rgba(240, 237, 228, 0.25);
+}
+
+/* Movement against this week's chart. */
+.move {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 34px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.moveUp { background: rgba(121, 179, 169, 0.16); color: #8fd4c7; }
+.moveDown { background: rgba(232, 124, 104, 0.14); color: #ef9a88; }
+.moveSame { background: rgba(240, 237, 228, 0.07); color: var(--text-muted); }
+.moveNew {
+    background: var(--sand);
+    color: var(--cyprus-deep);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* --- No. 1 --- */
+.spotlight {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: min(62vh, 560px);
+    overflow: hidden;
+    border-radius: 32px;
+    background: #071311;
+    box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(240, 237, 228, 0.08);
+    isolation: isolate;
+}
+
+.spotlightArt {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-size: cover;
+    background-position: center 22%;
+    transition: transform 1.6s var(--ease-out);
+}
+
+.spotlight:hover .spotlightArt {
+    transform: scale(1.04);
+}
+
+.spotlightShade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(90deg, rgba(4, 11, 10, 0.95) 0%, rgba(4, 11, 10, 0.7) 34%, rgba(4, 11, 10, 0.1) 70%),
+        linear-gradient(0deg, rgba(4, 11, 10, 0.92) 0%, transparent 55%);
+}
+
+/* Rank numbers: the same design as the home page's "Top 10" row
+   (components/TopTenRow.module.css): Archivo Black, outlined and tight, lit
+   in Sand when their card is hovered. */
+.spotlightRank,
+.runnerRank,
+.rowRank {
+    font-family: var(--font-rank), sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(240, 237, 228, 0.6);
+    user-select: none;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-origin: bottom left;
+}
+
+.spotlight:hover .spotlightRank,
+.runner:hover .runnerRank,
+.row:hover .rowRank {
+    -webkit-text-stroke: 2px var(--sand);
+    color: rgba(240, 237, 228, 0.16);
+    transform: scale(1.1) translate(5px, -5px);
+    filter: drop-shadow(0 0 20px rgba(240, 237, 228, 0.35));
+}
+
+.spotlightRank {
+    position: absolute;
+    right: 4%;
+    bottom: 6%;
+    z-index: -1;
+    font-size: clamp(220px, 24vw, 380px);
+    /* Over twice the Top 10 size, so the outline is scaled up to match. */
+    -webkit-text-stroke-width: 3px;
+    /* Grows towards the middle of the banner, not off its right edge. */
+    transform-origin: bottom right;
+}
+
+.spotlight:hover .spotlightRank {
+    -webkit-text-stroke-width: 4px;
+    transform: scale(1.1) translate(-5px, -5px);
+}
+
+.spotlightCopy {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: min(640px, 62%);
+    padding: clamp(28px, 4vw, 48px);
+}
+
+.spotlightTitle {
+    font-size: clamp(36px, 4.2vw, 58px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--sand);
+    text-decoration: none;
+    transition: color 0.25s;
+}
+
+.spotlightTitle:hover {
+    color: #fff;
+}
+
+.spotlightText {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 56ch;
+    color: rgba(240, 237, 228, 0.72);
+    font-size: 15.5px;
+    line-height: 1.6;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 1px solid rgba(240, 237, 228, 0.18);
+    border-radius: 14px;
+    background: rgba(240, 237, 228, 0.08);
+    color: var(--sand);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.25s, border-color 0.25s;
+}
+
+.ghost:hover {
+    background: rgba(240, 237, 228, 0.16);
+    border-color: rgba(240, 237, 228, 0.32);
+}
+
+/* --- Nos. 2 to 4 --- */
+.runners {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.runner {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 26px;
+    background: #071311;
+    box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(240, 237, 228, 0.08);
+    color: inherit;
+    text-decoration: none;
+    isolation: isolate;
+    transition: transform 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out);
+}
+
+.runner:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 34px 70px -30px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(221, 213, 193, 0.35), 0 0 46px rgba(31, 128, 115, 0.28);
+}
+
+.runnerArt {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+}
+
+.runnerArt img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease-out);
+}
+
+.runner:hover .runnerArt img {
+    transform: scale(1.06);
+}
+
+.runnerShade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(0deg, rgba(4, 11, 10, 0.96) 0%, rgba(4, 11, 10, 0.55) 42%, rgba(4, 11, 10, 0.05) 75%);
+}
+
+.runnerRank {
+    position: absolute;
+    left: 18px;
+    bottom: 20px;
+    font-size: clamp(84px, 8vw, 120px);
+}
+
+.runnerCopy {
+    position: absolute;
+    left: calc(18px + 0.62 * clamp(84px, 8vw, 120px) + 14px);
+    right: 18px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.runnerTitle {
+    overflow: hidden;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* --- The chart --- */
+.chartHead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 36px;
+}
+
+.count {
+    padding: 7px 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--surface-1);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.chart {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 4px 28px;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 14px 12px 6px;
+    border-bottom: 1px solid var(--hairline);
+    border-radius: 18px;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.row:hover {
+    background: rgba(240, 237, 228, 0.045);
+    border-color: transparent;
+}
+
+.rowRank {
+    flex: none;
+    width: 76px;
+    font-size: 46px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    transform-origin: bottom right;
+}
+
+.row:hover .rowRank {
+    transform: scale(1.1) translate(-2px, -3px);
+}
+
+.rowArt {
+    position: relative;
+    flex: none;
+    width: 148px;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(240, 237, 228, 0.05);
+    box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.08);
+}
+
+.rowArt img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease-out);
+}
+
+.row:hover .rowArt img {
+    transform: scale(1.07);
+}
+
+.rowCopy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.rowTitle {
+    overflow: hidden;
+    font-size: 16.5px;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.rowMove {
+    flex: none;
+}
+
+.rowChevron {
+    flex: none;
+    color: var(--text-muted);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.3s, transform 0.3s var(--ease-out);
+}
+
+.row:hover .rowChevron {
+    opacity: 1;
+    transform: none;
+}
+
+@media (max-width: 1180px) {
+    .chart { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 900px) {
+    .runners { grid-template-columns: minmax(0, 1fr); }
+    .spotlightCopy { width: 100%; }
+    .spotlightRank { font-size: 200px; opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .view { animation: none; }
+}
