@@ -15,9 +15,9 @@
 
   // Direct downloads, used until (or unless) GitHub reports a newer release.
   var FALLBACK_ASSETS = {
-    windows: { url: 'https://github.com/jumakrk/FlixView/releases/download/v0.1.19/FlixView-Setup-0.1.19.exe', name: 'FlixView-Setup-0.1.19.exe', size: 0 },
-    mac: { url: 'https://github.com/jumakrk/FlixView/releases/download/v0.1.19/FlixView-0.1.19-arm64.dmg', name: 'FlixView-0.1.19-arm64.dmg', size: 0 },
-    linux: { url: 'https://github.com/jumakrk/FlixView/releases/download/v0.1.19/FlixView-0.1.19.AppImage', name: 'FlixView-0.1.19.AppImage', size: 0 },
+    windows: { url: 'https://github.com/jumakrk/FlixView/releases/download/v0.1.20/FlixView-Setup-0.1.20.exe', name: 'FlixView-Setup-0.1.20.exe', size: 0 },
+    mac: { url: 'https://github.com/jumakrk/FlixView/releases/download/v0.1.20/FlixView-0.1.20-arm64.dmg', name: 'FlixView-0.1.20-arm64.dmg', size: 0 },
+    linux: { url: 'https://github.com/jumakrk/FlixView/releases/download/v0.1.20/FlixView-0.1.20.AppImage', name: 'FlixView-0.1.20.AppImage', size: 0 },
   };
 
   var root = document.documentElement;

@@ -29,7 +29,7 @@ robots.txt
 and points each button at that release's `.exe`, `.dmg` and `.AppImage`, with
 the version, file size and release date. Publishing a new GitHub release is
 enough: the site does not need to change. If the API cannot be reached, the
-buttons keep the direct v0.1.19 links written into the page.
+buttons keep the direct v0.1.20 links written into the page.
 
 The visitor's operating system is detected so the main button reads
 "Download for Windows" (or macOS, or Linux) and the download area opens on
